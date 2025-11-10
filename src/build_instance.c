@@ -27,6 +27,8 @@ int main()
 	daqInstance* instance = NULL;
 	createInstance(instance);
 
+	// TODO: Display that the insance itself was created
+
 	daqReleaseRef(instance);
 	
     return 0;

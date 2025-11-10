@@ -18,6 +18,7 @@ int main()
     daqList* availableDevices = NULL;
     discoverDevices(availableDevices, instance);
 
+    // TODO: Add a way to display the found devices
 
     daqReleaseRef(instance);
     daqReleaseRef(availableDevices);
