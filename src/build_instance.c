@@ -14,7 +14,6 @@ void createInstance(daqInstance* instance)
 	daqString_createString(&localId, "");
 	daqInstanceBuilder_setDefaultRootDeviceLocalId(builder, localId);
 	daqReleaseRef(localId);
-	
 	daqInstance_createInstanceFromBuilder(&instance, builder);
 	daqReleaseRef(builder);
 }
@@ -27,6 +26,8 @@ int main()
 	// Create an instance
 	daqInstance* instance = NULL;
 	createInstance(instance);
+
+	daqReleaseRef(instance);
 	
     return 0;
 }
