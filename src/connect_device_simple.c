@@ -51,4 +51,6 @@ int main()
     daqReleaseRef(instance);
     daqReleaseRef(availableDevices);
     daqReleaseRef(connectedDevice);
+
+    return 0;
 }
