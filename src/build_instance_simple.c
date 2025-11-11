@@ -20,15 +20,20 @@ void createInstance(daqInstance* instance)
 }
 
 
-void
-
 int main()
 {
     // Create an instance
     daqInstance* instance = NULL;
     createInstance(instance);
 
-    // TODO: Display that the insance itself was created
+    if (instance == NULL)
+    {
+        printf("Failed to create instance.\r\n");
+    }
+    else
+    {
+        printf("Instance successfully created.\r\n");
+    }
 
     daqReleaseRef(instance);
 
