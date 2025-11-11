@@ -1,4 +1,5 @@
 #include <copendaq.h>
+#include <stdio.h>
 #include <discover_devices_simple.c>
 
 
@@ -14,7 +15,6 @@ void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDe
 
     if (deviceInfo == NULL)
     {
-        // Be very upset and throw a tantrum (or whatever the equivalant of this is)
         printf("Device not found\r\n");
         daqReleaseRef(iterator);
         daqReleaseRef(deviceInfo);
@@ -47,7 +47,6 @@ int main()
     connectDevice(availableDevices, instance, connectedDevice);
 
     // TODO: Display the device info...
-
 
     daqReleaseRef(instance);
     daqReleaseRef(availableDevices);
