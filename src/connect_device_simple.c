@@ -10,6 +10,14 @@ void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDe
     daqIterator* iterator = NULL;
     daqList_createStartIterator(listOfAvailableDevices, &iterator);
 
+    // To startup the iteration
+    if (daqIterator_moveNext(iterator) != DAQ_SUCCESS)
+    {
+        printf("Failed to initialize the iterator when looking for the available device!\r\n");
+        daqReleaseRef(iterator);
+        return 0;
+    }
+
     daqDeviceInfo* deviceInfo = NULL;
     daqIterator_getCurrent(iterator, (daqBaseObject**)&deviceInfo);
 
@@ -46,8 +54,27 @@ int main()
     daqDevice* connectedDevice = NULL;
     connectDevice(availableDevices, instance, connectedDevice);
 
-    // TODO: Display the device info...
+    daqDeviceInfo* devInfo = NULL;
+    daqDevice_getInfo(connectedDevice, &devInfo);
 
+    daqString* name = NULL;
+    daqDeviceInfo_getName(devInfo, &name);
+
+    daqConstCharPtr* name_constChar = NULL;
+    daqString_getCharPtr(name, &name_constChar);
+
+    if (name_constChar == NULL)
+    {
+        printf("Device failed to connect.\r\n");
+    }
+    else
+    {
+        printf("Device with the name %s is connected.\r\n", name_constChar);
+    }
+
+    daqReleaseRef(name_constChar);
+    daqReleaseRef(name);
+    daqReleaseRef(devInfo);
     daqReleaseRef(instance);
     daqReleaseRef(availableDevices);
     daqReleaseRef(connectedDevice);
