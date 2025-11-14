@@ -1,5 +1,5 @@
 #include <copendaq.h>
-#include <stdoi.h>
+#include <stdio.h>
 
 void createInstance(daqInstance* instance)
 {

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 set(REPO_NAME C_Examples)
 
-project(${REPO_NAME} C)
+project(${REPO_NAME} C CXX)
 
 set(C_EXAMPLES 
     "./src/connect_device_simple.c"
