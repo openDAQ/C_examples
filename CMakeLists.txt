@@ -1,19 +1,31 @@
 cmake_minimum_required(VERSION 3.25)
-
 set(REPO_NAME C_Examples)
+set(REPO_OPTION_PREFIX LABVIEW_EXAMPLESET)
 
-project(${REPO_NAME} C CXX)
+project(${REPO_NAME} VERSION 1.0.0)
 
-set(C_EXAMPLES 
-    "./src/connect_device_simple.c"
-    "./src/build_instance_simple.c"
-    "./src/discover_devices_simple.c"
-    "./src/signals_from_device_simple.c")
+if (POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
+if (POLICY CMP0077)
+    cmake_policy(SET CMP0077 NEW)
+endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+list(APPEND CMAKE_MESSAGE_CONTEXT ${REPO_NAME})
+set(CMAKE_MESSAGE_CONTEXT_SHOW ON CACHE BOOL "Show CMake message context")
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+add_definitions(-DFMT_HEADER_ONLY)
+
+include(CommonUtils)
+setup_repo(${REPO_OPTION_PREFIX})
 
 add_subdirectory(external)
+find_package(openDAQ)
+add_compile_definitions(MODULE_PATH="${OPENDAQ_MODULES_DIR}")
 
-foreach(src ${C_EXAMPLES})
-    get_filename_component(exec_name ${src} NAME_WE)
-    add_executable(${exec_name} ${src})
-    target_link_libraries(${exec_name} PRIVATE opendaq)
-endforeach()
+add_subdirectory(src)
+

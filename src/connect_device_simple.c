@@ -1,6 +1,6 @@
 #include <copendaq.h>
 #include <stdio.h>
-#include <discover_devices_simple.c>
+#include "discover_devices_simple.c"
 
 
 
