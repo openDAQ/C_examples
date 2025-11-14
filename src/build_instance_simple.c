@@ -6,7 +6,7 @@ void createInstance(daqInstance* instance)
     daqInstanceBuilder* builder = NULL;
     daqInstanceBuilder_createInstanceBuilder(&builder);
 
-    daqString* modulePath = NUL;
+    daqString* modulePath = NULL;
     daqString_createString(&modulePath, MODULE_PATH);
     daqInstanceBuilder_setModulePath(builder, modulePath);
     daqReleaseRef(modulePath);
