@@ -1,6 +1,6 @@
 #include <copendaq.h>
 #include <stdio.h>
-#include <build_instance.c>
+#include "build_instance_simple.c"
 
 void discoverDevices(daqList* listOfDevices, daqInstance* instance) 
 {

@@ -1,6 +1,6 @@
 #include <copendaq.h>
 #include <stdio.h>
-#include <connect_device_simple.c>
+#include "connect_device_simple.c"
 
 void signalsFromDevices(daqDevice* device, daqSignal* signal)
 {
