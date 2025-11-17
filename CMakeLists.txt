@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
-set(REPO_NAME C_Examples)
-set(REPO_OPTION_PREFIX LABVIEW_EXAMPLESET)
+set(REPO_NAME example_device_module)
+set(REPO_OPTION_PREFIX EXAMPLE_MODULE)
 
 project(${REPO_NAME} VERSION 1.0.0)
 
@@ -24,8 +24,5 @@ include(CommonUtils)
 setup_repo(${REPO_OPTION_PREFIX})
 
 add_subdirectory(external)
-find_package(openDAQ)
-add_compile_definitions(MODULE_PATH="${OPENDAQ_MODULES_DIR}")
-
+#add_subdirectory(cpp_examples)
 add_subdirectory(src)
-

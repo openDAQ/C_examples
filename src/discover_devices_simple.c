@@ -1,12 +1,12 @@
 #include <copendaq.h>
 #include <stdio.h>
-#include <build_instance.c>
+#include "build_instance_simple.c"
 
-void discoverDevices(daqList* listOfDevices, daqInstance* instance) 
+void discoverDevices(daqList** listOfDevices, daqInstance* instance) 
 {
     daqDevice* rootDevice = NULL;
     daqInstance_getRootDevice(instance, &rootDevice);
-    daqDevice_getAvailableDevices(rootDevice, &listOfDevices);
+    daqDevice_getAvailableDevices(rootDevice, listOfDevices);
 
     daqReleaseRef(rootDevice);
 }
@@ -14,10 +14,10 @@ void discoverDevices(daqList* listOfDevices, daqInstance* instance)
 int main()
 {
     daqInstance* instance = NULL;
-    createInstance(instance);
+    createInstance(&instance);
 
     daqList* availableDevices = NULL;
-    discoverDevices(availableDevices, instance);
+    discoverDevices(&availableDevices, instance);
 
     daqIterator* iterator = NULL;
     daqList_createStartIterator(availableDevices, &iterator);
@@ -35,13 +35,13 @@ int main()
         daqDeviceInfo_getManufacturer(currentDevInfo, &manufacturer);
 
         daqConstCharPtr* name_constChar = NULL;
-        daqString_getCharPtr(name, &name_constChar);
+        daqString_getCharPtr(name, name_constChar);
 
         daqConstCharPtr* manufacturer_constChar = NULL;
-        daqString_getCharPtr(manufacturer, &name_constChar);
+        daqString_getCharPtr(manufacturer, manufacturer_constChar);
 
-        printf("Name of the device: %s\n", name_constChar);
-        printf("Manufactorer of the device: %s\n", manufacturer_constChar);
+        printf("Name of the device: %s\n", *name_constChar);
+        printf("Manufactorer of the device: %s\n", *manufacturer_constChar);
 
         daqReleaseRef(currentDevInfo);
         daqReleaseRef(name);

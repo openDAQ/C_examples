@@ -2,16 +2,17 @@ get_current_folder_name(TARGET_FOLDER_NAME)
 
 project(labVIEW_example_suite VERSION 1.0.0 LANGUAGES C CXX)
 
-
+set(C_EXAMPLE_HEADERS /headers/build_instance.h
+					  /headers/connect_device.h
+					  /headers/discover_devices.h
+					  /headers/signals_from_device.h)
 
 set(C_EXAMPLES 
     connect_device_simple.c
     build_instance_simple.c
     discover_devices_simple.c
-    signals_from_device_simple.c)
-
-
-#prepend_include(${TARGET_FOLDER_NAME} C_EXAMPLES)
+    signals_from_device_simple.c
+	connect_signal_simple.c)
 
 
 foreach(src ${C_EXAMPLES})

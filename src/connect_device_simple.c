@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include "discover_devices_simple.c"
 
-
-
 void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDevice* device)
 {
     // In the simple example we will connect to 
@@ -15,7 +13,7 @@ void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDe
     {
         printf("Failed to initialize the iterator when looking for the available device!\r\n");
         daqReleaseRef(iterator);
-        return 0;
+        return;
     }
 
     daqDeviceInfo* deviceInfo = NULL;
@@ -26,7 +24,7 @@ void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDe
         printf("Device not found\r\n");
         daqReleaseRef(iterator);
         daqReleaseRef(deviceInfo);
-        return 0;
+        return;
     }
 
     daqString* connectionString = NULL;
@@ -46,10 +44,10 @@ void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDe
 int main()
 {
     daqInstance* instance = NULL;
-    createInstance(instance);
+    createInstance(&instance);
 
     daqList* availableDevices = NULL;
-    discoverDevices(availableDevices, instance);
+    discoverDevices(&availableDevices, instance);
 
     daqDevice* connectedDevice = NULL;
     connectDevice(availableDevices, instance, connectedDevice);
@@ -61,7 +59,7 @@ int main()
     daqDeviceInfo_getName(devInfo, &name);
 
     daqConstCharPtr* name_constChar = NULL;
-    daqString_getCharPtr(name, &name_constChar);
+    daqString_getCharPtr(name, name_constChar);
 
     if (name_constChar == NULL)
     {
@@ -69,7 +67,7 @@ int main()
     }
     else
     {
-        printf("Device with the name %s is connected.\r\n", name_constChar);
+        printf("Device with the name %s is connected.\r\n", *name_constChar);
     }
 
     daqReleaseRef(name_constChar);
