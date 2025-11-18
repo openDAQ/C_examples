@@ -1,9 +1,8 @@
 // Example that demonstrates how to connect to a device and
 // create a reader that consumes the provided data
 // from the connected device
-#include "headers/signals_from_device.h"
-#include <copendaq.h>
-#include <stdio.h>
+#include <read_in_loop.h>
+
 
 void connectAndReadFromDevice()
 {

@@ -1,16 +1,6 @@
-#include <copendaq.h>
-#include <stdio.h>
-#include "connect_device_simple.c"
+// An example that 
 
-void signalsFromDevices(daqInstance* instance, daqDevice* device, daqSignal** signal)
-{
-    // Connect to the device and connect the signal
-    daqList* signals = NULL;
-    daqFunctionBlock* channel = NULL;
-    daqList* channels = NULL;
-    daqDevice_getChannels(device, &channels, NULL);
-    
-}
+#include <signals_from_device.h>
 
 int main()
 {

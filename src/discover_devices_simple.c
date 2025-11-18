@@ -1,15 +1,6 @@
-#include <copendaq.h>
-#include <stdio.h>
-#include "build_instance_simple.c"
+// An example
 
-void discoverDevices(daqList** listOfDevices, daqInstance* instance) 
-{
-    daqDevice* rootDevice = NULL;
-    daqInstance_getRootDevice(instance, &rootDevice);
-    daqDevice_getAvailableDevices(rootDevice, listOfDevices);
-
-    daqReleaseRef(rootDevice);
-}
+#include <discover_devices.h>
 
 int main()
 {
