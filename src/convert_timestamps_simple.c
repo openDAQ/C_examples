@@ -1,7 +1,6 @@
-#include <copendaq.h>
-#include <stdio.h>
+// An example
 
-
+#include <convert_timestamps.h>
 
 int main()
 {

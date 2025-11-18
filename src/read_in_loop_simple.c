@@ -1,7 +1,6 @@
-#include <copendaq.h>
-#include <stdio.h>
+// An example
 
-
+#include <read_in_loop.h>
 
 int main()
 {

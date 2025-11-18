@@ -40,19 +40,23 @@ void createInstance(daqInstance** instance)
     // Error handle
     daqReleaseRef(modulePath);
 
-    daqString* localId = NULL;
+    //[[maybe_unused]] daqString* localId = NULL;
 
     // Error handle
-    daqString_createString(&localId, "");
+    //daqString_createString(&localId, "");
 
     // Error handle
-    daqInstanceBuilder_setDefaultRootDeviceLocalId(builder, localId);
+    //daqInstanceBuilder_setDefaultRootDeviceLocalId(builder, localId);
 
     // Error handle
-    daqReleaseRef(localId);
+    //daqReleaseRef(localId);
 
     // Error handle
-    daqInstance_createInstanceFromBuilder(instance, builder);
+    if (daqInstance_createInstanceFromBuilder(instance, builder) != DAQ_SUCCESS)
+    {
+        checkErrorState();
+        return;
+    }
 
     // Error handle
     daqReleaseRef(builder);
