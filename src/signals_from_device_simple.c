@@ -14,7 +14,7 @@ int main()
     connectDevice(availableDevices, instance, &connectedDevice);
 
     daqSignal* signal = NULL;
-    signalsFromDevices(instance, connectedDevice, &signal);
+    signalsFromDevices(connectedDevice, &signal);
 
     daqDataDescriptor* signalDescriptor = NULL;
     daqSignal_getDescriptor(signal, &signalDescriptor);
@@ -27,9 +27,10 @@ int main()
 
     printf("The name of the connected signal is: %s\r\n", signalName_constChar);
 
-    daqReleaseRef(signalDescriptor);
+    //daqReleaseRef(signalDescriptor);
     daqReleaseRef(signalName);
-    daqReleaseRef(signalName_constChar);
+    //daqReleaseRef(component);
+    //daqReleaseRef(signalName_constChar);
     daqReleaseRef(instance);
     daqReleaseRef(availableDevices);
     daqReleaseRef(connectedDevice);

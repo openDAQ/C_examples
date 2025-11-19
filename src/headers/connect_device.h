@@ -36,7 +36,24 @@ void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDe
     daqDevice* rootDevice = NULL;
     daqInstance_getRootDevice(instance, &rootDevice);
 
+
+    daqDevice* newDevice = NULL;
     daqDevice_addDevice(rootDevice, device, connectionString, NULL);
+
+    newDevice = *device;
+
+    daqDeviceInfo* addedDeviceInfo = NULL;
+    daqDevice_getInfo(newDevice, &addedDeviceInfo);
+
+    daqString* nameOfAddedDevice = NULL;
+    daqDeviceInfo_getConnectionString(addedDeviceInfo, &nameOfAddedDevice);
+
+    daqConstCharPtr nameOADChar = NULL;
+    daqString_getCharPtr(nameOfAddedDevice, &nameOADChar);
+
+    printf("Name of the added device: %s\n", nameOADChar);
+
+    //device = &newDevice;
 
     daqReleaseRef(iterator);
     daqReleaseRef(deviceInfo);
