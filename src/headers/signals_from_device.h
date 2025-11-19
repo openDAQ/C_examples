@@ -6,44 +6,42 @@ void signalsFromDevices(daqDevice* device, daqSignal** signal)
     daqList* signals = NULL;
     daqDevice_getSignals(device, &signals, NULL);
 
-    daqIterator* iterator = NULL;
-    
-    daqList_createStartIterator(signals, &iterator);
-
     daqSignal* outSig = NULL;
 
-    daqList_popFront(signals, (daqBaseObject**) & outSig);
+    daqSizeT numOfSignals = 0;
+    daqList_getCount(signals, &numOfSignals);
+
+
+    if (numOfSignals < 1)
+    {
+        daqDeviceInfo* deviceInfo = NULL;
+        daqDevice_getInfo(device, &deviceInfo);
+
+        daqString* nameDevice = NULL;
+        daqDeviceInfo_getName(deviceInfo, &nameDevice);
+
+        daqConstCharPtr nameDeviceConstChar = NULL;
+        daqString_getCharPtr(nameDevice, &nameDeviceConstChar);
+
+        printf("There are no signals available in the device %s\n", nameDeviceConstChar);
+
+        daqReleaseRef(deviceInfo);
+        daqReleaseRef(nameDevice);
+        daqReleaseRef(signals);
+        return;
+    }
+
+    daqList_getItemAt(signals, 0, (daqBaseObject**)&outSig);
+
+    // Identical to above
+    //daqList_popFront(signals, (daqBaseObject**) & outSig);
 
     signal = outSig;
 
-    if (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
-    {
-        daqSignal* currSig = NULL;
-        daqIterator_getCurrent(iterator, &currSig);
+    daqReleaseRef(signals);
+    
+    // We will need the object down the line
+    // daqReleaseRef(outSig);
 
-        signal = &currSig;
-    }
-
-    while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
-    {
-        daqSignal* currentSignal = NULL;
-        daqIterator_getCurrent(iterator, &currentSignal);
-
-        daqDataDescriptor* dataDescriptor = NULL;
-        daqSignal_getDescriptor(currentSignal, &dataDescriptor);
-
-        daqString* name = NULL;
-        daqDataDescriptor_getName(currentSignal, &name);
-
-        daqConstCharPtr name_constChar = NULL;
-        daqString_getCharPtr(name, &name_constChar);
-
-        printf("Name of the signal: %s\n", name_constChar);
-
-        //signal = &currentSignal;
-
-        daqReleaseRef(currentSignal);
-        daqReleaseRef(name);
-    }
 }
 
