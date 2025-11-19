@@ -14,6 +14,12 @@ void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDe
         return;
     }
 
+    if (daqIterator_moveNext(iterator) != DAQ_SUCCESS)
+    {
+        daqReleaseRef(iterator);
+        return;
+    }
+
     daqDeviceInfo* deviceInfo = NULL;
     daqIterator_getCurrent(iterator, (daqBaseObject**)&deviceInfo);
 

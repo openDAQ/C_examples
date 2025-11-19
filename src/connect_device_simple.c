@@ -19,8 +19,8 @@ int main()
     daqString* name = NULL;
     daqDeviceInfo_getName(devInfo, &name);
 
-    daqConstCharPtr* name_constChar = NULL;
-    daqString_getCharPtr(name, name_constChar);
+    daqConstCharPtr name_constChar = NULL;
+    daqString_getCharPtr(name, &name_constChar);
 
     if (name_constChar == NULL)
     {
@@ -28,10 +28,9 @@ int main()
     }
     else
     {
-        printf("Device with the name %s is connected.\r\n", *name_constChar);
+        printf("Device with the name %s is connected.\r\n", name_constChar);
     }
 
-    daqReleaseRef(name_constChar);
     daqReleaseRef(name);
     daqReleaseRef(devInfo);
     daqReleaseRef(instance);

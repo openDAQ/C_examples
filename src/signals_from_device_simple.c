@@ -11,7 +11,7 @@ int main()
     discoverDevices(&availableDevices, instance);
 
     daqDevice* connectedDevice = NULL;
-    connectDevice(availableDevices, instance, connectedDevice);
+    connectDevice(availableDevices, instance, &connectedDevice);
 
     daqSignal* signal = NULL;
     signalsFromDevices(instance, connectedDevice, &signal);
@@ -22,7 +22,7 @@ int main()
     daqString* signalName = NULL;
     daqDataDescriptor_getName(signalDescriptor, &signalName);
 
-    daqConstCharPtr* signalName_constChar = NULL;
+    daqConstCharPtr signalName_constChar = NULL;
     daqString_getCharPtr(signalName, &signalName_constChar);
 
     printf("The name of the connected signal is: %s\r\n", signalName_constChar);
