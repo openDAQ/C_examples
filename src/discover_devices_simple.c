@@ -25,25 +25,23 @@ int main()
         daqString* manufacturer = NULL;
         daqDeviceInfo_getManufacturer(currentDevInfo, &manufacturer);
 
-        daqConstCharPtr* name_constChar = NULL;
-        daqString_getCharPtr(name, name_constChar);
+        daqConstCharPtr name_constChar = NULL;
+        daqString_getCharPtr(name, &name_constChar);
 
-        daqConstCharPtr* manufacturer_constChar = NULL;
-        daqString_getCharPtr(manufacturer, manufacturer_constChar);
+        daqConstCharPtr manufacturer_constChar = NULL;
+        daqString_getCharPtr(manufacturer, &manufacturer_constChar);
 
-        printf("Name of the device: %s\n", *name_constChar);
-        printf("Manufactorer of the device: %s\n", *manufacturer_constChar);
+        printf("Name of the device: %s\n", name_constChar);
+        printf("Manufactorer of the device: %s\n", manufacturer_constChar);
 
         daqReleaseRef(currentDevInfo);
         daqReleaseRef(name);
         daqReleaseRef(manufacturer);
-        daqReleaseRef(name_constChar);
-        daqReleaseRef(manufacturer_constChar);
     }
 
-    daqReleaseRef(instance);
-    daqReleaseRef(availableDevices);
     daqReleaseRef(iterator);
+    daqReleaseRef(availableDevices);
+    daqReleaseRef(instance);
 
     return 0;
 }
