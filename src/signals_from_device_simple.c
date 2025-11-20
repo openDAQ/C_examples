@@ -27,10 +27,7 @@ int main()
 
     printf("The name of the connected signal is: %s\r\n", signalName_constChar);
 
-    //daqReleaseRef(signalDescriptor);
     daqReleaseRef(signalName);
-    //daqReleaseRef(component);
-    //daqReleaseRef(signalName_constChar);
     daqReleaseRef(instance);
     daqReleaseRef(availableDevices);
     daqReleaseRef(connectedDevice);

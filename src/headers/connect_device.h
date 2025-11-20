@@ -53,8 +53,6 @@ void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDe
 
     printf("Name of the added device: %s\n", nameOADChar);
 
-    //device = &newDevice;
-
     daqReleaseRef(iterator);
     daqReleaseRef(deviceInfo);
     daqReleaseRef(connectionString);

@@ -1,10 +1,15 @@
 #include <connect_device.h>
+#include <copendaq.h>
 
 void signalsFromDevices(daqDevice* device, daqSignal** signal)
 {
+    daqPropertyObject_setPropertyValue((daqPropertyObject*)device, NULL, NULL);
+
     // Connect to the device and connect the signal
     daqList* signals = NULL;
-    daqDevice_getSignals(device, &signals, NULL);
+    
+    // The recursive search though all the signals available in a device
+    daqDevice_getSignalsRecursive(device, &signals, NULL);
 
     daqSignal* outSig = NULL;
 
@@ -31,17 +36,12 @@ void signalsFromDevices(daqDevice* device, daqSignal** signal)
         return;
     }
 
-    daqList_getItemAt(signals, 0, (daqBaseObject**)&outSig);
+    // We take the first available signal that we recieve from the connected device
+    daqList_popFront(signals, (daqBaseObject**) & outSig);
 
-    // Identical to above
-    //daqList_popFront(signals, (daqBaseObject**) & outSig);
-
-    signal = outSig;
+    *signal = outSig;
 
     daqReleaseRef(signals);
-    
-    // We will need the object down the line
-    // daqReleaseRef(outSig);
 
 }
 

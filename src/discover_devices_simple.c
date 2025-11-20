@@ -1,4 +1,4 @@
-// An example
+// An example that looks through the available devices that are discovered
 
 #include <discover_devices.h>
 
