@@ -4,7 +4,7 @@
 #include <read_in_loop.h>
 
 
-void connectAndReadFromDevice()
+void connectAndReadFromDevice(daqDevice* device, daqList* availableDevice /*??*/)
 {
     // Function takes the signal from a device and attaches it to a reader created on the client side.
 

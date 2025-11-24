@@ -58,9 +58,6 @@ int main()
     }
 
 
-
-    //daqReleaseRef(domainSamples);
-    //daqReleaseRef(samples);
     daqReleaseRef(streamReader);
     daqReleaseRef(signal);
     daqReleaseRef(instance);
