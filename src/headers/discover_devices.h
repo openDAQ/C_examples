@@ -20,6 +20,8 @@ void getInfoToFirstDevice(daqInstance* instance, daqDevice** device)
 
     daqList_popFront(listOfDevices, (daqBaseObject**)device);
 
+
+
     //daqReleaseRef(rootDevice);
     daqReleaseRef(listOfDevices);
 }
