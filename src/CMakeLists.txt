@@ -7,7 +7,8 @@ set(C_EXAMPLE_HEADERS headers/build_instance.h
                       headers/discover_devices.h
                       headers/signals_from_device.h
                       headers/convert_timestamps.h
-                      headers/read_in_loop.h)
+                      headers/read_in_loop.h
+		      headers/example_application.h)
 
 set(C_EXAMPLES 
     connect_device_simple.c
@@ -16,7 +17,8 @@ set(C_EXAMPLES
     signals_from_device_simple.c
     read_in_loop_simple.c
     convert_timestamps_simple.c
-    connect_signal_simple.c)
+    connect_signal_simple.c
+    example_application_v2.c)
 
 
 foreach(src ${C_EXAMPLES})
