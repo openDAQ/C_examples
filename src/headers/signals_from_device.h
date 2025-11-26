@@ -1,5 +1,4 @@
 #include <connect_device.h>
-#include <copendaq.h>
 
 void signalsFromDevices(daqDevice* device, daqSignal** signal)
 {

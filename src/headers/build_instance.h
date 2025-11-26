@@ -31,27 +31,21 @@ void createInstance(daqInstance** instance)
         checkErrorState();
     }
 
-    // Error handle
     daqReleaseRef(modulePath);
 
     daqString* localId = NULL;
 
-    // Error handle
     daqString_createString(&localId, "");
 
-    // Error handle
     daqInstanceBuilder_setDefaultRootDeviceLocalId(builder, localId);
 
-    // Error handle
     daqReleaseRef(localId);
 
-    // Error handle
     if (daqInstance_createInstanceFromBuilder(instance, builder) != DAQ_SUCCESS)
     {
         checkErrorState();
         return;
     }
 
-    // Error handle
     daqReleaseRef(builder);
 }
