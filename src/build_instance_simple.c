@@ -4,7 +4,6 @@
 
 int main()
 {
-    // Create an instance
     daqInstance* instance = NULL;
     createInstance(&instance);
 

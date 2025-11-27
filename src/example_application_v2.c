@@ -1,5 +1,7 @@
 #include <example_application.h>
 
+// 
+
 int main()
 {
     daqInstanceBuilder* instanceBuilder = NULL;
@@ -10,9 +12,9 @@ int main()
     daqInstanceBuilder_build(instanceBuilder, &instance);
 
     daqList* availableSignals = NULL;
-    daqStreamReader* streamReader = NULL;
+    daqStreamReaderBuilder* streamReaderBuilder = NULL;
 
-    setup(instance, &availableSignals, &streamReader);
+    setup(instance, &availableSignals, &streamReaderBuilder);
 
     daqSignal* signal = NULL;
 
@@ -25,7 +27,13 @@ int main()
         return 0;
     }
 
-    reading(streamReader, 0, signal);
+    daqStreamReader* streamReader = NULL;
+    daqStreamReaderBuilder_build(streamReaderBuilder, &streamReader);
+
+    // We can just read like in read_in_loop
+    read_from_stream_reader(/*Fix the signal (cannot be an array, must be a single signal)*/availableSignals, 1000);
+
+    // Alternatively construct a different reader and connect it to the signal
 
     daqReleaseRef(availableSignals);
     daqReleaseRef(streamReader);

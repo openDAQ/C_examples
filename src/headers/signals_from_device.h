@@ -43,4 +43,3 @@ void signalsFromDevices(daqDevice* device, daqSignal** signal)
     daqReleaseRef(signals);
 
 }
-
