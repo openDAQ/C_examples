@@ -1,8 +1,9 @@
 #include <daq_utils.h>
 
-// This example demonstrated how to create an openDAQ instance ...
+// TODO: Move up
+// This example demonstrated how to create an openDAQ instance and discover all available devices for connection
 
-int main()
+int main(void)
 {
     daqInstanceBuilder* builder = NULL;
     daqInstanceBuilder_createInstanceBuilder(&builder);
@@ -13,19 +14,18 @@ int main()
 
     // Discovering devices:
 
-    // Calling the function that discoveres all the available devices for connection
+    // Calling the function that discovers all the available devices for connection
     daqList* availableDevices = NULL;
     daqDevice_getAvailableDevices((daqDevice*)instance, &availableDevices);
 
     // Due to the nature of the C language we need to create an Iterator object when traversing the daqList object
     daqIterator* iterator = NULL;
     daqList_createStartIterator(availableDevices, &iterator);
-
-    // Note on iterator objects and their behaviour in openDAQ.
-    /*
-        OpenDAQ iterators need to be "booted up" with a daqIterator_moveNext call as they do not start pointing to the first element of the list in the beginning.
-    */
-
+ 
+    // TODO: A bit too many comments
+    // OpenDAQ iterators need to be "booted up" with a daqIterator_moveNext call as they do not 
+    // start pointing to the first element of the list in the beginning.
+   
     // Go through all detected devices and print out their respective domain info
     while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
     {
@@ -45,7 +45,7 @@ int main()
         daqString_getCharPtr(manufacturer, &manufacturer_constChar);
 
         printf("Name of the device: %s\n", name_constChar);
-        printf("Manufactorer of the device: %s\n", manufacturer_constChar);
+        printf("Manufacturer of the device: %s\n", manufacturer_constChar);
 
         daqReleaseRef(currentDevInfo);
         daqReleaseRef(name);

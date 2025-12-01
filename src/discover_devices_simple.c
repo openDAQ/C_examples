@@ -1,9 +1,9 @@
 #include <discover_devices.h>
 
 // To discover available devices that your instance can connect to, the instance itself has an internal root device that has an available function called getAvailableDevices.
-// In this example we will demonstrate how to access it and create a list of all available devices that you can connect to and display device connection candidate's name and manufactorer.
+// In this example we will demonstrate how to access it and create a list of all available devices that you can connect to and display device connection candidate's name and manufacturer.
 
-int main()
+int main(void)
 {
     daqInstance* instance = NULL;
     createInstanceWithDefaultParameters(&instance);
@@ -42,7 +42,7 @@ int main()
         daqString_getCharPtr(manufacturer, &manufacturer_constChar);
 
         printf("Name of the device: %s\n", name_constChar);
-        printf("Manufactorer of the device: %s\n", manufacturer_constChar);
+        printf("Manufacturer of the device: %s\n", manufacturer_constChar);
 
         daqReleaseRef(currentDevInfo);
         daqReleaseRef(name);
