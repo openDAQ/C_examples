@@ -26,15 +26,6 @@ void createInstanceWithDefaultParameters(daqInstance** instance)
         checkErrorState();
     }
 
-    daqString* modulePath = NULL;
-
-    if (daqString_createString(&modulePath, MODULE_PATH) != DAQ_SUCCESS)
-    {
-        checkErrorState();
-    }
-
-    daqReleaseRef(modulePath);
-
     if (daqInstance_createInstanceFromBuilder(instance, builder) != DAQ_SUCCESS)
     {
         checkErrorState();
@@ -45,9 +36,8 @@ void createInstanceWithDefaultParameters(daqInstance** instance)
 }
 
 
-
-// Method for creating Instance with custom parameters
-void createInstanceWithParameters(daqString* moduleCustomPath, daqString* customLocalId, daqInstance** instance)
+// Method for creating Instance with custom modulePath and LocalId parameters
+void createInstanceWithCustomParameters(daqString* moduleCustomPath, daqString* customLocalId, daqInstance** instance)
 {
     daqInstanceBuilder* builder = NULL;
 
@@ -89,11 +79,9 @@ void createInstanceWithParameters(daqString* moduleCustomPath, daqString* custom
         daqInstanceBuilder_getDefaultRootDeviceLocalId(builder, customLocalId);
     }
 
-    if (daqInstance_createInstanceFromBuilder(instance, builder) == DAQ_SUCCESS)
-    {
-        daqReleaseRef(builder);
-    }
+    daqInstance_createInstanceFromBuilder(instance, builder);
 
+    daqReleaseRef(builder);
     daqReleaseRef(modulePath);
-    daqReleaseRef(equalId);
+    daqReleaseRef(localId);
 }
