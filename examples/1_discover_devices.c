@@ -1,18 +1,21 @@
-#include <discover_devices.h>
+#include <daq_utils.h>
 
-// To discover available devices that your instance can connect to, the instance itself has an internal root device that has an available function called getAvailableDevices.
-// In this example we will demonstrate how to access it and create a list of all available devices that you can connect to and display device connection candidate's name and manufactorer.
+// This example demonstrated how to create an openDAQ instance ...
 
 int main()
 {
+    daqInstanceBuilder* builder = NULL;
+    daqInstanceBuilder_createInstanceBuilder(&builder);
+
+    // The created Instance gets its settings from the builder that was used to create it
     daqInstance* instance = NULL;
-    createInstanceWithDefaultParameters(&instance);
+    daqInstance_createInstanceFromBuilder(&instance, builder);
 
     // Discovering devices:
-    
+
     // Calling the function that discoveres all the available devices for connection
     daqList* availableDevices = NULL;
-    daqDevice_getAvailableDevices((daqDevice*) instance, &availableDevices);
+    daqDevice_getAvailableDevices((daqDevice*)instance, &availableDevices);
 
     // Due to the nature of the C language we need to create an Iterator object when traversing the daqList object
     daqIterator* iterator = NULL;
@@ -28,7 +31,7 @@ int main()
     {
         daqDeviceInfo* currentDevInfo = NULL;
         daqIterator_getCurrent(iterator, (daqBaseObject*)&currentDevInfo);
-        
+
         daqString* name = NULL;
         daqDeviceInfo_getName(currentDevInfo, &name);
 
@@ -52,6 +55,8 @@ int main()
     daqReleaseRef(iterator);
     daqReleaseRef(availableDevices);
     daqReleaseRef(instance);
+    daqReleaseRef(builder);
 
     return 0;
 }
+

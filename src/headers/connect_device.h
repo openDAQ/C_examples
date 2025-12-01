@@ -1,5 +1,7 @@
 #include <discover_devices.h>
 
+
+
 void connectDevice(daqList* listOfAvailableDevices, daqInstance* instance, daqDevice** device)
 {
     // In the simple example we will connect to 

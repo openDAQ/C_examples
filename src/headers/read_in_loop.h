@@ -11,6 +11,8 @@ void read_from_stream_reader(daqSignal* signal, daqUInt duration)
     daqDataDescriptor* dataDescriptor = NULL;
     daqSignal_getDescriptor(domainSignal, &dataDescriptor);
 
+    daqTimeProtocol* timeProtocol = NULL;
+
     daqRatio* ratio = NULL;
     daqDataDescriptor_getTickResolution(dataDescriptor, &ratio);
 

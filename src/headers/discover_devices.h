@@ -1,7 +1,7 @@
 #include <build_instance.h>
 
 // Method for creating a list of all available devices for connection to the instance
-void discoverDevices(daqList** listOfDevices, daqInstance* instance)
+void discoverDevicesFromInstance(daqList** listOfDevices, daqInstance* instance)
 {
     daqDevice* rootDevice = NULL;
     daqInstance_getRootDevice(instance, &rootDevice);
@@ -12,7 +12,7 @@ void discoverDevices(daqList** listOfDevices, daqInstance* instance)
 }
 
 // Method for recieving the DeviceInfo of the first available device in the list of all available devices from a given instance
-void getInfoToFirstDevice(daqInstance* instance, daqDevice** device)
+void getDeviceInfoFromFirstDevice(daqInstance* instance, daqDevice** device)
 {
     daqDevice* rootDevice = DAQ_BORROW_INTERFACE(instance, DAQ_DEVICE_INTF_ID);
 

@@ -1,7 +1,6 @@
 #include <copendaq.h>
 #include <stdio.h>
 
-// 
 void checkErrorState()
 {
     daqString* errorString = NULL;

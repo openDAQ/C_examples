@@ -25,3 +25,4 @@ setup_repo(${REPO_OPTION_PREFIX})
 
 add_subdirectory(external)
 add_subdirectory(src)
+add_subdirectory(examples)

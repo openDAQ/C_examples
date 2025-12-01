@@ -30,10 +30,16 @@ int main()
     daqStreamReader* streamReader = NULL;
     daqStreamReaderBuilder_build(streamReaderBuilder, &streamReader);
 
-    // We can just read like in read_in_loop
-    read_from_stream_reader(/*Fix the signal (cannot be an array, must be a single signal)*/availableSignals, 1000);
+    daqSignal* signal = NULL;
 
-    // Alternatively construct a different reader and connect it to the signal
+    // Get the first signal from the list of available ones and then connect a stream reader onto it (similar to read_in_loop)
+
+    // Stream reader
+
+    // Multi reader
+
+    // 
+
 
     daqReleaseRef(availableSignals);
     daqReleaseRef(streamReader);

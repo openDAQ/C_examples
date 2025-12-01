@@ -5,7 +5,7 @@
 int main()
 {
     daqInstance* instance = NULL;
-    createInstance(&instance);
+    createInstanceWithDefaultParameters(&instance);
 
     daqList* availableDevices = NULL;
     discoverDevices(&availableDevices, instance);
