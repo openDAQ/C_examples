@@ -67,25 +67,34 @@ int main()
             daqString* connectionString = NULL;
             daqDeviceInfo_getConnectionString(currentDevInfo, &connectionString);
 
-            daqDevice_addDevice((daqDevice*)instance, connectedDevice, connectionString, NULL);
+            daqDevice_addDevice((daqDevice*)instance, &connectedDevice, connectionString, NULL);
             daqReleaseRef(connectionString);
             
             connected = 1;
         }
 
-        printf("Manufactorer of the device: %s\n", manufacturer_constChar);
-
         daqReleaseRef(currentDevInfo);
         daqReleaseRef(manufacturer);
 
         if (connected)
-        {
-            
-        }
+            break;
     }
 
+    if (connected) {
+        daqDeviceInfo* connectedDeviceInfo = NULL;
+        daqDevice_getInfo(connectedDevice, &connectedDeviceInfo);
 
+        daqString* name = NULL;
+        daqDeviceInfo_getName(connectedDeviceInfo, &name);
 
+        daqConstCharPtr nameConstChar = NULL;
+        daqString_getCharPtr(name, &nameConstChar);
+
+        printf("The name of the connected device is: %s\n", nameConstChar);
+
+        daqReleaseRef(name);
+        daqReleaseRef(connectedDevice);
+    }
     daqReleaseRef(instance);
     daqReleaseRef(availableDevices);
     return 0;
