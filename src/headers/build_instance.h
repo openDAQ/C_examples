@@ -1,6 +1,7 @@
 #include <copendaq.h>
 #include <stdio.h>
 
+// 
 void checkErrorState()
 {
     daqString* errorString = NULL;
@@ -15,7 +16,8 @@ void checkErrorState()
     }
 }
 
-void createInstance(daqInstance** instance)
+// Method for creating an Instance of openDAQ in its default state.
+void createInstanceWithDefaultParameters(daqInstance** instance)
 {
     daqInstanceBuilder* builder = NULL;
 
@@ -33,14 +35,6 @@ void createInstance(daqInstance** instance)
 
     daqReleaseRef(modulePath);
 
-    daqString* localId = NULL;
-
-    daqString_createString(&localId, "");
-
-    daqInstanceBuilder_setDefaultRootDeviceLocalId(builder, localId);
-
-    daqReleaseRef(localId);
-
     if (daqInstance_createInstanceFromBuilder(instance, builder) != DAQ_SUCCESS)
     {
         checkErrorState();
@@ -48,4 +42,58 @@ void createInstance(daqInstance** instance)
     }
 
     daqReleaseRef(builder);
+}
+
+
+
+// Method for creating Instance with custom parameters
+void createInstanceWithParameters(daqString* moduleCustomPath, daqString* customLocalId, daqInstance** instance)
+{
+    daqInstanceBuilder* builder = NULL;
+
+    daqInstanceBuilder_createInstanceBuilder(&builder);
+
+    daqString* modulePath = NULL;
+
+    daqString_createString(&modulePath, MODULE_PATH);
+
+    daqBool equalPaths = NULL;
+
+    daqBaseObject_equals((daqBaseObject*)modulePath, (daqBaseObject*)moduleCustomPath, &equalPaths);
+
+    if (equalPaths == True) 
+    {
+        daqInstanceBuilder_addModulePath(builder, modulePath);
+    }
+    else
+    {
+        // Here we will assume that moduleCustomPath is non-empty
+        daqInstanceBuilder_addModulePath(builder, moduleCustomPath);
+    }
+
+    daqString* localId = NULL;
+
+    daqString_createString(&localId, "");
+
+    daqBool equalId = NULL;
+
+    daqBaseObject_equals((daqBaseObject*)localId, (daqBaseObject*)customLocalId, &equalId);
+
+    if (equalId == True)
+    {
+        daqInstanceBuilder_getDefaultRootDeviceLocalId(builder, localId);
+    }
+    else
+    {
+        // Again the same assumption as above. (customLocalId is non-empty)
+        daqInstanceBuilder_getDefaultRootDeviceLocalId(builder, customLocalId);
+    }
+
+    if (daqInstance_createInstanceFromBuilder(instance, builder) == DAQ_SUCCESS)
+    {
+        daqReleaseRef(builder);
+    }
+
+    daqReleaseRef(modulePath);
+    daqReleaseRef(equalId);
 }
