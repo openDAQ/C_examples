@@ -147,22 +147,79 @@ static inline daqErrCode addSimulator(daqDevice** device, daqInstance** instance
     daqIterator* iterator = NULL;
     daqList_createStartIterator(availableDevices, &iterator);
 
+    daqBool sameSerial = False;
+    daqBool sameManufacturer = False;
+
     while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
     {
         daqDeviceInfo* currentDeviceInfo = NULL;
+        daqIterator_getCurrent(iterator, &currentDeviceInfo);
 
+        daqString* serialNumberCurrent = NULL;
+        daqDeviceInfo_getSerialNumber(currentDeviceInfo, &serialNumberCurrent);
+
+        daqString* manufacturerCurrent = NULL;
+        daqDeviceInfo_getManufacturer(currentDeviceInfo, &manufacturerCurrent);
+
+        daqConstCharPtr serialNumberCurrentConstChar = NULL;
+        daqString_getCharPtr(serialNumberCurrent, &serialNumberCurrentConstChar);
+
+        daqConstCharPtr manufacturerCurrentConstChar = NULL;
+        daqString_getCharPtr(manufacturerCurrent, &manufacturerCurrentConstChar);
+
+        sameSerial = !strcmp(serialNumberCurrentConstChar, "sim01");
+        sameManufacturer = !strcmp(manufacturerCurrentConstChar, "openDAQ");
+
+        daqReleaseRef(serialNumberCurrent);
+        daqReleaseRef(manufacturerCurrent);
+
+        if (sameSerial && sameManufacturer)
+        {
+            daqString* connectionString = NULL;
+            daqDeviceInfo_getConnectionString(currentDeviceInfo, &connectionString);
+
+            daqDevice_addDevice((daqDevice*)*instance, device, connectionString, NULL);
+
+            daqReleaseRef(currentDeviceInfo);
+            break;
+        }
 
         daqReleaseRef(currentDeviceInfo);
     }
+
+    daqReleaseRef(iterator);
+    daqReleaseRef(availableDevices);
 
     return DAQ_SUCCESS;
 }
 
 static inline daqErrCode createInstance(daqInstance** instance, const char* modulePath)
 {
+    daqInstanceBuilder* instanceBuilder = NULL;
+    daqInstanceBuilder_createInstanceBuilder(&instanceBuilder);
+
+    daqString* modulePathStr = NULL;
+    daqString_createString(&modulePathStr, modulePath);
+
+    daqInstanceBuilder_addModulePath(instanceBuilder, modulePathStr);
+
+    daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
+
+    daqReleaseRef(modulePathStr);
+    daqReleaseRef(instanceBuilder);
+
     return DAQ_SUCCESS;
 }
 
-static inline void printDaqFormattedString(const char* string, daqString* daqString)
+static inline void printDaqFormattedString(const char* outputFormatString, daqString* daqString)
 {
+    // TODO: Maybe refactor this again if a nicer way is known...
+    daqConstCharPtr stringConstChar = NULL;
+    daqString_getCharPtr(daqString, &stringConstChar);
+
+    const char* combined = malloc(strlen(outputFormatString) + strlen("%s\n" + 1));
+    strcpy(combined, outputFormatString);
+    strcat(combined, "%s\n");
+
+    printf(combined, stringConstChar);
 }
