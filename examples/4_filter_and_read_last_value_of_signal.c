@@ -1,11 +1,27 @@
 /*
- * ... :(
+ * This example shows how to find a specific signal and read its last know value.
+ * The example explores two ways of finding the wanted signal,
+ * the first being searching through all signals and comparing the names
+ * and the second one find the signal via inbuilt signal filters.
  */
 
 #include <daq_utils.h>
 
 daqSignal* findSignalWithName(daqString* signalName, daqDevice* device)
 {
+    daqSearchFilter* filter = NULL;
+    daqSearchFilter_createAnySearchFilter(&filter);
+    daqList* availableSignals = NULL;
+    daqDevice_getSignalsRecursive(device, &availableSignals, filter);
+
+
+    return NULL;
+}
+
+daqSignal* filterWithInbuiltFilter(daqString* signalName, daqDevice* device)
+{
+    // A function filter can be used here... needs further investigation regarding 
+    // "implementation of lambas" in C...
     return NULL;
 }
 
