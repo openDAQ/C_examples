@@ -25,6 +25,7 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
  */
 static inline void printDaqFormattedString(const char* string, daqString* daqString);
 
+// TODO: set log level to warning
 static inline daqErrCode setupSimulator(daqInstance** instance)
 {
     daqPropertyObject* config = NULL;
@@ -139,6 +140,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     return DAQ_SUCCESS;
 }
 
+// TODO: Set log level to warning
 static inline daqErrCode addSimulator(daqDevice** device, daqInstance** instance)
 {
     createInstance(instance, MODULE_PATH);
@@ -219,9 +221,9 @@ static inline void printDaqFormattedString(const char* outputFormatString, daqSt
     daqConstCharPtr stringConstChar = NULL;
     daqString_getCharPtr(daqString, &stringConstChar);
 
-    const char* ender = " %s";
+    //const char* ender = " %s";
 
-    strncat(outputFormatString, ender, 3);
+    //strncat(outputFormatString, ender, 3);
 
     printf(outputFormatString, stringConstChar);
 }

@@ -1,4 +1,30 @@
+/*
+ * This example demonstrates how to find all visible and invisible signals from a connected device.
+ */
+
 #include <daq_utils.h>
+
+void printSignalNames(daqList* signals)
+{
+    daqIterator* iterator = NULL;
+    daqList_createStartIterator(signals, &iterator);
+
+    while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
+    {
+        daqSignal* currentSignal = NULL;
+        daqIterator_getCurrent(iterator, (daqBaseObject*)&currentSignal);
+
+        daqString* nameSignal = NULL;
+        daqComponent_getName((daqComponent*)currentSignal, &nameSignal);
+
+        printDaqFormattedString("The name of the signal is: %s\n", nameSignal);
+
+        daqReleaseRef(nameSignal);
+        daqReleaseRef(currentSignal);
+    }
+
+    daqReleaseRef(iterator);
+}
 
 int main(void)
 {
@@ -9,33 +35,21 @@ int main(void)
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    // Due to native streaming module not being loaded, we cannot currently detect the simulator...
-
+    // This retrieves only visible signals
     daqList* signals = NULL;
     daqDevice_getSignalsRecursive(simulator, &signals, NULL);
 
-    daqIterator* iterator = NULL;
-    daqList_createStartIterator(signals, &iterator);
+    printf("Visible signals:\n");
+    printSignalNames(signals);
 
-    while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
-    {
-        daqSignal* currentSignal = NULL;
-        daqIterator_getCurrent(iterator, (daqBaseObject*)&currentSignal);
+    daqSearchFilter* filter = NULL;
+    daqSearchFilter_createAnySearchFilter(&filter);
+    daqDevice_getSignalsRecursive(simulator, &signals, filter);
+    
+    printf("\nVisible and invisible signals:\n");
+    printSignalNames(signals);
 
-        daqDataDescriptor* signalDescriptor = NULL;
-        daqSignal_getDescriptor(currentSignal, &signalDescriptor);
-
-        daqString* nameSignal = NULL;
-        daqDataDescriptor_getName(signalDescriptor, &nameSignal);
-
-        printDaqFormattedString("The name of the signal is:", nameSignal);
-
-        daqReleaseRef(nameSignal);
-        daqReleaseRef(signalDescriptor);
-        daqReleaseRef(currentSignal);
-    }
-
-    daqReleaseRef(iterator);
+    daqReleaseRef(filter);
     daqReleaseRef(signals);
     daqReleaseRef(simulator);
     daqReleaseRef(instance);
