@@ -3,12 +3,15 @@
 #include <string.h>
 
 /*
- * TODO: Slightly longer description
+ * Method boots up an openDAQ simulator with openDAQ native streaming enabled and
+ * connects it to device0. The method returns the instance created, so we can control
+ * the lifetime of the simulator running
  */
 static inline daqErrCode setupSimulator(daqInstance** instance);
 
 /*
- * TODO: Slightly longer description
+ * Method connects a simulator device to a newly created instance and returns an interface 
+ * to instance and an interface to the connected simulator
  */
 static inline daqErrCode addSimulator(daqDevice** device, daqInstance** instance);
 
@@ -123,14 +126,14 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqPropertyObject_createPropertyObject(&serverConfig);
 
     daqString* typeStr = NULL;
-    daqString_createString(&typeStr, "");
+    daqString_createString(&typeStr, "OpenDAQNativeStreaming");
 
-    daqServer* server;
-    daqDevice_addServer((daqDevice*)*instance, typeStr, serverConfig, &server);
-    daqServer_enableDiscovery(server);
+    daqServer* server = NULL;
+    daqErrCode err = daqDevice_addServer((daqDevice*)*instance, typeStr, serverConfig, &server);
+    //daqServer_enableDiscovery(server);
 
     daqReleaseRef(typeStr);
-    daqReleaseRef(server);
+    //daqReleaseRef(server);
     daqReleaseRef(serverConfig);
 
     return DAQ_SUCCESS;
@@ -142,7 +145,7 @@ static inline daqErrCode addSimulator(daqDevice** device, daqInstance** instance
 
     daqList* availableDevices = NULL;
 
-    daqDevice_getAvailableDevices((daqDevice*)*instance, availableDevices);
+    daqDevice_getAvailableDevices((daqDevice*)*instance, &availableDevices);
 
     daqIterator* iterator = NULL;
     daqList_createStartIterator(availableDevices, &iterator);
@@ -213,13 +216,12 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
 
 static inline void printDaqFormattedString(const char* outputFormatString, daqString* daqString)
 {
-    // TODO: Maybe refactor this again if a nicer way is known...
     daqConstCharPtr stringConstChar = NULL;
     daqString_getCharPtr(daqString, &stringConstChar);
 
-    const char* combined = malloc(strlen(outputFormatString) + strlen("%s\n" + 1));
-    strcpy(combined, outputFormatString);
-    strcat(combined, "%s\n");
+    const char* ender = " %s";
 
-    printf(combined, stringConstChar);
+    strncat(outputFormatString, ender, 3);
+
+    printf(outputFormatString, stringConstChar);
 }

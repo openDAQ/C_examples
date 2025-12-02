@@ -3,7 +3,7 @@
 
 #include <convert_timestamps.h>
 
-int main()
+int main(void)
 {
     
 }

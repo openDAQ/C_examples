@@ -22,8 +22,6 @@ int main(void)
     daqInstance* instance = NULL;
     daqList* availableDevices = NULL;
 
-    // TODO: No need for separate method; use camelCase for everything
-    // In general, short, descriptive names
     if (createInstanceAndReturnAllAvailableDevices(&instance, &availableDevices) != DAQ_SUCCESS)
         return 1;
 
@@ -73,11 +71,7 @@ int main(void)
         daqString* name = NULL;
         daqDeviceInfo_getName(connectedDeviceInfo, &name);
 
-        // use daqutils helper for print
-        daqConstCharPtr nameConstChar = NULL;
-        daqString_getCharPtr(name, &nameConstChar);
-
-        printf("The name of the connected device is: %s\n", nameConstChar);
+        printDaqFormattedString("The name fo the connected device is:", name);
 
         daqReleaseRef(name);
         daqReleaseRef(connectedDevice);

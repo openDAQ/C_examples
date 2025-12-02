@@ -10,7 +10,7 @@ int main(void)
 
     // Discovering devices:
     
-    // Calling the function that discoveres all the available devices for connection
+    // Calling the function that discovers all the available devices for connection
     daqList* availableDevices = NULL;
     daqDevice_getAvailableDevices((daqDevice*) instance, &availableDevices);
 
@@ -35,13 +35,13 @@ int main(void)
         daqString* manufacturer = NULL;
         daqDeviceInfo_getManufacturer(currentDevInfo, &manufacturer);
 
-        daqConstCharPtr name_constChar = NULL;
-        daqString_getCharPtr(name, &name_constChar);
+        daqConstCharPtr nameConstChar = NULL;
+        daqString_getCharPtr(name, &nameConstChar);
 
         daqConstCharPtr manufacturer_constChar = NULL;
         daqString_getCharPtr(manufacturer, &manufacturer_constChar);
 
-        printf("Name of the device: %s\n", name_constChar);
+        printf("Name of the device: %s\n", nameConstChar);
         printf("Manufacturer of the device: %s\n", manufacturer_constChar);
 
         daqReleaseRef(currentDevInfo);
