@@ -12,7 +12,7 @@ void printSignalNames(daqList* signals)
     while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
     {
         daqSignal* currentSignal = NULL;
-        daqIterator_getCurrent(iterator, (daqBaseObject*)&currentSignal);
+        daqIterator_getCurrent(iterator, (daqBaseObject**)&currentSignal);
 
         daqString* nameSignal = NULL;
         daqComponent_getName((daqComponent*)currentSignal, &nameSignal);

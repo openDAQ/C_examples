@@ -25,7 +25,6 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
  */
 static inline void printDaqFormattedString(const char* string, daqString* daqString);
 
-// TODO: set log level to warning
 static inline daqErrCode setupSimulator(daqInstance** instance)
 {
     daqPropertyObject* config = NULL;
@@ -75,7 +74,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqBoolean_createBoolean(&serialNumberVisible, True);
 
     daqString* serialNumberPropertyName = NULL;
-    daqString_createString(&serialNumberPropertyName, "Serial number");
+    daqString_createString(&serialNumberPropertyName, "SerialNumber");
 
     daqString* serialNumberDefaultValue = NULL;
     daqString_createString(&serialNumberDefaultValue, "sim01");
@@ -117,6 +116,8 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqInstanceBuilder_setModulePath(instanceBuilder, modulePath);
 
+    daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelWarn);
+
     daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
 
     daqReleaseRef(modulePath);
@@ -131,16 +132,15 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqServer* server = NULL;
     daqErrCode err = daqDevice_addServer((daqDevice*)*instance, typeStr, serverConfig, &server);
-    //daqServer_enableDiscovery(server);
+    daqServer_enableDiscovery(server);
 
     daqReleaseRef(typeStr);
-    //daqReleaseRef(server);
+    daqReleaseRef(server);
     daqReleaseRef(serverConfig);
 
     return DAQ_SUCCESS;
 }
 
-// TODO: Set log level to warning
 static inline daqErrCode addSimulator(daqDevice** device, daqInstance** instance)
 {
     createInstance(instance, MODULE_PATH);
@@ -208,6 +208,8 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
 
     daqInstanceBuilder_addModulePath(instanceBuilder, modulePathStr);
 
+    daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelWarn);
+
     daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
 
     daqReleaseRef(modulePathStr);
@@ -220,10 +222,6 @@ static inline void printDaqFormattedString(const char* outputFormatString, daqSt
 {
     daqConstCharPtr stringConstChar = NULL;
     daqString_getCharPtr(daqString, &stringConstChar);
-
-    //const char* ender = " %s";
-
-    //strncat(outputFormatString, ender, 3);
 
     printf(outputFormatString, stringConstChar);
 }
