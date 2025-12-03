@@ -16,12 +16,13 @@ static inline daqErrCode setupSimulator(daqInstance** instance);
 static inline daqErrCode addSimulator(daqDevice** device, daqInstance** instance);
 
 /*
- * TODO: Slightly longer description
+ * Method creates a simple instance that has its log level set at warning 
+ * and a custom provided module path.
  */
 static inline daqErrCode createInstance(daqInstance** instance, const char* modulePath);
 
 /*
- * TODO: Slightly longer description
+ * Helper method for easier printing of daqString objects to standard output.
  */
 static inline void printDaqFormattedString(const char* string, daqString* daqString);
 
