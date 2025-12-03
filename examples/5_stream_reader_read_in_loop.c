@@ -5,7 +5,12 @@
 
 void connectToFirstAvailableSignal(daqSignal** signal, daqDevice* device)
 {
-    
+    daqList* availableDevices;
+    daqDevice_getSignalsRecursive(device, &availableDevices, NULL);
+
+    daqList_getItemAt(availableDevices, 0, (daqBaseObject**)signal);
+
+    daqReleaseRef(availableDevices);
 }
 
 int main(void)
@@ -18,8 +23,28 @@ int main(void)
 
     daqSignal* connectedSignal = NULL;
     connectToFirstAvailableSignal(&connectedSignal, simulator);
-    // Use the skeleton of the application_example.c, however use read instead of read_with_domain
 
+    daqStreamReader* reader = NULL;
+    daqStreamReader_createStreamReader(&reader, connectedSignal, 
+        daqSampleTypeFloat64, daqSampleTypeInt64,
+                    daqReadModeRawValue, daqReadTimeoutTypeAny);
+    daqFloat samples[100];
+    daqSizeT placeholder = 100;
+    daqSizeT* count = &placeholder;
+    const daqSizeT timeoutMs = 500;
+
+    for (uint8_t i = 0; i < 100; i++)
+    {
+        *count = 100;
+        // The last parameter is NULL because we will ignore the returned status
+        // of the reader (in this case)
+        daqStreamReader_read(reader, samples, count, timeoutMs, NULL);
+        if (*count > 0)
+            printf(" %u no. of times read, %llu sample, %f value\n",
+                    i, *count, samples[*count - 1]);
+    }
+
+    daqReleaseRef(reader);
     daqReleaseRef(instance);
     daqReleaseRef(simulator);
     daqReleaseRef(simulatorInstance);

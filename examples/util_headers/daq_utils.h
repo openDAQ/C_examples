@@ -2,6 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 /*
  * Method boots up an openDAQ simulator with openDAQ native streaming enabled and
  * connects it to device0. The method returns the instance created, so we can control
@@ -25,6 +31,15 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
  * Helper method for easier printing of daqString objects to standard output.
  */
 static inline void printDaqFormattedString(const char* string, daqString* daqString);
+
+void sleepMs(int milliseconds)
+{
+#ifdef _WIN32
+    Sleep(milliseconds);
+#else
+    usleep(milliseconds * 1000);
+#endif
+}
 
 static inline daqErrCode setupSimulator(daqInstance** instance)
 {
