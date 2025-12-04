@@ -46,9 +46,12 @@ int main(void)
     for (int i = 0; i< 40; i++)
     {
         daqSizeT count = 100;
+        // When reading with domain the last argument in the function call again represents a status return
+        // from the reading
         daqStreamReader_readWithDomain(streamReader, samples, domainSamples, &count, timeoutMs, NULL);
         if (count > 0)
         {
+            // To get a properly scaled timestamp we will multiply it by the tick resolution
             daqInt resolutionNumerator = 0;
             daqInt resolutionDenominator = 0;
             daqRatio_getNumerator(ratio, &resolutionNumerator);
