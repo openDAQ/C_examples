@@ -57,7 +57,7 @@ int main(void)
             daqRatio_getNumerator(ratio, &resolutionNumerator);
             daqRatio_getDenominator(ratio, &resolutionDenominator);
 
-            daqFloat domainValue = (daqFloat)domainSamples[count - 1] * resolutionNumerator / resolutionDenominator;
+            daqFloat domainValue = (daqFloat)domainSamples[count - 1] * (daqFloat)resolutionNumerator / (daqFloat)resolutionDenominator;
             printf("Value: %f, Domain: %f%s\n", samples[count - 1], domainValue, unitSymbolCostChar);
         }
     }
