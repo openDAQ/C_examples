@@ -39,7 +39,7 @@ int main(void)
         daqSignal_getDescriptor(currentSignal, &signalDescriptor);
 
         daqString* signalDescriptorName = NULL;
-        daqDataDescriptor_getName(signalDescriptor, &signalName);
+        daqDataDescriptor_getName(signalDescriptor, &signalDescriptorName);
 
         daqConstCharPtr signalDescriptorNameConstChar = NULL;
         daqString_getCharPtr(signalDescriptorName, &signalDescriptorNameConstChar);
@@ -67,24 +67,33 @@ int main(void)
     daqDataDescriptor* domainDescriptor = NULL;
     daqSignal_getDescriptor(domainSignal, &domainDescriptor);
 
-    // Things to display: 
-    // TODO:
-    // - tickResolution,
-    // - dimensions,
-    // - metadata,
-    // - name,
-    // - origin,
-    // - postScaling,
-    // - rawSampleSize,
-    // - referenceDomainInfo,
-    // - rule,
-    // - sampleSize,
-    // - sampleType,
-    // - structField,
-    // - unit,
-    // - valueRange
+    daqCharPtr dataDescriptorChar = NULL;
+    daqBaseObject_toString(dataDescriptor, &dataDescriptorChar);
 
-    // Afterwords get the tick resolution (we already have it from above) and from it calculate the sample rate.
+    daqCharPtr domainDescriptorChar = NULL;
+    daqBaseObject_toString(domainDescriptor, &domainDescriptorChar);
+
+    printf("Data descriptor:\n%s\nDomain descriptor:\n%s\n",dataDescriptorChar, domainDescriptorChar);
+
+    daqRatio* ratio = NULL;
+    daqDataDescriptor_getTickResolution(domainDescriptor, &ratio);
+
+    daqInt resolutionNumerator = 0;
+    daqRatio_getNumerator(ratio, &resolutionNumerator);
+
+    daqInt resolutionDenominator = 0;
+    daqRatio_getDenominator(ratio, &resolutionDenominator);
+
+    daqFloat sampleRate = 0;
+    sampleRate = (daqFloat)resolutionDenominator / (daqFloat)resolutionNumerator;
+
+    printf("Calculated sample rate is: %f Hz\n", sampleRate);
+    
+    daqReleaseRef(ratio);
+    daqReleaseRef(dataDescriptor);
+    daqReleaseRef(domainDescriptor);
+    daqReleaseRef(domainSignal);
+    daqReleaseRef(wantedSignal);
 
     daqReleaseRef(simulator);
     daqReleaseRef(instance);

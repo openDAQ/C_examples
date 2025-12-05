@@ -14,7 +14,6 @@ daqSignal* filterSignalWithName(daqString* signalName, daqDevice* device)
     daqList* availableSignals = NULL;
     daqDevice_getSignalsRecursive(device, &availableSignals, filter);
 
-
     daqIterator* iterator = NULL;
     daqList_createStartIterator(availableSignals, &iterator);
 
