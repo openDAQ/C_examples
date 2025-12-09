@@ -61,11 +61,11 @@ int main(void)
 
             daqFloat domainValue = (daqFloat)domainSamples[count - 1] * (daqFloat)resolutionNumerator / (daqFloat)resolutionDenominator;
 
-            daqInt domainValueRounded = (daqInt)domainValue;
-            char* checker = "";
-            (void)ctime_s(checker, 64, &domainValueRounded);
+            daqInt domainValueRounded = (daqIntegerObject)domainValue;
+            char* dateTimeInString = "";
+            (void)ctime_s(dateTimeInString, 64, &domainValueRounded);
 
-            printf("Value: %f, Domain: %f%s, Date and time: %s\n", samples[count - 1], domainValue, unitSymbolCostChar, checker);
+            printf("Value: %f, Domain: %f%s, Date and time: %s\n", samples[count - 1], domainValue, unitSymbolCostChar, dateTimeInString);
         }
     }
 

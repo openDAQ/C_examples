@@ -41,7 +41,7 @@ int main(void)
 
             daqDevice_addDevice((daqDevice*)instance, &connectedDevice, connectionString, NULL);
             daqReleaseRef(connectionString);
-            
+
             connected = 1;
         }
 
