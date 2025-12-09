@@ -20,6 +20,7 @@ daqSignal* iterativeSearchByName(daqString* wantedSignalName, daqDevice* device)
     daqConstCharPtr signalNameConstChar = NULL;
     daqString_getCharPtr(wantedSignalName, &signalNameConstChar);
 
+    // ??
     while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
     {
         daqSignal* currentSignal = NULL;
