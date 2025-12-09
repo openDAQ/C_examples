@@ -1,5 +1,6 @@
 /*
- * This example demonstrated how to create an openDAQ instance and discover all available devices for connection
+ * This example demonstrated how to create an openDAQ instance and detect devices.
+ * Then it goes through all detected devices and displays their name and manufacturer.
  */
 
 #include <daq_utils.h>
@@ -18,8 +19,7 @@ int main(void)
 
     daqIterator* iterator = NULL;
     daqList_createStartIterator(availableDevices, &iterator);
-   
-    // Go through all detected devices and print out their respective domain info
+
     while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
     {
         daqDeviceInfo* currentDevInfo = NULL;
@@ -31,14 +31,8 @@ int main(void)
         daqString* manufacturer = NULL;
         daqDeviceInfo_getManufacturer(currentDevInfo, &manufacturer);
 
-        daqConstCharPtr name_constChar = NULL;
-        daqString_getCharPtr(name, &name_constChar);
-
-        daqConstCharPtr manufacturer_constChar = NULL;
-        daqString_getCharPtr(manufacturer, &manufacturer_constChar);
-
-        printf("Name of the device: %s\n", name_constChar);
-        printf("Manufacturer of the device: %s\n", manufacturer_constChar);
+        printDaqFormattedString("Name of the device: %s\n", name);
+        printDaqFormattedString("Manufacturer of the device: %s\n", manufacturer);
 
         daqReleaseRef(currentDevInfo);
         daqReleaseRef(name);

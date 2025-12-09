@@ -1,26 +1,26 @@
 /*
- * This example shows how to find a specific signal and read its last know value.
- * The example explores two ways of finding the wanted signal,
- * the first being searching through all signals and comparing the names
- * and the second one find the signal via inbuilt signal filters looking for a matching localId.
+ * This example shows how to find a signal with a given name and read its last value.
+ * The example explores two ways of finding the wanted signal:
+ * - Iterate through all signals and check signal for name equality.
+ * - Use a built-in filter to find a signal filters with a matching Local ID.
  */
 
 #include <daq_utils.h>
 
-daqSignal* filterSignalWithName(daqString* signalName, daqDevice* device)
+daqSignal* iterativeSearchByName(daqString* wantedSignalName, daqDevice* device)
 {
     daqSearchFilter* filter = NULL;
     daqSearchFilter_createAnySearchFilter(&filter);
     daqList* availableSignals = NULL;
     daqDevice_getSignalsRecursive(device, &availableSignals, filter);
 
-
     daqIterator* iterator = NULL;
     daqList_createStartIterator(availableSignals, &iterator);
 
     daqConstCharPtr signalNameConstChar = NULL;
-    daqString_getCharPtr(signalName, &signalNameConstChar);
+    daqString_getCharPtr(wantedSignalName, &signalNameConstChar);
 
+    // ??
     while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
     {
         daqSignal* currentSignal = NULL;
@@ -29,13 +29,13 @@ daqSignal* filterSignalWithName(daqString* signalName, daqDevice* device)
         daqDataDescriptor* signalDescriptor = NULL;
         daqSignal_getDescriptor(currentSignal, &signalDescriptor);
 
-        daqString* nameSignal = NULL;
-        daqDataDescriptor_getName(signalDescriptor, &nameSignal);
+        daqString* signalName = NULL;
+        daqDataDescriptor_getName(signalDescriptor, &signalName);
 
         daqConstCharPtr nameSignalConstChar = NULL;
-        daqString_getCharPtr(nameSignal, &nameSignalConstChar);
+        daqString_getCharPtr(signalName, &nameSignalConstChar);
 
-        daqReleaseRef(nameSignal);
+        daqReleaseRef(signalName);
         daqReleaseRef(signalDescriptor);
         
         if (!strcmp(nameSignalConstChar, signalNameConstChar))
@@ -56,7 +56,7 @@ daqSignal* filterSignalWithName(daqString* signalName, daqDevice* device)
     return NULL;
 }
 
-daqSignal* filterWithInbuiltFilter(daqString* localId, daqDevice* device)
+daqSignal* filterByLocalId(daqString* localId, daqDevice* device)
 {
     daqSearchFilter* filter;
     daqSearchFilter_createLocalIdSearchFilter(&filter, localId);
@@ -64,20 +64,17 @@ daqSignal* filterWithInbuiltFilter(daqString* localId, daqDevice* device)
     daqList* availableSignals = NULL;
     daqDevice_getSignalsRecursive(device, &availableSignals, filter);
 
-    daqIterator* iterator = NULL;
-
-    daqList_createStartIterator(availableSignals, &iterator);
-
     daqSignal* currentSignal = NULL;
 
-    if (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
-        daqIterator_getCurrent(iterator, (daqBaseObject**)&currentSignal);
+    daqSizeT filteredSignalsSize = 0;
+    daqList_getCount(availableSignals, &filteredSignalsSize);
+
+    if (filteredSignalsSize > 0)
+        daqList_getItemAt(availableSignals, 0, (daqBaseObject**)&currentSignal);
 
     daqReleaseRef(filter);
     daqReleaseRef(availableSignals);
-    daqReleaseRef(iterator);
     return currentSignal;
-
 }
 
 int main(void)
@@ -94,17 +91,16 @@ int main(void)
     daqString* localId = NULL;
     daqString_createString(&localId, "AI0");
 
-    daqSignal* signalFoundByName = filterSignalWithName(signalName, simulator);
+    daqSignal* signalFoundByName = iterativeSearchByName(signalName, simulator);
 
-    daqSignal* signalFoundByLocalId = filterWithInbuiltFilter(localId, simulator);
+    daqSignal* signalFoundByLocalId = filterByLocalId(localId, simulator);
 
-    daqFloat* lastValueName = NULL;
-    daqSignal_getLastValue(signalFoundByName, (daqBaseObject**)&lastValueName);
-    printf("Lats value from a signal found with matching name: %f\n", *lastValueName);
+    daqFloat* lastValue = NULL;
+    daqSignal_getLastValue(signalFoundByName, (daqBaseObject**)&lastValue);
+    printf("Lats value from a signal found with matching name: %f\n", *lastValue);
 
-    daqFloat* lastValueLocalId = NULL;
-    daqSignal_getLastValue(signalFoundByLocalId, (daqBaseObject**)&lastValueLocalId);
-    printf("Last value from a signal found with a matching local id: %f\n", *lastValueLocalId);
+    daqSignal_getLastValue(signalFoundByLocalId, (daqBaseObject**)&lastValue);
+    printf("Last value from a signal found with a matching local id: %f\n", *lastValue);
 
     daqReleaseRef(signalFoundByLocalId);
     daqReleaseRef(signalFoundByName);
