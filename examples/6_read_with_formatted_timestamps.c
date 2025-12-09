@@ -23,17 +23,45 @@ int main(void)
     daqStreamReader* streamReader = NULL;
     daqStreamReader_createStreamReader(&streamReader, signal, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue, daqReadTimeoutTypeAny);
 
-    daqSignal* domainSignal = NULL;
-    daqSignal_getDomainSignal(signal, &domainSignal);
+    daqSizeT cnt = 0;
+    daqFloat smp[1];
+    daqReaderStatus* status = NULL;
+    // We only care for the event packet here so that we can read get accurate domain and data descriptors
+    daqStreamReader_read(streamReader, &smp, &cnt, 1000, &status);
 
-    daqDataDescriptor* dataDescriptor = NULL;
-    daqSignal_getDescriptor(domainSignal, &dataDescriptor);
+    daqEventPacket* eventPacket = NULL;
+    daqReaderStatus_getEventPacket(status, &eventPacket);
+    daqString* eventId = NULL;
+    daqEventPacket_getEventId(eventPacket, &eventId);
+
+    printDaqFormattedString("\nId of the gathered event packet: %s\n\n", eventId);
+
+    daqBool check = False;
+    daqString* checkerStr = NULL;
+    daqString_createString(&checkerStr, "DATA_DESCRIPTOR_CHANGED");
+
+    daqBaseObject_equals(eventId, checkerStr, &check);
+    
+    daqReleaseRef(checkerStr);
+    daqDataDescriptor* domainDesc = NULL;
+
+    if (check == True)
+    {
+        daqDict* parameters = NULL;
+        daqEventPacket_getParameters(eventPacket, &parameters);
+        daqString* domainDescriptorStr = NULL;
+        daqString_createString(&domainDescriptorStr, "DomainDataDescriptor");
+
+        daqDict_get(parameters, domainDescriptorStr, (daqBaseObject**)&domainDesc);
+        daqReleaseRef(domainDescriptorStr);
+        daqReleaseRef(parameters);
+    }
 
     daqRatio* ratio = NULL;
-    daqDataDescriptor_getTickResolution(dataDescriptor, &ratio);
+    daqDataDescriptor_getTickResolution(domainDesc, &ratio);
 
     daqUnit* unit = NULL;
-    daqDataDescriptor_getUnit(dataDescriptor, &unit);
+    daqDataDescriptor_getUnit(domainDesc, &unit);
 
     daqString* unitSymbol = NULL;
     daqUnit_getSymbol(unit, &unitSymbol);
@@ -41,11 +69,14 @@ int main(void)
     daqConstCharPtr unitSymbolCostChar = NULL;
     daqString_getCharPtr(unitSymbol, &unitSymbolCostChar);
 
+    daqReleaseRef(eventId);
+    daqReleaseRef(eventPacket);
+
     daqUInt domainSamples[500];
     daqFloat samples[500];
     const daqSizeT timeoutMs = 1000;
 
-    for (int i = 0; i< 20; i++)
+    for (int i = 0; i< 200; i++)
     {
         daqSizeT count = 500;
         // When reading with domain the last argument in the function call again represents a status return
@@ -61,7 +92,7 @@ int main(void)
 
             daqFloat domainValue = (daqFloat)domainSamples[count - 1] * (daqFloat)resolutionNumerator / (daqFloat)resolutionDenominator;
 
-            daqInt domainValueRounded = (daqIntegerObject)domainValue;
+            daqInt domainValueRounded = (daqInt)domainValue;
             char* dateTimeInString = "";
             (void)ctime_s(dateTimeInString, 64, &domainValueRounded);
 
@@ -72,8 +103,7 @@ int main(void)
     daqReleaseRef(unitSymbol);
     daqReleaseRef(unit);
     daqReleaseRef(ratio);
-    daqReleaseRef(dataDescriptor);
-    daqReleaseRef(domainSignal);
+    daqReleaseRef(domainDesc);
     daqReleaseRef(streamReader);
 
     daqReleaseRef(signal);
