@@ -1,7 +1,9 @@
 /*
- * In this example we will explore reading data with its accompanying domain value.
+ * In this example we will explore reading data with its accompanying domain value and
+ * converting timestamps from tick to unit of time.
  */
 #include <daq_utils.h>
+#include <time.h>
 
 int main(void)
 {
@@ -39,13 +41,13 @@ int main(void)
     daqConstCharPtr unitSymbolCostChar = NULL;
     daqString_getCharPtr(unitSymbol, &unitSymbolCostChar);
 
-    daqUInt domainSamples[100];
-    daqFloat samples[100];
+    daqUInt domainSamples[500];
+    daqFloat samples[500];
     const daqSizeT timeoutMs = 1000;
 
-    for (int i = 0; i< 40; i++)
+    for (int i = 0; i< 20; i++)
     {
-        daqSizeT count = 100;
+        daqSizeT count = 500;
         // When reading with domain the last argument in the function call again represents a status return
         // from the reading
         daqStreamReader_readWithDomain(streamReader, samples, domainSamples, &count, timeoutMs, NULL);
@@ -58,7 +60,12 @@ int main(void)
             daqRatio_getDenominator(ratio, &resolutionDenominator);
 
             daqFloat domainValue = (daqFloat)domainSamples[count - 1] * (daqFloat)resolutionNumerator / (daqFloat)resolutionDenominator;
-            printf("Value: %f, Domain: %f%s\n", samples[count - 1], domainValue, unitSymbolCostChar);
+
+            daqInt domainValueRounded = (daqInt)domainValue;
+            char* checker = "";
+            (void)ctime_s(checker, 64, &domainValueRounded);
+
+            printf("Value: %f, Domain: %f%s, Date and time: %s\n", samples[count - 1], domainValue, unitSymbolCostChar, checker);
         }
     }
 

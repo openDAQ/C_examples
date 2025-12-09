@@ -10,14 +10,14 @@
 
 /*
  * Method boots up an openDAQ simulator with openDAQ native streaming enabled and
- * connects it to device0. The method returns the instance created, so we can control
- * the lifetime of the simulator running
+ * connects it to the reference device, which it uses as root.
+ * The method returns the instance created, so we can control the lifetime of the simulator running.
  */
 static inline daqErrCode setupSimulator(daqInstance** instance);
 
 /*
- * Method connects a simulator device to a newly created instance and returns an interface 
- * to instance and an interface to the connected simulator
+ * Method connects a simulator device to a newly created instance and returns a pointer to the created
+ * instance and a pointer to the connected simulator device.
  */
 static inline daqErrCode addSimulator(daqDevice** device, daqInstance** instance);
 
@@ -28,11 +28,12 @@ static inline daqErrCode addSimulator(daqDevice** device, daqInstance** instance
 static inline daqErrCode createInstance(daqInstance** instance, const char* modulePath);
 
 /*
- * Helper method for easier printing of daqString objects to standard output.
+ * Method for easing printing daqStrings to standard output.
+ * For specifiying the output format the const char* (the first argument) is used.
  */
 static inline void printDaqFormattedString(const char* string, daqString* daqString);
 
-void sleepMs(int milliseconds)
+void daqSleepMs(int milliseconds)
 {
 #ifdef _WIN32
     Sleep(milliseconds);
@@ -47,7 +48,6 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqPropertyObject_createPropertyObject(&config);
 
-    // Create String property 'Name'
     daqProperty* nameProperty = NULL;
 
     daqBoolean* nameVisible = NULL;
@@ -65,7 +65,6 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqReleaseRef(nameDefaultValue);
     daqReleaseRef(namePropertyName);
 
-    // Create String property 'LocalId'
     daqProperty* localIdProperty = NULL;
 
     daqBoolean* localIdVisible = NULL;
@@ -83,7 +82,6 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqReleaseRef(localIdDefaultValue);
     daqReleaseRef(localIdPropertyName);
 
-    // Create String property 'SerialNumber'
     daqProperty* serialNumberProperty = NULL;
 
     daqBoolean* serialNumberVisible = NULL;

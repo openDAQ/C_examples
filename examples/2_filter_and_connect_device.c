@@ -1,29 +1,18 @@
 /*
  * In this example we will search through the available devices to find the first one that has its 
- * manufacturer set to 'openDAQ'.Then connect our created instance to the selected device.
+ * manufacturer set to 'openDAQ'.Then connect the device into our component tree as a child device.
  */
 
 #include <daq_utils.h>
-
-daqErrCode createInstanceAndReturnAllAvailableDevices(daqInstance** instance, daqList** availableDevices)
-{
-    daqInstanceBuilder* builder = NULL;
-    daqInstanceBuilder_createInstanceBuilder(&builder);
-
-    daqInstance_createInstanceFromBuilder(instance, builder);
-
-    daqDevice_getAvailableDevices((daqDevice*)*instance, availableDevices);
-
-    return DAQ_SUCCESS;
-}
 
 int main(void)
 {
     daqInstance* instance = NULL;
     daqList* availableDevices = NULL;
 
-    if (createInstanceAndReturnAllAvailableDevices(&instance, &availableDevices) != DAQ_SUCCESS)
-        return 1;
+    createInstance(&instance, "");
+
+    daqDevice_getAvailableDevices((daqDevice*)instance, &availableDevices);
 
     daqIterator* iterator = NULL;
     daqList_createStartIterator(availableDevices, &iterator);

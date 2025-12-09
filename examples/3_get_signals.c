@@ -1,5 +1,5 @@
 /*
- * This example demonstrates how to find all visible and invisible signals from a connected device.
+ * This example demonstrates how to list both visible and invisible signals of a device.
  */
 
 #include <daq_utils.h>
@@ -35,7 +35,6 @@ int main(void)
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    // This retrieves only visible signals
     daqList* signals = NULL;
     daqDevice_getSignalsRecursive(simulator, &signals, NULL);
 

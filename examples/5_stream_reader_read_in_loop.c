@@ -1,16 +1,22 @@
 /*
- * Example show how to create, connect and read data with an OpenDAQ streamReader 
+ * Example shows how to create, connect and read data with an openDAQ stream reader. 
  */
 #include <daq_utils.h>
 
-void connectToFirstAvailableSignal(daqSignal** signal, daqDevice* device)
+// This function retrieves a list of 
+// all available signals on the device and returns the first one in the list
+void retrieveFirstAvailableSignal(daqSignal** signal, daqDevice* device)
 {
-    daqList* availableDevices;
-    daqDevice_getSignalsRecursive(device, &availableDevices, NULL);
+    daqList* availableSignals;
+    daqDevice_getSignalsRecursive(device, &availableSignals, NULL);
 
-    daqList_getItemAt(availableDevices, 0, (daqBaseObject**)signal);
+    daqSizeT signalAmountAvailable = 0;
+    daqList_getCount(availableSignals, &signalAmountAvailable);
 
-    daqReleaseRef(availableDevices);
+    if (signalAmountAvailable > 0)
+        daqList_getItemAt(availableSignals, 0, (daqBaseObject**)signal);
+
+    daqReleaseRef(availableSignals);
 }
 
 int main(void)
@@ -22,26 +28,23 @@ int main(void)
     addSimulator(&simulator, &instance);
 
     daqSignal* connectedSignal = NULL;
-    connectToFirstAvailableSignal(&connectedSignal, simulator);
+    retrieveFirstAvailableSignal(&connectedSignal, simulator);
 
     daqStreamReader* reader = NULL;
-    daqStreamReader_createStreamReader(&reader, connectedSignal, 
-        daqSampleTypeFloat64, daqSampleTypeInt64,
-                    daqReadModeRawValue, daqReadTimeoutTypeAny);
-    daqFloat samples[100];
-    daqSizeT placeholder = 100;
-    daqSizeT* count = &placeholder;
-    const daqSizeT timeoutMs = 500;
+    daqStreamReader_createStreamReader(&reader, connectedSignal, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue, daqReadTimeoutTypeAny);
+    daqFloat samples[500];
+    daqSizeT count = 500;
+    const daqSizeT timeoutMs = 1000;
 
-    for (uint8_t i = 0; i < 100; i++)
+    for (uint8_t i = 0; i < 200; i++)
     {
-        *count = 100;
+        count = 500;
         // The last parameter is NULL because we will ignore the returned status
         // of the reader (in this case)
-        daqStreamReader_read(reader, samples, count, timeoutMs, NULL);
-        if (*count > 0)
+        daqStreamReader_read(reader, samples, &count, timeoutMs, NULL);
+        if (count > 0)
             printf(" %u no. of times read, %llu sample, %f value\n",
-                    i, *count, samples[*count - 1]);
+                    i, count, samples[count - 1]);
     }
 
     daqReleaseRef(reader);
