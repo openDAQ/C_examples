@@ -61,11 +61,11 @@ int main(void)
     daqDataDescriptor* dataDescriptor = NULL;
     daqSignal_getDescriptor(wantedSignal, &dataDescriptor);
 
-    daqSignal* domainSignal = NULL;
-    daqSignal_getDomainSignal(wantedSignal, &domainSignal);
+    daqStreamReader* streamReader = NULL;
+    daqStreamReader_createStreamReader(&streamReader, wantedSignal, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue, daqReadTimeoutTypeAny);
 
     daqDataDescriptor* domainDescriptor = NULL;
-    daqSignal_getDescriptor(domainSignal, &domainDescriptor);
+    domainDescriptorFromEventPacket(streamReader, &domainDescriptor);
 
     daqCharPtr dataDescriptorChar = NULL;
     daqBaseObject_toString(dataDescriptor, &dataDescriptorChar);
@@ -92,7 +92,7 @@ int main(void)
     daqReleaseRef(ratio);
     daqReleaseRef(dataDescriptor);
     daqReleaseRef(domainDescriptor);
-    daqReleaseRef(domainSignal);
+    daqReleaseRef(streamReader);
     daqReleaseRef(wantedSignal);
 
     daqReleaseRef(simulator);
