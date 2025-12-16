@@ -33,6 +33,12 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
  */
 static inline void printDaqFormattedString(const char* string, daqString* daqString);
 
+/*
+ * Method for getting Domain descriptor from 
+ * the signal (via stream reader) by processing an event packet.
+ */
+static inline daqErrCode domainDescriptorFromEventPacket(daqStreamReader* reader, daqDataDescriptor** domainDescriptor);
+
 void daqSleepMs(int milliseconds)
 {
 #ifdef _WIN32
@@ -238,4 +244,46 @@ static inline void printDaqFormattedString(const char* outputFormatString, daqSt
     daqString_getCharPtr(daqString, &stringConstChar);
 
     printf(outputFormatString, stringConstChar);
+}
+
+static inline daqErrCode domainDescriptorFromEventPacket(daqStreamReader* reader, daqDataDescriptor** domainDescriptor)
+{
+    daqSizeT count = 0;
+    daqFloat samples[1];
+    daqReaderStatus* status = NULL;
+    daqStreamReader_read(reader, &samples, &count, 1000, &status);
+
+    daqEventPacket* eventPacket = NULL;
+    daqReaderStatus_getEventPacket(status, &eventPacket);
+    daqString* eventId = NULL;
+    daqEventPacket_getEventId(eventPacket, &eventId);
+
+    daqBool check = False;
+    daqString* checkStr = NULL;
+    daqString_createString(&checkStr, "DATA_DESCRIPTOR_CHANGED");
+
+    daqBaseObject_equals(eventId, checkStr, &check);
+
+    daqReleaseRef(checkStr);
+    daqReleaseRef(eventId);
+    daqReleaseRef(status);
+
+    if (check == True)
+    {
+        daqDict* parameters = NULL;
+        daqEventPacket_getParameters(eventPacket, &parameters);
+        daqString* domainDescriptorStr = NULL;
+        daqString_createString(&domainDescriptorStr, "DomainDataDescriptor");
+
+        daqDict_get(parameters, domainDescriptorStr, (daqBaseObject**) domainDescriptor);
+        daqReleaseRef(domainDescriptorStr);
+        daqReleaseRef(parameters);
+    }
+
+    daqReleaseRef(eventPacket);
+
+    if (check == True)
+        return DAQ_SUCCESS;
+
+    return DAQ_ERR_INVALID_DATA;
 }
