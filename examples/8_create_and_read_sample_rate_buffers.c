@@ -36,8 +36,7 @@ int main(void)
     daqInt denominator = 1;
     daqRatio_getDenominator(ratio, &denominator);
 
-    daqSizeT sampleRate = 1;
-    sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator);
+    daqSizeT sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator);
 
     daqFloat samples[1000 * 2];
 
