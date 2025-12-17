@@ -13,7 +13,6 @@ int main(void)
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    // Calculate sample rate
     // Connect to the first available signal on the simulator
     daqList* availableSignals = NULL;
     daqDevice_getSignalsRecursive(simulator, &availableSignals, NULL);
@@ -21,37 +20,45 @@ int main(void)
     daqSignal* connectedSignal = NULL;
     daqList_getItemAt(availableSignals, 0, (daqBaseObject**)&connectedSignal);
 
-    daqSignal* domainSignal = NULL;
-    daqSignal_getDomainSignal(connectedSignal, &domainSignal);
-
-    daqDataDescriptor* domainDataDescriptor = NULL;
-    daqSignal_getDescriptor(domainSignal, &domainDataDescriptor);
-
-    // Create sample rate buffer
-    daqRatio* ratio = NULL;
-    daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
-
-    daqInt numerator = 0;
-    daqRatio_getNumerator(ratio, &numerator);
-    
-    daqInt denominator = 0;
-    daqRatio_getDenominator(ratio, &denominator);
-
-    daqFloat sampleRate = (daqFloat)denominator / (daqFloat)numerator;
-
-    // 2 seconds of buffer (?)
-    daqFloat samples[sampleRate * 2];
-    daqUInt domainSamples[sampleRate * 2];
-
-    daqBlockReaderBuilder* blockReaderBuilder = NULL;
-
-    // Create reader
-    // Stream reader (??)
     daqStreamReader* streamReader = NULL;
     daqStreamReader_createStreamReader(&streamReader, connectedSignal, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue, daqReadTimeoutTypeAny);
 
-    // Read into the created buffer
+    daqDataDescriptor* domainDataDescriptor = NULL;
+    domainDescriptorFromEventPacket(streamReader, &domainDataDescriptor);
+    daqReleaseRef(streamReader);
 
+    daqRatio* ratio = NULL;
+    daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
+
+    daqInt numerator = 1;
+    daqRatio_getNumerator(ratio, &numerator);
+    
+    daqInt denominator = 1;
+    daqRatio_getDenominator(ratio, &denominator);
+
+    daqSizeT sampleRate = 1;
+    sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator);
+
+    daqFloat samples[1000 * 2];
+
+    daqSizeT sampleAmount = sampleRate * 2;
+
+    printf("Sample amount: %llu\n", sampleAmount);
+
+    sampleAmount = 2000;
+
+    daqBlockReader* blockReader = NULL;
+    daqBlockReader_createBlockReader(&blockReader, connectedSignal, 2000, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue);
+
+    daqBlockReader_read(blockReader, samples, &sampleAmount, 10000, NULL);
+
+    for (daqSizeT i = 0; i < sampleAmount; i++)
+    {
+        printf("Entry: %llu, Sample value: %f\n", i, samples[i]);
+    }
+
+    daqReleaseRef(blockReader);
+    daqReleaseRef(domainDataDescriptor);
     daqReleaseRef(instance);
     daqReleaseRef(simulator);
     daqReleaseRef(simulatorInstance);
