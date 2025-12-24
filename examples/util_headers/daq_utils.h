@@ -58,6 +58,12 @@ static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tic
  */
 static inline int checkIsLinearRule(daqDataRule* dataRule);
 
+/*
+ * Method that takes the tick resolution from domain data descriptor 
+ * and returns the calculated sample rate.
+ */
+static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
+
 void daqSleepMs(int milliseconds)
 {
 #ifdef _WIN32
