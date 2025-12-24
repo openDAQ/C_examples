@@ -39,6 +39,12 @@ static inline void printDaqFormattedString(const char* string, daqString* daqStr
  */
 static inline daqErrCode domainDescriptorFromEventPacket(daqStreamReader* reader, daqDataDescriptor** domainDescriptor);
 
+/*
+ * Method that takes the tick resolution from domain data descriptor 
+ * and returns the calculated sample rate.
+ */
+static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
+
 void daqSleepMs(int milliseconds)
 {
 #ifdef _WIN32
@@ -286,4 +292,21 @@ static inline daqErrCode domainDescriptorFromEventPacket(daqStreamReader* reader
         return DAQ_SUCCESS;
 
     return DAQ_ERR_INVALID_DATA;
+}
+
+static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor)
+{
+    daqRatio* ratio = NULL;
+    daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
+
+    daqInt numerator = 1;
+    daqRatio_getNumerator(ratio, &numerator);
+
+    daqInt denominator = 1;
+    daqRatio_getDenominator(ratio, &denominator);
+
+    *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator);
+
+    daqReleaseRef(ratio);
+    return DAQ_SUCCESS;
 }
