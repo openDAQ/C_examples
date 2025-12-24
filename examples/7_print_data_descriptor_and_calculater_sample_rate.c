@@ -22,18 +22,18 @@ int main(void)
     daqList* availableSignals = NULL;
     daqDevice_getSignalsRecursive(simulator, &availableSignals, NULL);
 
-    daqIterator* iterator = NULL;
-    daqList_createStartIterator(availableSignals, &iterator);
-
     daqConstCharPtr signalNameConstChar = NULL;
     daqString_getCharPtr(signalName, &signalNameConstChar);
 
     daqSignal* wantedSignal = NULL;
 
-    while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
+    daqSizeT listSize = 0;
+    daqList_getCount(availableSignals, &listSize);
+
+    for (daqSizeT i = 0; i < listSize; i++)
     {
         daqSignal* currentSignal = NULL;
-        daqIterator_getCurrent(iterator, (daqBaseObject**)&currentSignal);
+        daqList_getItemAt(availableSignals, i, (daqBaseObject**) &currentSignal);
 
         daqDataDescriptor* signalDescriptor = NULL;
         daqSignal_getDescriptor(currentSignal, &signalDescriptor);
@@ -55,7 +55,6 @@ int main(void)
         daqReleaseRef(currentSignal);
     }
 
-    daqReleaseRef(iterator);
     daqReleaseRef(availableSignals);
 
     daqDataDescriptor* dataDescriptor = NULL;
