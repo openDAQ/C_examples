@@ -314,8 +314,8 @@ static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescrip
     daqNumber* delta = NULL;
     daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
 
-    daqFloat deltaFloat = 0;
-    daqNumber_getFloatValue(delta, &deltaFloat);
+    daqInt deltaInt = 0;
+    daqNumber_getIntValue(delta, &deltaInt);
 
     daqInt numerator = 1;
     daqRatio_getNumerator(ratio, &numerator);
@@ -323,7 +323,7 @@ static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescrip
     daqInt denominator = 1;
     daqRatio_getDenominator(ratio, &denominator);
 
-    *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator / deltaFloat);
+    *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator / (daqFloat)deltaInt);
 
     daqReleaseRef(delta);
     daqReleaseRef(deltaString);
