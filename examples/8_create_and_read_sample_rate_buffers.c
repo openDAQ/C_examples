@@ -31,7 +31,6 @@ int main(void)
 
     daqDataDescriptor* domainDataDescriptor = NULL;
     domainDescriptorFromEventPacket(streamReader, &domainDataDescriptor);
-    daqReleaseRef(streamReader);
 
     daqRatio* ratio = NULL;
     daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
@@ -50,19 +49,12 @@ int main(void)
 
     printf("Sample amount: %llu\n", sampleAmount);
 
-    sampleAmount = 2000;
-
-    daqBlockReader* blockReader = NULL;
-    daqBlockReader_createBlockReader(&blockReader, connectedSignal, 2000, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue);
-
-    daqBlockReader_read(blockReader, samples, &sampleAmount, 10000, NULL);
+    daqStreamReader_read(streamReader, samples, &sampleAmount, 10000, NULL);
 
     for (daqSizeT i = 0; i < sampleAmount; i++)
-    {
         printf("Entry: %llu, Sample value: %f\n", i, samples[i]);
-    }
 
-    daqReleaseRef(blockReader);
+    daqReleaseRef(streamReader);
     daqReleaseRef(domainDataDescriptor);
     daqReleaseRef(instance);
     daqReleaseRef(simulator);
