@@ -77,17 +77,40 @@ int main(void)
     daqRatio* ratio = NULL;
     daqDataDescriptor_getTickResolution(domainDescriptor, &ratio);
 
-    daqInt resolutionNumerator = 0;
-    daqRatio_getNumerator(ratio, &resolutionNumerator);
+    daqDataRule* dataRule = NULL;
+    daqDataDescriptor_getRule(domainDescriptor, &dataRule);
 
-    daqInt resolutionDenominator = 0;
-    daqRatio_getDenominator(ratio, &resolutionDenominator);
+    daqDict* parametersDataRule = NULL;
+    daqDataRule_getParameters(dataRule, &parametersDataRule);
 
-    daqFloat sampleRate = 0;
-    sampleRate = (daqFloat)resolutionDenominator / (daqFloat)resolutionNumerator;
+    daqString* deltaString = NULL;
+    daqString_createString(&deltaString, "delta");
+
+    daqBaseObject* deltaObj = NULL;
+
+    daqDict_get(parametersDataRule, deltaString, &deltaObj);
+
+    daqNumber* delta = NULL;
+    daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
+
+    daqInt deltaInt = 1;
+    daqNumber_getIntValue(delta, &deltaInt);
+
+    daqInt numerator = 1;
+    daqRatio_getNumerator(ratio, &numerator);
+
+    daqInt denominator = 1;
+    daqRatio_getDenominator(ratio, &denominator);
+
+    daqFloat sampleRate = 1;
+    sampleRate = (daqFloat) denominator / (daqFloat) numerator / (daqFloat)deltaInt;
 
     printf("Calculated sample rate is: %f Hz\n", sampleRate);
-    
+
+    daqReleaseRef(delta);
+    daqReleaseRef(deltaString);
+    daqReleaseRef(parametersDataRule);
+    daqReleaseRef(dataRule);
     daqReleaseRef(ratio);
     daqReleaseRef(dataDescriptor);
     daqReleaseRef(domainDescriptor);
