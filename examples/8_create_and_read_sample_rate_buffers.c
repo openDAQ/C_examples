@@ -1,6 +1,6 @@
 /*
  * This example will demonstrate how to create and read into buffers
- * that are created based on the calculated sample rate
+ * that are created based on the calculated sample rate.
  */
 #include <daq_utils.h>
 
@@ -13,7 +13,7 @@ int main(void)
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    // Connect to the first available signal on the simulator
+    // Connect to the first available signal on the simulator.
     daqList* availableSignals = NULL;
     if (daqDevice_getSignalsRecursive(simulator, &availableSignals, NULL) != DAQ_SUCCESS)
     {
