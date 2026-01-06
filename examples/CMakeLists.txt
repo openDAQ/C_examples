@@ -12,7 +12,8 @@ set(C_MODIFIED_EXAMPLES
     5_stream_reader_read_in_loop.c
     6_read_with_formatted_timestamps.c
     7_print_data_descriptor_and_calculater_sample_rate.c
-    8_create_and_read_sample_rate_buffers.c)
+    8_create_and_read_sample_rate_buffers.c
+    2_0_tree_traversal.c)
 
 
 foreach(src ${C_MODIFIED_EXAMPLES})
