@@ -299,14 +299,36 @@ static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescrip
     daqRatio* ratio = NULL;
     daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
 
+    daqDataRule* dataRule = NULL;
+    daqDataDescriptor_getRule(domainDataDescriptor, &dataRule);
+
+    daqDict* parametersDataRule = NULL;
+    daqDataRule_getParameters(dataRule, &parametersDataRule);
+
+    daqString* deltaString = NULL;
+    daqString_createString(&deltaString, "delta");
+
+    daqBaseObject* deltaObj = NULL;
+    daqDict_get(parametersDataRule, deltaString, &deltaObj);
+
+    daqNumber* delta = NULL;
+    daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
+
+    daqFloat deltaFloat = 0;
+    daqNumber_getFloatValue(delta, &deltaFloat);
+
     daqInt numerator = 1;
     daqRatio_getNumerator(ratio, &numerator);
 
     daqInt denominator = 1;
     daqRatio_getDenominator(ratio, &denominator);
 
-    *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator);
+    *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator / deltaFloat);
 
+    daqReleaseRef(delta);
+    daqReleaseRef(deltaString);
+    daqReleaseRef(parametersDataRule);
+    daqReleaseRef(dataRule);
     daqReleaseRef(ratio);
     return DAQ_SUCCESS;
 }
