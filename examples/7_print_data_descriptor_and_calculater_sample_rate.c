@@ -14,7 +14,7 @@ int main(void)
     addSimulator(&simulator, &instance);
 
     // Get a Data Descriptor from a named signal and display everything that it contains alongside
-    // its domain signal and all domain signals content.
+    // its domain signal and all domain signals attributes.
 
     daqString* signalName = NULL;
     daqString_createString(&signalName, "AI 1");
