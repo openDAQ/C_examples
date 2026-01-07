@@ -86,19 +86,10 @@ int main(void)
         daqNumber* delta = NULL;
         daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
 
-        daqInt deltaInt = 1;
-        daqNumber_getIntValue(delta, &deltaInt);
+        daqSizeT sampleRate = 1;
+        calcSampleRate(&sampleRate, ratio, delta);
 
-        daqInt numerator = 1;
-        daqRatio_getNumerator(ratio, &numerator);
-
-        daqInt denominator = 1;
-        daqRatio_getDenominator(ratio, &denominator);
-
-        daqFloat sampleRate = 1;
-        sampleRate = (daqFloat) denominator / (daqFloat) numerator / (daqFloat) deltaInt;
-
-        printf("Calculated sample rate is: %f Hz\n", sampleRate);
+        printf("Calculated sample rate is: %ull Hz\n", sampleRate);
 
         daqReleaseRef(delta);
         daqReleaseRef(deltaObj);

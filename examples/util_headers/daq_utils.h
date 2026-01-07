@@ -51,6 +51,11 @@ static inline daqErrCode zeroCountReadStatus(daqStreamReader* reader, daqReadSta
 static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
 
 /*
+ * Method that devides the inverse of tickResolution with the given delta to calculate the sample rate.
+ */
+static inline daqErrCode calcSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta);
+
+/*
  * Method that check if the provided DataRule is linear
  */
 static inline daqBool checkLinearRule(daqDataRule* dataRule);
@@ -305,6 +310,22 @@ static inline daqErrCode domainDescriptorFromReadStatus(daqReadStatus* status, d
     return DAQ_ERR_INVALID_DATA;
 }
 
+static inline daqErrCode calcSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta)
+{
+    daqFloat deltaFloat = 0;
+    daqNumber_getFloatValue(delta, &deltaFloat);
+
+    daqInt numerator = 1;
+    daqRatio_getNumerator(tickResolution, &numerator);
+
+    daqInt denominator = 1;
+    daqRatio_getDenominator(tickResolution, &denominator);
+
+    *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator / deltaFloat);
+
+    return DAQ_SUCCESS;
+}
+
 static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor)
 {
     daqDataRule* dataRule = NULL;
@@ -327,18 +348,10 @@ static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescrip
         daqNumber* delta = NULL;
         daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
 
-        daqFloat deltaFloat = 0;
-        daqNumber_getFloatValue(delta, &deltaFloat);
-
-        daqInt numerator = 1;
-        daqRatio_getNumerator(ratio, &numerator);
-
-        daqInt denominator = 1;
-        daqRatio_getDenominator(ratio, &denominator);
-
-        *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator / deltaFloat);
+        calcSampleRate(sampleRate, ratio, delta);
 
         daqReleaseRef(delta);
+        daqReleaseRef(deltaObj);
         daqReleaseRef(deltaString);
         daqReleaseRef(parametersDataRule);
         daqReleaseRef(ratio);

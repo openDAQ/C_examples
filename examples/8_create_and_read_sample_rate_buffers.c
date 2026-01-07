@@ -15,13 +15,7 @@ int main(void)
 
     // Connect to the first available signal on the simulator.
     daqList* availableSignals = NULL;
-    if (daqDevice_getSignalsRecursive(simulator, &availableSignals, NULL) != DAQ_SUCCESS)
-    {
-        daqReleaseRef(simulator);
-        daqReleaseRef(instance);
-        daqReleaseRef(simulatorInstance);
-        return 1;
-    }
+    daqDevice_getSignalsRecursive(simulator, &availableSignals, NULL);
 
     daqSignal* connectedSignal = NULL;
     daqList_getItemAt(availableSignals, 0, (daqBaseObject**)&connectedSignal);
