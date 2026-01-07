@@ -24,10 +24,10 @@ int main(void)
     daqStreamReader_createStreamReader(&streamReader, connectedSignal, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue, daqReadTimeoutTypeAny);
 
     daqDataDescriptor* domainDataDescriptor = NULL;
-    daqReadStatus* status = NULL;
+    daqReaderStatus* status = NULL;
 
-    zeroCountReadStatus(streamReader, &status);
-    domainDescriptorFromReadStatus(status, &domainDataDescriptor);
+    zeroCountReaderStatus(streamReader, &status);
+    domainDescriptorFromReaderStatus(status, &domainDataDescriptor);
 
     daqSizeT sampleRate;
     retrieveSampleRate(&sampleRate, domainDataDescriptor);
