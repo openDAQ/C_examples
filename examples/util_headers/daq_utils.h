@@ -37,12 +37,12 @@ static inline void printDaqFormattedString(const char* string, daqString* daqStr
  * Method for gaining Domain Data Descriptor from the status 
  * received from while reading data from a signal.
  */
-static inline daqErrCode domainDescriptorFromReadStatus(daqReadStatus* status, daqDataDescriptor** domainDescriptor);
+static inline daqErrCode domainDescriptorFromReadStatus(daqReaderStatus* status, daqDataDescriptor** domainDescriptor);
 
 /*
  * Method for obtaning the status from a StreamReader that is connected to a signal.
  */
-static inline daqErrCode zeroCountReadStatus(daqStreamReader* reader, daqReadStatus** status);
+static inline daqErrCode zeroCountReaderStatus(daqStreamReader* reader, daqReaderStatus** status);
 
 /*
  * Method that takes the tick resolution from domain data descriptor 
@@ -267,14 +267,14 @@ static inline void printDaqFormattedString(const char* outputFormatString, daqSt
     printf(outputFormatString, stringConstChar);
 }
 
-static inline daqErrCode zeroCountReadStatus(daqStreamReader* reader, daqReadStatus** status)
+static inline daqErrCode zeroCountReaderStatus(daqStreamReader* reader, daqReaderStatus** status)
 {
     daqSizeT count = 0;
     daqFloat samples[1];
     return daqStreamReader_read(reader, &samples, &count, 1000, status);
 }
 
-static inline daqErrCode domainDescriptorFromReadStatus(daqReadStatus* status, daqDataDescriptor** domainDescriptor)
+static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* status, daqDataDescriptor** domainDescriptor)
 {
     daqEventPacket* eventPacket = NULL;
     daqReaderStatus_getEventPacket(status, &eventPacket);

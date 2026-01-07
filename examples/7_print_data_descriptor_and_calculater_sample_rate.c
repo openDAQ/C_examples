@@ -89,7 +89,7 @@ int main(void)
         daqSizeT sampleRate = 1;
         calcSampleRate(&sampleRate, ratio, delta);
 
-        printf("Calculated sample rate is: %ull Hz\n", sampleRate);
+        printf("Calculated sample rate is: %llu Hz\n", sampleRate);
 
         daqReleaseRef(delta);
         daqReleaseRef(deltaObj);
