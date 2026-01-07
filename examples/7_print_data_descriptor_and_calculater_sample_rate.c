@@ -69,10 +69,7 @@ int main(void)
     daqDataRule* dataRule = NULL;
     daqDataDescriptor_getRule(domainDescriptor, &dataRule);
 
-    daqDataRuleType dataRuleType;
-    daqDataRule_getType(dataRule, &dataRuleType);
-
-    if (dataRuleType == daqDataRuleTypeLinear)
+    if (checkLinearRule(dataRule))
     {
         daqRatio* ratio = NULL;
         daqDataDescriptor_getTickResolution(domainDescriptor, &ratio);
@@ -106,6 +103,7 @@ int main(void)
         daqReleaseRef(delta);
         daqReleaseRef(deltaObj);
         daqReleaseRef(deltaString);
+
         daqReleaseRef(parametersDataRule);
         daqReleaseRef(ratio);
     }
