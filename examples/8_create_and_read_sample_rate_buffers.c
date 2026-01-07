@@ -30,32 +30,37 @@ int main(void)
     daqStreamReader_createStreamReader(&streamReader, connectedSignal, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue, daqReadTimeoutTypeAny);
 
     daqDataDescriptor* domainDataDescriptor = NULL;
-    domainDescriptorFromEventPacket(streamReader, &domainDataDescriptor);
+    daqReadStatus* status = NULL;
 
-    daqRatio* ratio = NULL;
-    daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
+    zeroCountReadStatus(streamReader, &status);
+    domainDescriptorFromReadStatus(status, &domainDataDescriptor);
 
-    daqInt numerator = 1;
-    daqRatio_getNumerator(ratio, &numerator);
-    
-    daqInt denominator = 1;
-    daqRatio_getDenominator(ratio, &denominator);
+    daqSizeT sampleRate;
+    retrieveSampleRate(&sampleRate, domainDataDescriptor);
 
-    daqSizeT sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator);
-
+    // Picking 1000 as a constant here is arbitrary as it servers a simplification derived from
+    // the fact that arrays in C require constant expression to be compiled.
     daqFloat samples[1000 * 2];
 
     daqSizeT sampleAmount = sampleRate * 2;
 
     printf("Sample amount: %llu\n", sampleAmount);
 
-    daqStreamReader_read(streamReader, samples, &sampleAmount, 10000, NULL);
+    for (daqSizeT i = 0; i < 200; i++)
+    {
+        daqStreamReader_read(streamReader, samples, &sampleAmount, 10000, NULL);
 
-    for (daqSizeT i = 0; i < sampleAmount; i++)
-        printf("Entry: %llu, Sample value: %f\n", i, samples[i]);
+        if (sampleAmount > 0)
+            printf("Entry: %llu, Sample value: %f\n", i, samples[sampleAmount-1]);
 
-    daqReleaseRef(streamReader);
+        sampleAmount = sampleRate * 2;
+    }
+
+    daqReleaseRef(status);
     daqReleaseRef(domainDataDescriptor);
+    daqReleaseRef(streamReader);
+    daqReleaseRef(connectedSignal);
+    daqReleaseRef(availableSignals);
     daqReleaseRef(instance);
     daqReleaseRef(simulator);
     daqReleaseRef(simulatorInstance);

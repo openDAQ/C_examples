@@ -34,16 +34,22 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
 static inline void printDaqFormattedString(const char* string, daqString* daqString);
 
 /*
- * Method for getting Domain descriptor from 
- * the signal (via stream reader) by processing an event packet.
+ * Method for gaining Domain Data Descriptor from the status 
+ * received from while reading data from a signal.
  */
-static inline daqErrCode domainDescriptorFromEventPacket(daqStreamReader* reader, daqDataDescriptor** domainDescriptor);
+static inline daqErrCode domainDescriptorFromReadStatus(daqReadStatus* status, daqDataDescriptor** domainDescriptor);
+
+/*
+ * Method for obtaning the status from a StreamReader that is connected to a signal.
+ */
+static inline daqErrCode zeroCountReadStatus(daqStreamReader* reader, daqReadStatus** status);
 
 /*
  * Method that takes the tick resolution from domain data descriptor 
  * and returns the calculated sample rate.
  */
 static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
+
 
 void daqSleepMs(int milliseconds)
 {
@@ -252,13 +258,15 @@ static inline void printDaqFormattedString(const char* outputFormatString, daqSt
     printf(outputFormatString, stringConstChar);
 }
 
-static inline daqErrCode domainDescriptorFromEventPacket(daqStreamReader* reader, daqDataDescriptor** domainDescriptor)
+static inline daqErrCode zeroCountReadStatus(daqStreamReader* reader, daqReadStatus** status)
 {
     daqSizeT count = 0;
     daqFloat samples[1];
-    daqReaderStatus* status = NULL;
-    daqStreamReader_read(reader, &samples, &count, 1000, &status);
+    return daqStreamReader_read(reader, &samples, &count, 1000, status);
+}
 
+static inline daqErrCode domainDescriptorFromReadStatus(daqReadStatus* status, daqDataDescriptor** domainDescriptor)
+{
     daqEventPacket* eventPacket = NULL;
     daqReaderStatus_getEventPacket(status, &eventPacket);
     daqString* eventId = NULL;
@@ -272,7 +280,6 @@ static inline daqErrCode domainDescriptorFromEventPacket(daqStreamReader* reader
 
     daqReleaseRef(checkStr);
     daqReleaseRef(eventId);
-    daqReleaseRef(status);
 
     if (check == True)
     {
@@ -296,39 +303,51 @@ static inline daqErrCode domainDescriptorFromEventPacket(daqStreamReader* reader
 
 static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor)
 {
-    daqRatio* ratio = NULL;
-    daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
-
     daqDataRule* dataRule = NULL;
     daqDataDescriptor_getRule(domainDataDescriptor, &dataRule);
 
-    daqDict* parametersDataRule = NULL;
-    daqDataRule_getParameters(dataRule, &parametersDataRule);
+    daqDataRuleType dataRuleType;
+    daqDataRule_getType(dataRule, &dataRuleType);
 
-    daqString* deltaString = NULL;
-    daqString_createString(&deltaString, "delta");
+    if (dataRuleType == daqDataRuleTypeLinear)
+    {
+        daqRatio* ratio = NULL;
+        daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
 
-    daqBaseObject* deltaObj = NULL;
-    daqDict_get(parametersDataRule, deltaString, &deltaObj);
+        daqDict* parametersDataRule = NULL;
+        daqDataRule_getParameters(dataRule, &parametersDataRule);
 
-    daqNumber* delta = NULL;
-    daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
+        daqString* deltaString = NULL;
+        daqString_createString(&deltaString, "delta");
 
-    daqInt deltaInt = 0;
-    daqNumber_getIntValue(delta, &deltaInt);
+        daqBaseObject* deltaObj = NULL;
+        daqDict_get(parametersDataRule, deltaString, &deltaObj);
 
-    daqInt numerator = 1;
-    daqRatio_getNumerator(ratio, &numerator);
+        daqNumber* delta = NULL;
+        daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
 
-    daqInt denominator = 1;
-    daqRatio_getDenominator(ratio, &denominator);
+        daqFloat deltaFloat = 0;
+        daqNumber_getFloatValue(delta, &deltaFloat);
 
-    *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator / (daqFloat)deltaInt);
+        daqInt numerator = 1;
+        daqRatio_getNumerator(ratio, &numerator);
 
-    daqReleaseRef(delta);
-    daqReleaseRef(deltaString);
-    daqReleaseRef(parametersDataRule);
+        daqInt denominator = 1;
+        daqRatio_getDenominator(ratio, &denominator);
+
+        *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator / deltaFloat);
+
+        daqReleaseRef(delta);
+        daqReleaseRef(deltaString);
+        daqReleaseRef(parametersDataRule);
+        daqReleaseRef(ratio);
+    }
+    else
+    {
+        printf("Data rule of the signal is not linear, therefore we cannot calculate sample rate.");
+    }
+
     daqReleaseRef(dataRule);
-    daqReleaseRef(ratio);
+
     return DAQ_SUCCESS;
 }

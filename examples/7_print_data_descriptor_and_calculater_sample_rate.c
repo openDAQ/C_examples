@@ -16,14 +16,10 @@ int main(void)
     // Get a Data Descriptor from a named signal and display everything that it contains alongside
     // its domain signal and all domain signals attributes.
 
-    daqString* signalName = NULL;
-    daqString_createString(&signalName, "AI 1");
-
     daqList* availableSignals = NULL;
     daqDevice_getSignalsRecursive(simulator, &availableSignals, NULL);
 
-    daqConstCharPtr signalNameConstChar = NULL;
-    daqString_getCharPtr(signalName, &signalNameConstChar);
+    daqConstCharPtr signalNameConstChar = "AI1";
 
     daqSignal* wantedSignal = NULL;
 
@@ -35,17 +31,13 @@ int main(void)
         daqSignal* currentSignal = NULL;
         daqList_getItemAt(availableSignals, i, (daqBaseObject**) &currentSignal);
 
-        daqDataDescriptor* signalDescriptor = NULL;
-        daqSignal_getDescriptor(currentSignal, &signalDescriptor);
-
-        daqString* signalDescriptorName = NULL;
-        daqDataDescriptor_getName(signalDescriptor, &signalDescriptorName);
+        daqString* nameCurrentSignal = NULL;
+        daqComponent_getName((daqComponent*) currentSignal, &nameCurrentSignal);
 
         daqConstCharPtr signalDescriptorNameConstChar = NULL;
-        daqString_getCharPtr(signalDescriptorName, &signalDescriptorNameConstChar);
+        daqString_getCharPtr(nameCurrentSignal, &signalDescriptorNameConstChar);
 
-        daqReleaseRef(signalDescriptorName);
-        daqReleaseRef(signalDescriptor);
+        daqReleaseRef(nameCurrentSignal);
 
         if (!strcmp(signalNameConstChar, signalDescriptorNameConstChar))
         {
@@ -60,11 +52,11 @@ int main(void)
     daqDataDescriptor* dataDescriptor = NULL;
     daqSignal_getDescriptor(wantedSignal, &dataDescriptor);
 
-    daqStreamReader* streamReader = NULL;
-    daqStreamReader_createStreamReader(&streamReader, wantedSignal, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue, daqReadTimeoutTypeAny);
+    daqSignal* domainSignal = NULL;
+    daqSignal_getDomainSignal(wantedSignal, &domainSignal);
 
     daqDataDescriptor* domainDescriptor = NULL;
-    domainDescriptorFromEventPacket(streamReader, &domainDescriptor);
+    daqSignal_getDescriptor(domainSignal, &domainDescriptor);
 
     daqCharPtr dataDescriptorChar = NULL;
     daqBaseObject_toString(dataDescriptor, &dataDescriptorChar);
@@ -74,47 +66,58 @@ int main(void)
 
     printf("Data descriptor:\n%s\nDomain descriptor:\n%s\n",dataDescriptorChar, domainDescriptorChar);
 
-    daqRatio* ratio = NULL;
-    daqDataDescriptor_getTickResolution(domainDescriptor, &ratio);
-
     daqDataRule* dataRule = NULL;
     daqDataDescriptor_getRule(domainDescriptor, &dataRule);
 
-    daqDict* parametersDataRule = NULL;
-    daqDataRule_getParameters(dataRule, &parametersDataRule);
+    daqDataRuleType dataRuleType;
+    daqDataRule_getType(dataRule, &dataRuleType);
 
-    daqString* deltaString = NULL;
-    daqString_createString(&deltaString, "delta");
+    if (dataRuleType == daqDataRuleTypeLinear)
+    {
+        daqRatio* ratio = NULL;
+        daqDataDescriptor_getTickResolution(domainDescriptor, &ratio);
 
-    daqBaseObject* deltaObj = NULL;
+        daqDict* parametersDataRule = NULL;
+        daqDataRule_getParameters(dataRule, &parametersDataRule);
 
-    daqDict_get(parametersDataRule, deltaString, &deltaObj);
+        daqString* deltaString = NULL;
+        daqString_createString(&deltaString, "delta");
 
-    daqNumber* delta = NULL;
-    daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
+        daqBaseObject* deltaObj = NULL;
+        daqDict_get(parametersDataRule, deltaString, &deltaObj);
 
-    daqInt deltaInt = 1;
-    daqNumber_getIntValue(delta, &deltaInt);
+        daqNumber* delta = NULL;
+        daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
 
-    daqInt numerator = 1;
-    daqRatio_getNumerator(ratio, &numerator);
+        daqInt deltaInt = 1;
+        daqNumber_getIntValue(delta, &deltaInt);
 
-    daqInt denominator = 1;
-    daqRatio_getDenominator(ratio, &denominator);
+        daqInt numerator = 1;
+        daqRatio_getNumerator(ratio, &numerator);
 
-    daqFloat sampleRate = 1;
-    sampleRate = (daqFloat) denominator / (daqFloat) numerator / (daqFloat)deltaInt;
+        daqInt denominator = 1;
+        daqRatio_getDenominator(ratio, &denominator);
 
-    printf("Calculated sample rate is: %f Hz\n", sampleRate);
+        daqFloat sampleRate = 1;
+        sampleRate = (daqFloat) denominator / (daqFloat) numerator / (daqFloat) deltaInt;
 
-    daqReleaseRef(delta);
-    daqReleaseRef(deltaString);
-    daqReleaseRef(parametersDataRule);
+        printf("Calculated sample rate is: %f Hz\n", sampleRate);
+
+        daqReleaseRef(delta);
+        daqReleaseRef(deltaObj);
+        daqReleaseRef(deltaString);
+        daqReleaseRef(parametersDataRule);
+        daqReleaseRef(ratio);
+    }
+    else
+    {
+        printf("Data rule of the signal is not linear, therefore we cannot calculate the sample rate.");
+    }
+
     daqReleaseRef(dataRule);
-    daqReleaseRef(ratio);
     daqReleaseRef(dataDescriptor);
     daqReleaseRef(domainDescriptor);
-    daqReleaseRef(streamReader);
+    daqReleaseRef(domainSignal);
     daqReleaseRef(wantedSignal);
 
     daqReleaseRef(simulator);
