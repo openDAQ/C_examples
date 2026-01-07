@@ -50,6 +50,10 @@ static inline daqErrCode zeroCountReadStatus(daqStreamReader* reader, daqReadSta
  */
 static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
 
+/*
+ * Method that check if the provided DataRule is linear
+ */
+static inline daqBool checkLinearRule(daqDataRule* dataRule);
 
 void daqSleepMs(int milliseconds)
 {
@@ -306,10 +310,7 @@ static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescrip
     daqDataRule* dataRule = NULL;
     daqDataDescriptor_getRule(domainDataDescriptor, &dataRule);
 
-    daqDataRuleType dataRuleType;
-    daqDataRule_getType(dataRule, &dataRuleType);
-
-    if (dataRuleType == daqDataRuleTypeLinear)
+    if (checkLinearRule(dataRule))
     {
         daqRatio* ratio = NULL;
         daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
@@ -350,4 +351,12 @@ static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescrip
     daqReleaseRef(dataRule);
 
     return DAQ_SUCCESS;
+}
+
+static inline daqBool checkLinearRule(daqDataRule* dataRule)
+{
+    daqDataRuleType dataRuleType;
+    daqDataRule_getType(dataRule, &dataRuleType);
+
+    return dataRuleType == daqDataRuleTypeLinear;
 }
