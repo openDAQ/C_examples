@@ -5,6 +5,21 @@
 
 #include <daq_utils.h>
 
+typedef enum ComponentType
+{
+    Unknown = 0,
+    Device,
+    FunctionBlock,
+    IOFolder,
+    Channel,
+    Server,
+    Signal,
+    Folder,
+    Component,
+    SyncComponent,
+    InputPort
+};
+
 int main()
 {
     daqInstance* simulatorInstance = NULL;
@@ -14,7 +29,6 @@ int main()
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    // Example code
     daqList* listOfComponents = NULL;
     daqList_createList(&listOfComponents);
     // Go through all the folders that are available on the device
@@ -26,6 +40,7 @@ int main()
     daqSearchFilter_createAnySearchFilter(&filterIOAny);
     daqFolder_getItems(simulatorIOFolder, &simulatorIOItems, filterIOAny);
 
+    // Going through the components in IOFolder
     daqIterator* ioItemsIterator = NULL;
     daqList_createStartIterator(simulatorIOItems, &ioItemsIterator);
 
@@ -38,6 +53,9 @@ int main()
         daqDataDescriptor_getMetadata(ioItem, &itemMetadata);
 
 
+
+        daqReleaseRef(itemMetadata);
+        daqReleaseRef(ioItem);
     }
 
     daqReleaseRef(ioItemsIterator);
