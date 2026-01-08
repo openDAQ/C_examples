@@ -87,7 +87,7 @@ int main(void)
         daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
 
         daqSizeT sampleRate = 1;
-        calcSampleRate(&sampleRate, ratio, delta);
+        calculateSampleRate(&sampleRate, ratio, delta);
 
         printf("Calculated sample rate is: %llu Hz\n", sampleRate);
 

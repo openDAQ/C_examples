@@ -45,7 +45,7 @@ int main(void)
         daqStreamReader_read(streamReader, samples, &sampleAmount, 10000, NULL);
 
         if (sampleAmount > 0)
-            printf("Entry: %llu, Sample value: %f\n", i, samples[sampleAmount-1]);
+            printf("Entry: %llu, Sample value: %f\n", (i+1), samples[sampleAmount-1]);
 
         sampleAmount = sampleRate * 2;
     }
