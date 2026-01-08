@@ -37,7 +37,7 @@ static inline void printDaqFormattedString(const char* string, daqString* daqStr
  * Method for gaining Domain Data Descriptor from the status 
  * received from while reading data from a signal.
  */
-static inline daqErrCode domainDescriptorFromReadStatus(daqReaderStatus* status, daqDataDescriptor** domainDescriptor);
+static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* status, daqDataDescriptor** domainDescriptor);
 
 /*
  * Method for obtaning the status from a StreamReader that is connected to a signal.
@@ -53,7 +53,7 @@ static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescrip
 /*
  * Method that devides the inverse of tickResolution with the given delta to calculate the sample rate.
  */
-static inline daqErrCode calcSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta);
+static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta);
 
 /*
  * Method that check if the provided DataRule is linear
@@ -310,7 +310,7 @@ static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* statu
     return DAQ_ERR_INVALID_DATA;
 }
 
-static inline daqErrCode calcSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta)
+static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta)
 {
     daqFloat deltaFloat = 0;
     daqNumber_getFloatValue(delta, &deltaFloat);
@@ -348,7 +348,7 @@ static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescrip
         daqNumber* delta = NULL;
         daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
 
-        calcSampleRate(sampleRate, ratio, delta);
+        calculateSampleRate(sampleRate, ratio, delta);
 
         daqReleaseRef(delta);
         daqReleaseRef(deltaObj);
