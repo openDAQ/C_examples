@@ -26,7 +26,7 @@ struct ComponentInfo
     enum ComponentType type;
 };
 
-
+// Note: The case when getters fail should be handled so no crashes happen (at least not from this). 
 
 void componentTreePrintOut(daqDevice* headDevice)
 {
@@ -130,7 +130,114 @@ void componentTreePrintOut(daqDevice* headDevice)
     
 }
 
-// Note: The case when getters fial should be handled so no crashes happen (at least not from this)
+void printObjectList(daqList* list)
+{
+    // Check for emptyness of list should be done outside
+    daqBaseObject* listMember = NULL;
+    daqList_getItemAt(list, 0, &listMember);
+    enum ComponentType componentType = Unknown;
+
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_DEVICE_INTF_ID) && (componentType == Unknown))
+        componentType = Device;
+
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SERVER_INTF_ID) && (componentType == Unknown))
+        componentType = Server;
+
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SYNC_COMPONENT_INTF_ID) && (componentType == Unknown))
+        componentType = SyncComponent;
+
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_FUNCTION_BLOCK_INTF_ID) && (componentType == Unknown))
+        componentType = FunctionBlock;
+
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_FOLDER_INTF_ID) && (componentType == Unknown))
+        componentType = Folder;
+
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_INPUT_PORT_INTF_ID) && (componentType == Unknown))
+        componentType = InputPort;
+
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SIGNAL_INTF_ID) && (componentType == Unknown))
+        componentType = Signal;
+
+    daqSizeT numberOfObjects = 0;
+    daqList_getCount(list, &numberOfObjects);
+
+    for (daqSizeT i = 0; i < numberOfObjects; i++)
+    {
+        daqList_getItemAt(list, i, &listMember);
+
+        switch (componentType)
+        {
+        case Device:
+        {
+            daqDevice* device = NULL;
+            daqQueryInterface(listMember, DAQ_DEVICE_INTF_ID, &device);
+            printDevice(device);
+            daqReleaseRef(device);
+            daqReleaseRef(listMember);
+            break;
+        }
+        case Server:
+        {
+            daqServer* server = NULL;
+            daqQueryInterface(listMember, DAQ_SERVER_INTF_ID, &server);
+            printServer(server);
+            daqReleaseRef(server);
+            daqReleaseRef(listMember);
+            break;
+        }
+        case SyncComponent:
+        {
+            daqSyncComponent* syncComponent = NULL;
+            daqQueryInterface(listMember, DAQ_SYNC_COMPONENT_INTF_ID, &syncComponent);
+            printSyncComponent(syncComponent);
+            daqReleaseRef(syncComponent);
+            daqReleaseRef(listMember);
+            break;
+        }
+        case FunctionBlock:
+        {
+            daqFunctionBlock* functionBlock = NULL;
+            daqQueryInterface(listMember, DAQ_FUNCTION_BLOCK_INTF_ID, &functionBlock);
+            printFunctionBlock(functionBlock);
+            daqReleaseRef(functionBlock);
+            daqReleaseRef(listMember);
+            break;
+        }
+        case Folder:
+        {
+            daqFolder* folder = NULL;
+            daqQueryInterface(listMember, DAQ_FOLDER_INTF_ID, &folder);
+            printFolder(folder);
+            daqReleaseRef(folder);
+            daqReleaseRef(listMember);
+            break;
+        }
+        case InputPort:
+        {
+            daqInputPort* inputPort = NULL;
+            daqQueryInterface(listMember, DAQ_FOLDER_INTF_ID, &inputPort);
+            printInputPort(inputPort);
+            daqReleaseRef(inputPort);
+            daqReleaseRef(listMember);
+            break;
+        }
+        case Signal:
+        {
+            daqSignal* signal = NULL;
+            daqQueryInterface(listMember, DAQ_SIGNAL_INTF_ID, &signal);
+            printSignal(signal);
+            daqReleaseRef(signal);
+            daqReleaseRef(listMember);
+            break;
+        }
+        default:
+        {
+            daqReleaseRef(listMember);
+            break;
+        }
+        }
+    }
+}
 
 void printDevice(daqDevice* device)
 {
@@ -157,34 +264,15 @@ void printDevice(daqDevice* device)
     daqDevice_getDevices(device, &devices, NULL);
     if (devices != NULL)
     {
-        daqSizeT numberOfSubdevices = 0;
-        daqList_getCount(devices, &numberOfSubdevices);
-
-        for (daqSizeT i = 0; i < numberOfSubdevices; i++)
-        {
-            daqDevice* currentSubdevice = NULL;
-            daqList_getItemAt(devices, i, &currentSubdevice);
-
-            printDevice(currentSubdevice);
-            daqReleaseRef(currentSubdevice);
-        }
+        printObjectList(devices);
         daqReleaseRef(devices);
     }
 
     daqList* functionBlocks = NULL;
     daqDevice_getFunctionBlocks(device, &functionBlocks, NULL);
-    if (functionBlocks != NULL) {
-        daqSizeT numberOfFunctionBlocks = 0;
-        daqList_getCount(functionBlocks, &numberOfFunctionBlocks);
-
-        for (daqSizeT i = 0; i < numberOfFunctionBlocks; i++)
-        {
-            daqFunctionBlock* currentFunctionBlock = NULL;
-            daqList_getItemAt(functionBlocks, i, &currentFunctionBlock);
-
-            printFunctionBlock(currentFunctionBlock);
-            daqReleaseRef(currentFunctionBlock);
-        }
+    if (functionBlocks != NULL)
+    {
+        printObjectList(functionBlocks);
         daqReleaseRef(functionBlocks);
     }
 
@@ -192,17 +280,7 @@ void printDevice(daqDevice* device)
     daqDevice_getServers(device, &servers);
     if (servers != NULL)
     {
-        daqSizeT numberOfServers = 0;
-        daqList_getCount(servers, &numberOfServers);
-
-        for (daqSizeT i = 0; i < numberOfServers; i++)
-        {
-            daqServer* currentServer = NULL;
-            daqList_getItemAt(servers, i, &currentServer);
-
-            printServer(currentServer);
-            daqReleaseRef(currentServer);
-        }
+        printObjectList(servers);
         daqReleaseRef(servers);
     }
 }
@@ -215,17 +293,7 @@ void printFunctionBlock(daqFunctionBlock* functionBlock)
     daqFunctionBlock_getFunctionBlocks(functionBlock, &functionBlocks, NULL);
     if (functionBlocks != NULL)
     {
-        daqSizeT numberOfFunctionBlocks = 0;
-        daqList_getCount(functionBlocks, &numberOfFunctionBlocks);
-        
-        for (daqSizeT i = 0; i < numberOfFunctionBlocks; i++)
-        {
-            daqFunctionBlock* currentFunctionBlock = NULL;
-            daqList_getItemAt(functionBlocks, i, &currentFunctionBlock);
-
-            printFunctionBlock(currentFunctionBlock);
-            daqReleaseRef(currentFunctionBlock);
-        }
+        printObjectList(functionBlocks);
         daqReleaseRef(functionBlocks);
     }
 
@@ -233,17 +301,7 @@ void printFunctionBlock(daqFunctionBlock* functionBlock)
     daqFunctionBlock_getInputPorts(functionBlock, &inputPorts, NULL);
     if (inputPorts != NULL)
     {
-        daqSizeT numberOfInputPorts = 0;
-        daqList_getCount(inputPorts, &numberOfInputPorts);
-
-        for (daqSizeT i = 0; i < numberOfInputPorts; i++)
-        {
-            daqInputPort* currentInputPort = NULL;
-            daqList_getItemAt(inputPorts, i, &currentInputPort);
-
-            printInputPort(currentInputPort);
-            daqReleaseRef(currentInputPort);
-        }
+        printObjectList(inputPorts);
         daqReleaseRef(inputPorts);
     }
 
@@ -251,17 +309,7 @@ void printFunctionBlock(daqFunctionBlock* functionBlock)
     daqFunctionBlock_getSignals(functionBlock, &listOfSignals, NULL);
     if (listOfSignals != NULL)
     {
-        daqSizeT numberOfSignals = 0;
-        daqList_getCount(listOfSignals, &numberOfSignals);
-
-        for (daqSizeT i = 0; i < numberOfSignals; i++)
-        {
-            daqSignal* currentSignal = NULL;
-            daqList_getItemAt(listOfSignals, i, &currentSignal);
-
-            printSignal(currentSignal);
-            daqReleaseRef(currentSignal);
-        }
+        printObjectList(listOfSignals);
         daqReleaseRef(listOfSignals);
     }
 }
@@ -270,28 +318,49 @@ void printFolder(daqFolder* folder)
 {
     // Self descriptrion
 
-    // Items
+    daqList* listOfItems = NULL;
+    daqFolder_getItems(folder, &listOfItems, NULL);
+    if (listOfItems != NULL)
+    {
+        printObjectList(listOfItems);
+        daqReleaseRef(listOfItems);
+    }
 }
 
-void printServer(daqServer* sserver)
+void printServer(daqServer* server)
 {
+    // Self description
 
+    daqList* listOfSignals = NULL;
+    daqServer_getSignals(server, &listOfSignals, NULL);
+    if (listOfSignals != NULL)
+    {
+        printObjectList(listOfSignals);
+        daqReleaseRef(listOfSignals);
+    }
 }
 
 void printSyncComponent(daqSyncComponent* syncComp)
 {
-
+    // Leaf node
+    // Self description
 }
 
 void printInputPort(daqInputPort* inputPort)
 {
-
+    // Self description
 }
 
 void printSignal(daqSignal* signal)
 {
-
+    // Leaf node
+    // Self Description
 }
+
+// There is an argument for including the a specific print function for ioFolder (as it is itself a specific type of a folder)
+// The IOFolder would use get signals as a substitute for a recursive search with getItems, but presenting a flat structure in return.
+// It can be used to display an alterantive way of parsing and recieving items in a folder
+// (due to limitations imposed upon IOFolder, we could afford it in this givin function).
 
 int main()
 {
