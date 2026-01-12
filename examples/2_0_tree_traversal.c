@@ -7,7 +7,7 @@
 
 typedef enum ComponentType
 {
-    Unknown = 0,
+    Unk = 0,
     Device,
     FunctionBlock,
     IOFolder,
@@ -26,13 +26,17 @@ struct ComponentInfo
     enum ComponentType type;
 };
 
+void printDaqSignal(daqSignal* signal);
+void printInputPort(daqInputPort* inputPort);
+void printDaqSyncComponent(daqSyncComponent* syncComp);
+void printDaqServer(daqServer* server);
+void printDaqFolder(daqFolder* folder);
+void printDaqFunctionBlock(daqFunctionBlock* functionBlock);
+void printDaqDevice(daqDevice* device);
+
+
 // Note: The case when getters fail should be handled so no crashes happen (at least not from this). 
 
-void componentTreePrintOut(daqDevice* headDevice)
-{
-    // Device -> Folder -> FB/Channel -> Signal
-    //   \-> SyncComponent
-    
     /*
      * daqDevice_getDevices()
      * Device checklist:
@@ -41,21 +45,6 @@ void componentTreePrintOut(daqDevice* headDevice)
      * daqDevice_getSyncComponent()
      * daqDevice_getServers()
      */
-
-    daqFolder* ioFolder = NULL;
-    daqDevice_getInputsOutputsFolder(headDevice, &ioFolder);
-
-    daqList* devices = NULL;
-    daqDevice_getDevices(headDevice, &devices, NULL);
-
-    daqList* functionBlocks = NULL;
-    daqDevice_getFunctionBlocks(headDevice, &functionBlocks, NULL);
-
-    daqSyncComponent* syncComponent = NULL;
-    daqDevice_getSyncComponent(headDevice, &syncComponent);
-
-    daqList* servers = NULL;
-    daqDevice_getServers(headDevice, &servers);
 
     /*
      * daqFolder_getItems
@@ -67,18 +56,6 @@ void componentTreePrintOut(daqDevice* headDevice)
      * daqFunctionBlock_getSignals()
      */
 
-    daqList* itemsIOFolder = NULL;
-    daqFolder_getItems(ioFolder, &itemsIOFolder, NULL);
-
-    daqList* functionBlocks = NULL;
-    daqFunctionBlock_getFunctionBlocks((daqFunctionBlock*) ioFolder, &functionBlocks, NULL);
-
-    daqList* inputPorts = NULL;
-    daqFunctionBlock_getInputPorts((daqFunctionBlock*) ioFolder, &inputPorts, NULL);
-
-    daqList* listOfSignals = NULL;
-    daqFunctionBlock_getSignals((daqFunctionBlock*) ioFolder, &listOfSignals, NULL);
-    
     /*
      * daqFunctionBlock_getFunctionBlocks()
      * Function Block checklist:
@@ -86,37 +63,16 @@ void componentTreePrintOut(daqDevice* headDevice)
      * daqFunctionBlock_getSignals()
      */
 
-    // Function block checks are the same as above
-
-    /*
-     * Input ports checklist:
-     * daqInputPort_getSignals()
-     */
-
-    daqInputPort* inputPort = NULL;
-    daqBaseObject* inputPortObj = NULL;
-    daqList_getItemAt(inputPorts, 0, &inputPortObj);
-    daqQueryInterface(inputPortObj, DAQ_INPUT_PORT_INTF_ID, &inputPort);
-
-    daqSignal* signal = NULL;
-    daqInputPort_getSignal(inputPort, &signal);
-
     /*
      * Server folder checklist:
      * daqServer_getSignals()
      * daqServer_getStreaming()
      */
-    
-    daqServer* server = NULL;
-    daqBaseObject* serverObj = NULL;
-    daqList_getItemAt(servers, 0, &serverObj);
-    daqQueryInterface(serverObj, DAQ_SERVER_INTF_ID, &server);
 
-    daqList* signals = NULL;
-    daqServer_getSignals(server, &signals, NULL);
-
-    daqStreaming* streaming = NULL;
-    daqServer_getStreaming(server, &streaming);
+    /*
+     * Input ports checklist:
+     * daqInputPort_getSignals()
+     */
 
     /*
      * Sync Component checklist:
@@ -127,7 +83,20 @@ void componentTreePrintOut(daqDevice* headDevice)
      * Signal checklist:
      *  tisto kar je, veè ni potrebno
      */
-    
+
+void componentTreePrintOut(daqDevice* headDevice)
+{
+    // Device -> Folder -> FB/Channel -> Signal
+    //   \-> SyncComponent
+
+    /*daqFolder* ioFolder = NULL;
+    daqDevice_getInputsOutputsFolder(headDevice, &ioFolder);
+
+    daqServer* server;
+
+    daqStreaming* streaming = NULL;
+    daqServer_getStreaming(server, &streaming);
+    */
 }
 
 void printObjectList(daqList* list)
@@ -135,27 +104,27 @@ void printObjectList(daqList* list)
     // Check for emptyness of list should be done outside
     daqBaseObject* listMember = NULL;
     daqList_getItemAt(list, 0, &listMember);
-    enum ComponentType componentType = Unknown;
+    enum ComponentType componentType = Unk;
 
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_DEVICE_INTF_ID) && (componentType == Unknown))
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_DEVICE_INTF_ID) && (componentType == Unk))
         componentType = Device;
 
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SERVER_INTF_ID) && (componentType == Unknown))
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SERVER_INTF_ID) && (componentType == Unk))
         componentType = Server;
 
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SYNC_COMPONENT_INTF_ID) && (componentType == Unknown))
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SYNC_COMPONENT_INTF_ID) && (componentType == Unk))
         componentType = SyncComponent;
 
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_FUNCTION_BLOCK_INTF_ID) && (componentType == Unknown))
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_FUNCTION_BLOCK_INTF_ID) && (componentType == Unk))
         componentType = FunctionBlock;
 
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_FOLDER_INTF_ID) && (componentType == Unknown))
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_FOLDER_INTF_ID) && (componentType == Unk))
         componentType = Folder;
 
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_INPUT_PORT_INTF_ID) && (componentType == Unknown))
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_INPUT_PORT_INTF_ID) && (componentType == Unk))
         componentType = InputPort;
 
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SIGNAL_INTF_ID) && (componentType == Unknown))
+    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SIGNAL_INTF_ID) && (componentType == Unk))
         componentType = Signal;
 
     daqSizeT numberOfObjects = 0;
@@ -171,7 +140,7 @@ void printObjectList(daqList* list)
         {
             daqDevice* device = NULL;
             daqQueryInterface(listMember, DAQ_DEVICE_INTF_ID, &device);
-            printDevice(device);
+            printDaqDevice(device);
             daqReleaseRef(device);
             daqReleaseRef(listMember);
             break;
@@ -180,7 +149,7 @@ void printObjectList(daqList* list)
         {
             daqServer* server = NULL;
             daqQueryInterface(listMember, DAQ_SERVER_INTF_ID, &server);
-            printServer(server);
+            printDaqServer(server);
             daqReleaseRef(server);
             daqReleaseRef(listMember);
             break;
@@ -189,7 +158,7 @@ void printObjectList(daqList* list)
         {
             daqSyncComponent* syncComponent = NULL;
             daqQueryInterface(listMember, DAQ_SYNC_COMPONENT_INTF_ID, &syncComponent);
-            printSyncComponent(syncComponent);
+            printDaqSyncComponent(syncComponent);
             daqReleaseRef(syncComponent);
             daqReleaseRef(listMember);
             break;
@@ -198,7 +167,7 @@ void printObjectList(daqList* list)
         {
             daqFunctionBlock* functionBlock = NULL;
             daqQueryInterface(listMember, DAQ_FUNCTION_BLOCK_INTF_ID, &functionBlock);
-            printFunctionBlock(functionBlock);
+            printDaqFunctionBlock(functionBlock);
             daqReleaseRef(functionBlock);
             daqReleaseRef(listMember);
             break;
@@ -207,7 +176,7 @@ void printObjectList(daqList* list)
         {
             daqFolder* folder = NULL;
             daqQueryInterface(listMember, DAQ_FOLDER_INTF_ID, &folder);
-            printFolder(folder);
+            printDaqFolder(folder);
             daqReleaseRef(folder);
             daqReleaseRef(listMember);
             break;
@@ -215,7 +184,7 @@ void printObjectList(daqList* list)
         case InputPort:
         {
             daqInputPort* inputPort = NULL;
-            daqQueryInterface(listMember, DAQ_FOLDER_INTF_ID, &inputPort);
+            daqQueryInterface(listMember, DAQ_INPUT_PORT_INTF_ID, &inputPort);
             printInputPort(inputPort);
             daqReleaseRef(inputPort);
             daqReleaseRef(listMember);
@@ -225,7 +194,7 @@ void printObjectList(daqList* list)
         {
             daqSignal* signal = NULL;
             daqQueryInterface(listMember, DAQ_SIGNAL_INTF_ID, &signal);
-            printSignal(signal);
+            printDaqSignal(signal);
             daqReleaseRef(signal);
             daqReleaseRef(listMember);
             break;
@@ -239,15 +208,17 @@ void printObjectList(daqList* list)
     }
 }
 
-void printDevice(daqDevice* device)
+void printDaqDevice(daqDevice* device)
 {
     // Missing printing of itself.
+    // Direct single children and the device itself needs to be printed.
+    printf("Hello from device\n");
 
     daqFolder* ioFolder = NULL;
     daqDevice_getInputsOutputsFolder(device, &ioFolder);
     if (ioFolder != NULL)
     {
-        printFolder(ioFolder);
+        printDaqFolder(ioFolder);
         daqReleaseRef(ioFolder);
     }
 
@@ -255,7 +226,7 @@ void printDevice(daqDevice* device)
     daqDevice_getSyncComponent(device, &syncComponent);
     if (syncComponent != NULL)
     {
-        printSyncComponent(syncComponent);
+        printDaqSyncComponent(syncComponent);
         daqReleaseRef(syncComponent);
     }
 
@@ -285,9 +256,10 @@ void printDevice(daqDevice* device)
     }
 }
 
-void printFunctionBlock(daqFunctionBlock* functionBlock)
+void printDaqFunctionBlock(daqFunctionBlock* functionBlock)
 {
     // Missing self display
+    printf("Hello from function blcok\n");
 
     daqList* functionBlocks = NULL;
     daqFunctionBlock_getFunctionBlocks(functionBlock, &functionBlocks, NULL);
@@ -314,9 +286,10 @@ void printFunctionBlock(daqFunctionBlock* functionBlock)
     }
 }
 
-void printFolder(daqFolder* folder)
+void printDaqFolder(daqFolder* folder)
 {
     // Self descriptrion
+    printf("Hello from folder\n");
 
     daqList* listOfItems = NULL;
     daqFolder_getItems(folder, &listOfItems, NULL);
@@ -327,9 +300,10 @@ void printFolder(daqFolder* folder)
     }
 }
 
-void printServer(daqServer* server)
+void printDaqServer(daqServer* server)
 {
     // Self description
+    printf("Hello from server\n");
 
     daqList* listOfSignals = NULL;
     daqServer_getSignals(server, &listOfSignals, NULL);
@@ -340,21 +314,24 @@ void printServer(daqServer* server)
     }
 }
 
-void printSyncComponent(daqSyncComponent* syncComp)
+void printDaqSyncComponent(daqSyncComponent* syncComp)
 {
     // Leaf node
     // Self description
+    printf("Hello from sync component\n");
 }
 
 void printInputPort(daqInputPort* inputPort)
 {
     // Self description
+    printf("Hello from input port\n");
 }
 
-void printSignal(daqSignal* signal)
+void printDaqSignal(daqSignal* signal)
 {
     // Leaf node
     // Self Description
+    printf("Hello from signal\n");
 }
 
 // There is an argument for including the a specific print function for ioFolder (as it is itself a specific type of a folder)
@@ -371,42 +348,7 @@ int main()
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    daqList* listOfComponents = NULL;
-    daqList_createList(&listOfComponents);
-    // Go through all the folders that are available on the device
-    daqFolder* simulatorIOFolder = NULL;
-    daqDevice_getInputsOutputsFolder(simulator, &simulatorIOFolder);
-
-    daqList* simulatorIOItems = NULL;
-    daqSearchFilter* filterIOAny = NULL;
-    daqSearchFilter_createAnySearchFilter(&filterIOAny);
-    daqFolder_getItems(simulatorIOFolder, &simulatorIOItems, filterIOAny);
-
-    // Going through the components in IOFolder
-    daqIterator* ioItemsIterator = NULL;
-    daqList_createStartIterator(simulatorIOItems, &ioItemsIterator);
-
-    while (daqIterator_moveNext(ioItemsIterator) == DAQ_SUCCESS)
-    {
-        daqDataDescriptor* ioItem = NULL;
-        daqIterator_getCurrent(ioItemsIterator, &ioItem);
-
-        daqDict* itemMetadata = NULL;
-        daqDataDescriptor_getMetadata(ioItem, &itemMetadata);
-
-        daqReleaseRef(itemMetadata);
-        daqReleaseRef(ioItem);
-    }
-
-    daqReleaseRef(ioItemsIterator);
-    daqReleaseRef(filterIOAny);
-    daqReleaseRef(simulatorIOItems);
-    daqReleaseRef(simulatorIOFolder);
-    // Search for all the signals
-
-    // Check for additional devices
-
-    // Repeat the procedure for all connected devices
+    printDaqDevice((daqDevice*) instance);
 
     daqReleaseRef(instance);
     daqReleaseRef(simulator);
