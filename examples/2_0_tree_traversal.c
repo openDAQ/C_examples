@@ -1,3 +1,4 @@
+
 /*
  * In this example we will demonstrate the structure of openDAQ tree structure
  * by traversing across it.
@@ -5,7 +6,7 @@
 
 #include <daq_utils.h>
 
-typedef enum ComponentType
+enum ComponentType
 {
     Unk = 0,
     Device,
@@ -212,7 +213,11 @@ void printDaqDevice(daqDevice* device)
 {
     // Missing printing of itself.
     // Direct single children and the device itself needs to be printed.
-    printf("Hello from device\n");
+    daqDeviceInfo* deviceInfo = NULL;
+    daqDevice_getInfo(device, &deviceInfo);
+    daqCharPtr* str = NULL;
+    daqBaseObject_toString(deviceInfo, str);
+    printf("Hello from device. Device Info: \n%s\n", *str);
 
     daqFolder* ioFolder = NULL;
     daqDevice_getInputsOutputsFolder(device, &ioFolder);
@@ -259,7 +264,9 @@ void printDaqDevice(daqDevice* device)
 void printDaqFunctionBlock(daqFunctionBlock* functionBlock)
 {
     // Missing self display
-    printf("Hello from function blcok\n");
+    daqCharPtr* str = NULL;
+    daqBaseObject_toString(functionBlock, str);
+    printf("Hello from function blcok. Function Block: \n%s\n", *str);
 
     daqList* functionBlocks = NULL;
     daqFunctionBlock_getFunctionBlocks(functionBlock, &functionBlocks, NULL);
@@ -289,7 +296,9 @@ void printDaqFunctionBlock(daqFunctionBlock* functionBlock)
 void printDaqFolder(daqFolder* folder)
 {
     // Self descriptrion
-    printf("Hello from folder\n");
+    daqCharPtr* str = NULL;
+    daqBaseObject_toString(folder, str);
+    printf("Hello from folder. Folder:\n%s\n", *str);
 
     daqList* listOfItems = NULL;
     daqFolder_getItems(folder, &listOfItems, NULL);
@@ -303,7 +312,9 @@ void printDaqFolder(daqFolder* folder)
 void printDaqServer(daqServer* server)
 {
     // Self description
-    printf("Hello from server\n");
+    daqCharPtr* str = NULL;
+    daqBaseObject_toString(server, str);
+    printf("Hello from server. Server:\n%s\n", *str);
 
     daqList* listOfSignals = NULL;
     daqServer_getSignals(server, &listOfSignals, NULL);
@@ -318,20 +329,26 @@ void printDaqSyncComponent(daqSyncComponent* syncComp)
 {
     // Leaf node
     // Self description
-    printf("Hello from sync component\n");
+    daqCharPtr* str = NULL;
+    daqBaseObject_toString(syncComp, str);
+    printf("Hello from sync component. Sync component:\n%s\n", *str);
 }
 
 void printInputPort(daqInputPort* inputPort)
 {
     // Self description
-    printf("Hello from input port\n");
+    daqCharPtr* str = NULL;
+    daqBaseObject_toString(inputPort, str);
+    printf("Hello from input port. InputPort:\n%s\n", *str);
 }
 
 void printDaqSignal(daqSignal* signal)
 {
     // Leaf node
     // Self Description
-    printf("Hello from signal\n");
+    daqCharPtr* str = NULL;
+    daqBaseObject_toString(signal, str);
+    printf("Hello from signal. Signal:\n%s\n", *str);
 }
 
 // There is an argument for including the a specific print function for ioFolder (as it is itself a specific type of a folder)
