@@ -27,13 +27,29 @@ struct ComponentInfo
     enum ComponentType type;
 };
 
-void printDaqSignal(daqSignal* signal);
-void printInputPort(daqInputPort* inputPort);
-void printDaqSyncComponent(daqSyncComponent* syncComp);
-void printDaqServer(daqServer* server);
-void printDaqFolder(daqFolder* folder);
-void printDaqFunctionBlock(daqFunctionBlock* functionBlock);
-void printDaqDevice(daqDevice* device);
+void componentTreePrintOut(daqDevice* headDevice, daqDict** listOfAvailableDevices, daqBool printout);
+void printDaqSignal(daqSignal* signal, daqDict* listOfAvailableDevices, daqBool printout);
+void printInputPort(daqInputPort* inputPort, daqDict* listOfAvailableDevices, daqBool printout);
+void printDaqSyncComponent(daqSyncComponent* syncComp, daqDict* listOfAvailableDevices, daqBool printout);
+void printDaqServer(daqServer* server, daqDict* listOfAvailableDevices, daqBool printout);
+void printDaqFolder(daqFolder* folder, daqDict* listOfAvailableDevices, daqBool printout);
+void printDaqFunctionBlock(daqFunctionBlock* functionBlock, daqDict* listOfAvailableDevices, daqBool printout);
+void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool printout);
+void addDaqComponentToDict(daqDict* listOfAvailableDevices, daqComponent* component);
+
+
+void addDaqComponentToDict(daqDict* listOfAvailableDevices, daqComponent* component)
+{
+    daqString* globalId = NULL;
+    daqString* description = NULL;
+    daqComponent_getGlobalId(component, &globalId);
+    daqComponent_getDescription(component, &description);
+
+    daqDict_set(listOfAvailableDevices, globalId, description);
+
+    daqReleaseRef(globalId);
+    daqReleaseRef(description);
+}
 
 
 // Note: The case when getters fail should be handled so no crashes happen (at least not from this). 
@@ -82,11 +98,10 @@ void printDaqDevice(daqDevice* device);
 
     /*
      * Signal checklist:
-     *  tisto kar je, veè ni potrebno
+     *  tisto kar je, vec ni potrebno
      */
 
-void componentTreePrintOut(daqDevice* headDevice)
-{
+
     // Device -> Folder -> FB/Channel -> Signal
     //   \-> SyncComponent
 
@@ -98,9 +113,14 @@ void componentTreePrintOut(daqDevice* headDevice)
     daqStreaming* streaming = NULL;
     daqServer_getStreaming(server, &streaming);
     */
+
+void componentTreePrintOut(daqDevice* headDevice, daqDict** listOfAvailableDevices, daqBool printout)
+{
+    daqDict_createDict(listOfAvailableDevices);
+    printDaqDevice(headDevice, listOfAvailableDevices, printout);
 }
 
-void printObjectList(daqList* list)
+void printObjectList(daqList* list, daqDict* listOfAvailableDevices, daqBool printout)
 {
     // Check for emptyness of list should be done outside
     daqBaseObject* listMember = NULL;
@@ -141,7 +161,7 @@ void printObjectList(daqList* list)
         {
             daqDevice* device = NULL;
             daqQueryInterface(listMember, DAQ_DEVICE_INTF_ID, &device);
-            printDaqDevice(device);
+            printDaqDevice(device, listOfAvailableDevices, printout);
             daqReleaseRef(device);
             daqReleaseRef(listMember);
             break;
@@ -150,7 +170,7 @@ void printObjectList(daqList* list)
         {
             daqServer* server = NULL;
             daqQueryInterface(listMember, DAQ_SERVER_INTF_ID, &server);
-            printDaqServer(server);
+            printDaqServer(server, listOfAvailableDevices, printout);
             daqReleaseRef(server);
             daqReleaseRef(listMember);
             break;
@@ -159,7 +179,7 @@ void printObjectList(daqList* list)
         {
             daqSyncComponent* syncComponent = NULL;
             daqQueryInterface(listMember, DAQ_SYNC_COMPONENT_INTF_ID, &syncComponent);
-            printDaqSyncComponent(syncComponent);
+            printDaqSyncComponent(syncComponent, listOfAvailableDevices, printout);
             daqReleaseRef(syncComponent);
             daqReleaseRef(listMember);
             break;
@@ -168,7 +188,7 @@ void printObjectList(daqList* list)
         {
             daqFunctionBlock* functionBlock = NULL;
             daqQueryInterface(listMember, DAQ_FUNCTION_BLOCK_INTF_ID, &functionBlock);
-            printDaqFunctionBlock(functionBlock);
+            printDaqFunctionBlock(functionBlock, listOfAvailableDevices, printout);
             daqReleaseRef(functionBlock);
             daqReleaseRef(listMember);
             break;
@@ -177,7 +197,7 @@ void printObjectList(daqList* list)
         {
             daqFolder* folder = NULL;
             daqQueryInterface(listMember, DAQ_FOLDER_INTF_ID, &folder);
-            printDaqFolder(folder);
+            printDaqFolder(folder, listOfAvailableDevices, printout);
             daqReleaseRef(folder);
             daqReleaseRef(listMember);
             break;
@@ -186,7 +206,7 @@ void printObjectList(daqList* list)
         {
             daqInputPort* inputPort = NULL;
             daqQueryInterface(listMember, DAQ_INPUT_PORT_INTF_ID, &inputPort);
-            printInputPort(inputPort);
+            printInputPort(inputPort, listOfAvailableDevices, printout);
             daqReleaseRef(inputPort);
             daqReleaseRef(listMember);
             break;
@@ -195,7 +215,7 @@ void printObjectList(daqList* list)
         {
             daqSignal* signal = NULL;
             daqQueryInterface(listMember, DAQ_SIGNAL_INTF_ID, &signal);
-            printDaqSignal(signal);
+            printDaqSignal(signal, listOfAvailableDevices, printout);
             daqReleaseRef(signal);
             daqReleaseRef(listMember);
             break;
@@ -209,21 +229,25 @@ void printObjectList(daqList* list)
     }
 }
 
-void printDaqDevice(daqDevice* device)
+void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool printout)
 {
-    // Missing printing of itself.
-    // Direct single children and the device itself needs to be printed.
     daqDeviceInfo* deviceInfo = NULL;
     daqDevice_getInfo(device, &deviceInfo);
     daqCharPtr* str = NULL;
     daqBaseObject_toString(deviceInfo, str);
-    printf("Hello from device. Device Info: \n%s\n", *str);
+
+    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) device);
+
+    if(printout)
+        printf("Hello from device. Device Info: \n%s\n", *str);
+
+    daqReleaseRef(deviceInfo);
 
     daqFolder* ioFolder = NULL;
     daqDevice_getInputsOutputsFolder(device, &ioFolder);
     if (ioFolder != NULL)
     {
-        printDaqFolder(ioFolder);
+        printDaqFolder(ioFolder, listOfAvailableDevices, printout);
         daqReleaseRef(ioFolder);
     }
 
@@ -231,16 +255,16 @@ void printDaqDevice(daqDevice* device)
     daqDevice_getSyncComponent(device, &syncComponent);
     if (syncComponent != NULL)
     {
-        printDaqSyncComponent(syncComponent);
+        printDaqSyncComponent(syncComponent, listOfAvailableDevices, printout);
         daqReleaseRef(syncComponent);
     }
 
-    // The following Structures can appear in multiples, so we handle each and everyone of them.
+    // The following Structures can appear in multiples, so we handle them all.
     daqList* devices = NULL;
     daqDevice_getDevices(device, &devices, NULL);
     if (devices != NULL)
     {
-        printObjectList(devices);
+        printObjectList(devices, listOfAvailableDevices, printout);
         daqReleaseRef(devices);
     }
 
@@ -248,7 +272,7 @@ void printDaqDevice(daqDevice* device)
     daqDevice_getFunctionBlocks(device, &functionBlocks, NULL);
     if (functionBlocks != NULL)
     {
-        printObjectList(functionBlocks);
+        printObjectList(functionBlocks, listOfAvailableDevices, printout);
         daqReleaseRef(functionBlocks);
     }
 
@@ -256,23 +280,27 @@ void printDaqDevice(daqDevice* device)
     daqDevice_getServers(device, &servers);
     if (servers != NULL)
     {
-        printObjectList(servers);
+        printObjectList(servers, listOfAvailableDevices, printout);
         daqReleaseRef(servers);
     }
 }
 
-void printDaqFunctionBlock(daqFunctionBlock* functionBlock)
+void printDaqFunctionBlock(daqFunctionBlock* functionBlock, daqDict* listOfAvailableDevices, daqBool printout)
 {
     // Missing self display
     daqCharPtr* str = NULL;
     daqBaseObject_toString(functionBlock, str);
-    printf("Hello from function blcok. Function Block: \n%s\n", *str);
+    
+    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) functionBlock);
+
+    if (printout)
+        printf("Hello from function blcok. Function Block: \n%s\n", *str);
 
     daqList* functionBlocks = NULL;
     daqFunctionBlock_getFunctionBlocks(functionBlock, &functionBlocks, NULL);
     if (functionBlocks != NULL)
     {
-        printObjectList(functionBlocks);
+        printObjectList(functionBlocks, listOfAvailableDevices, printout);
         daqReleaseRef(functionBlocks);
     }
 
@@ -280,7 +308,7 @@ void printDaqFunctionBlock(daqFunctionBlock* functionBlock)
     daqFunctionBlock_getInputPorts(functionBlock, &inputPorts, NULL);
     if (inputPorts != NULL)
     {
-        printObjectList(inputPorts);
+        printObjectList(inputPorts, listOfAvailableDevices, printout);
         daqReleaseRef(inputPorts);
     }
 
@@ -288,67 +316,82 @@ void printDaqFunctionBlock(daqFunctionBlock* functionBlock)
     daqFunctionBlock_getSignals(functionBlock, &listOfSignals, NULL);
     if (listOfSignals != NULL)
     {
-        printObjectList(listOfSignals);
+        printObjectList(listOfSignals, listOfAvailableDevices, printout);
         daqReleaseRef(listOfSignals);
     }
 }
 
-void printDaqFolder(daqFolder* folder)
+void printDaqFolder(daqFolder* folder, daqDict* listOfAllDevices, daqBool printout)
 {
-    // Self descriptrion
     daqCharPtr* str = NULL;
     daqBaseObject_toString(folder, str);
-    printf("Hello from folder. Folder:\n%s\n", *str);
+
+    addDaqComponentToDict(listOfAllDevices, (daqComponent*) folder);
+
+    if (printout)
+        printf("Hello from folder. Folder:\n%s\n", *str);
 
     daqList* listOfItems = NULL;
     daqFolder_getItems(folder, &listOfItems, NULL);
     if (listOfItems != NULL)
     {
-        printObjectList(listOfItems);
+        printObjectList(listOfItems, listOfAllDevices, printout);
         daqReleaseRef(listOfItems);
     }
 }
 
-void printDaqServer(daqServer* server)
+void printDaqServer(daqServer* server, daqDict* listOfAllAvailableDevices, daqBool printout)
 {
-    // Self description
     daqCharPtr* str = NULL;
     daqBaseObject_toString(server, str);
-    printf("Hello from server. Server:\n%s\n", *str);
+
+    addDaqComponentToDict(listOfAllAvailableDevices, (daqComponent*) server);
+
+    if(printout)
+        printf("Hello from server. Server:\n%s\n", *str);
 
     daqList* listOfSignals = NULL;
     daqServer_getSignals(server, &listOfSignals, NULL);
     if (listOfSignals != NULL)
     {
-        printObjectList(listOfSignals);
+        printObjectList(listOfSignals, listOfAllAvailableDevices, printout);
         daqReleaseRef(listOfSignals);
     }
 }
 
-void printDaqSyncComponent(daqSyncComponent* syncComp)
+void printDaqSyncComponent(daqSyncComponent* syncComp, daqDict* listOfAvailableDevices, daqBool printout)
 {
     // Leaf node
-    // Self description
     daqCharPtr* str = NULL;
     daqBaseObject_toString(syncComp, str);
-    printf("Hello from sync component. Sync component:\n%s\n", *str);
+
+    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) syncComp);
+
+    if(printout)
+        printf("Hello from sync component. Sync component:\n%s\n", *str);
 }
 
-void printInputPort(daqInputPort* inputPort)
+void printInputPort(daqInputPort* inputPort, daqDict* listOfAvailableDevices, daqBool printout)
 {
-    // Self description
     daqCharPtr* str = NULL;
     daqBaseObject_toString(inputPort, str);
-    printf("Hello from input port. InputPort:\n%s\n", *str);
+
+    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) inputPort);
+
+    if (printout)
+        printf("Hello from input port. InputPort:\n%s\n", *str);
 }
 
-void printDaqSignal(daqSignal* signal)
+void printDaqSignal(daqSignal* signal, daqDict* listOfAvailableDevices, daqBool printout)
 {
     // Leaf node
-    // Self Description
     daqCharPtr* str = NULL;
     daqBaseObject_toString(signal, str);
-    printf("Hello from signal. Signal:\n%s\n", *str);
+
+    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) signal);
+
+    if (printout)
+        printf("Hello from signal. Signal:\n%s\n", *str);
 }
 
 // There is an argument for including the a specific print function for ioFolder (as it is itself a specific type of a folder)
@@ -365,10 +408,20 @@ int main()
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    printDaqDevice((daqDevice*) instance);
+    daqDict* listOfComponenets = NULL;
+    daqBool printout = True;
 
+    componentTreePrintOut(instance, listOfComponenets, printout);
+
+    daqReleaseRef(listOfComponenets);
     daqReleaseRef(instance);
     daqReleaseRef(simulator);
     daqReleaseRef(simulatorInstance);
     return 0;
 }
+
+
+// TODOs:
+//  - Add caching of key-value pairs <CopmonentGlobalId, ComponentInfo>  DONE
+//  - Add display of tree                                                DONE(ISH)
+//  - Add display info for specified component                           IN PROGRESS
