@@ -394,6 +394,12 @@ void printDaqSignal(daqSignal* signal, daqDict* listOfAvailableDevices, daqBool 
         printf("Hello from signal. Signal:\n%s\n", *str);
 }
 
+void searchComponentTree(daqDict* listOfComponents, const char* searchQuery)
+{
+    daqString* queryString = NULL;
+    daqString_createString(&queryString, searchQuery);
+}
+
 // There is an argument for including the a specific print function for ioFolder (as it is itself a specific type of a folder)
 // The IOFolder would use get signals as a substitute for a recursive search with getItems, but presenting a flat structure in return.
 // It can be used to display an alterantive way of parsing and recieving items in a folder
