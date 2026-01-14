@@ -394,10 +394,12 @@ void printDaqSignal(daqSignal* signal, daqDict* listOfAvailableDevices, daqBool 
         printf("Hello from signal. Signal:\n%s\n", *str);
 }
 
-void searchComponentTree(daqDict* listOfComponents, const char* searchQuery)
+void searchComponentTree(daqString** componentDescription, daqDict* listOfComponents, const char* searchQuery)
 {
     daqString* queryString = NULL;
     daqString_createString(&queryString, searchQuery);
+    daqDict_get(listOfComponents, queryString, componentDescription);
+    daqReleaseRef(queryString);
 }
 
 // There is an argument for including the a specific print function for ioFolder (as it is itself a specific type of a folder)
@@ -415,9 +417,24 @@ int main()
     addSimulator(&simulator, &instance);
 
     daqDict* listOfComponenets = NULL;
-    daqBool printout = True;
 
-    componentTreePrintOut(instance, listOfComponenets, printout);
+    componentTreePrintOut(instance, listOfComponenets, True);
+
+    // Application that can be asked to display a component tree, check if the component with the specified gloabalID exists, displays 
+
+    // Main application loop
+    while(True)
+    {
+        
+    }
+
+    // Create a tree (so that we can immidiately use the search functionality)
+
+    // Check for user input
+
+    // if display of a tree is requested, delete the previously stored tree and display the newly built one (call the componentTreePrintOut with the printout set to true)
+
+    // Clean up after yourself before you exit, when exit procedure is called (remember the daqReleaseRef calls for all non core types)
 
     daqReleaseRef(listOfComponenets);
     daqReleaseRef(instance);
@@ -425,9 +442,3 @@ int main()
     daqReleaseRef(simulatorInstance);
     return 0;
 }
-
-
-// TODOs:
-//  - Add caching of key-value pairs <CopmonentGlobalId, ComponentInfo>  DONE
-//  - Add display of tree                                                DONE(ISH)
-//  - Add display info for specified component                           IN PROGRESS
