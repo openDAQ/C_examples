@@ -368,6 +368,24 @@ int main()
     // Main application loop
     while(True)
     {
+        int choice = checkInput(&exitCase);
+
+        switch (choice) 
+        {
+            case 1:
+            {
+
+            }
+            case 2:
+            {
+                
+            }
+            default:
+            {
+                
+            }
+        }
+
         if(exitCase)
             break;
     }
@@ -378,7 +396,13 @@ int main()
 
     // Check for user input
 
+    // 1-User requested a display of componentTree
+    // 2-User would like to search for a component with by specifying the globalID
+    // 3-Exit the application
+
     // if display of a tree is requested, delete the previously stored tree and display the newly built one (call the componentTreePrintOut with the printout set to true)
+
+
 
     componentTreePrintOut(instance, listOfComponents, True);
 
