@@ -51,68 +51,7 @@ void addDaqComponentToDict(daqDict* listOfAvailableDevices, daqComponent* compon
     daqReleaseRef(description);
 }
 
-
 // Note: The case when getters fail should be handled so no crashes happen (at least not from this). 
-
-    /*
-     * daqDevice_getDevices()
-     * Device checklist:
-     * daqDevice_getInputsOutputsFolder()
-     * daqDevice_getFunctionBlocks()
-     * daqDevice_getSyncComponent()
-     * daqDevice_getServers()
-     */
-
-    /*
-     * daqFolder_getItems
-     * IOFolder checklist:
-     * daqList zapelji se skozi celoten seznam in pošlji vsako posebej naprej
-     * (Spremeni pogled na function block na pogled na kanal (Channel) in iz njega pridobi zaznamke (tags) in si jih shrani)
-     * daqFunctionBlock_getFunctionBlocks()
-     * daqFunctionBlock_getInputPorts()
-     * daqFunctionBlock_getSignals()
-     */
-
-    /*
-     * daqFunctionBlock_getFunctionBlocks()
-     * Function Block checklist:
-     * daqFunctionBlock_getInputPorts()
-     * daqFunctionBlock_getSignals()
-     */
-
-    /*
-     * Server folder checklist:
-     * daqServer_getSignals()
-     * daqServer_getStreaming()
-     */
-
-    /*
-     * Input ports checklist:
-     * daqInputPort_getSignals()
-     */
-
-    /*
-     * Sync Component checklist:
-     *  samo to kar je na njemu (torej samo pointer do objekta je dovolj)
-     */
-
-    /*
-     * Signal checklist:
-     *  tisto kar je, vec ni potrebno
-     */
-
-
-    // Device -> Folder -> FB/Channel -> Signal
-    //   \-> SyncComponent
-
-    /*daqFolder* ioFolder = NULL;
-    daqDevice_getInputsOutputsFolder(headDevice, &ioFolder);
-
-    daqServer* server;
-
-    daqStreaming* streaming = NULL;
-    daqServer_getStreaming(server, &streaming);
-    */
 
 void componentTreePrintOut(daqDevice* headDevice, daqDict** listOfAvailableDevices, daqBool printout)
 {
@@ -416,27 +355,36 @@ int main()
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    daqDict* listOfComponenets = NULL;
+    daqDict* listOfComponents = NULL;
 
-    componentTreePrintOut(instance, listOfComponenets, True);
+    componentTreePrintOut(instance, listOfComponents, True);
 
-    // Application that can be asked to display a component tree, check if the component with the specified gloabalID exists, displays 
+    // Application that can be asked to display a component tree, check if the component with the specified gloabalID exists, displays
 
+    const char* input;
+    scanf("(%ms)", &input);
+    printf("Hello, how do you do %s", input);
+    daqBool exitCase = True;
     // Main application loop
     while(True)
     {
-        
+        if(exitCase)
+            break;
     }
 
     // Create a tree (so that we can immidiately use the search functionality)
+
+    componentTreePrintOut(instance, listOfComponents, False);
 
     // Check for user input
 
     // if display of a tree is requested, delete the previously stored tree and display the newly built one (call the componentTreePrintOut with the printout set to true)
 
+    componentTreePrintOut(instance, listOfComponents, True);
+
     // Clean up after yourself before you exit, when exit procedure is called (remember the daqReleaseRef calls for all non core types)
 
-    daqReleaseRef(listOfComponenets);
+    daqReleaseRef(listOfComponents);
     daqReleaseRef(instance);
     daqReleaseRef(simulator);
     daqReleaseRef(simulatorInstance);
