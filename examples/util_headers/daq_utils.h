@@ -157,7 +157,14 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelOff);
 
-    daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
+    daqErrCode err = 0;//daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
+    err = daqInstanceBuilder_build(instanceBuilder, instance);
+
+    if (err != 0)
+    {
+        printf("Error occured when creating simulator device.");
+        return DAQ_FAILED(err);
+    }
 
     daqReleaseRef(modulePath);
     daqReleaseRef(instanceBuilder);
