@@ -159,7 +159,14 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelWarn);
 
-    daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
+    daqErrCode err = 0;//daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
+    err = daqInstanceBuilder_build(instanceBuilder, instance);
+
+    if (err != 0)
+    {
+        printf("Error occured when creating simulator device.");
+        return DAQ_FAILED(err);
+    }
 
     daqReleaseRef(modulePath);
     daqReleaseRef(instanceBuilder);
@@ -172,7 +179,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqString_createString(&typeStr, "OpenDAQNativeStreaming");
 
     daqServer* server = NULL;
-    daqErrCode err = daqDevice_addServer((daqDevice*)*instance, typeStr, serverConfig, &server);
+    daqDevice_addServer((daqDevice*)*instance, typeStr, serverConfig, &server);
     daqServer_enableDiscovery(server);
 
     daqReleaseRef(typeStr);

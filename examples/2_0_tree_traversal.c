@@ -51,18 +51,20 @@ void addDaqComponentToDict(daqDict* listOfAvailableDevices, daqComponent* compon
     daqReleaseRef(description);
 }
 
-// Note: The case when getters fail should be handled so no crashes happen (at least not from this). 
-
 void componentTreePrintOut(daqDevice* headDevice, daqDict** listOfAvailableDevices, daqBool printout)
 {
     daqDict_createDict(listOfAvailableDevices);
-    printDaqDevice(headDevice, listOfAvailableDevices, printout);
+    printDaqDevice(headDevice, *listOfAvailableDevices, printout);
 }
 
 void printObjectList(daqList* list, daqDict* listOfAvailableDevices, daqBool printout)
 {
     // Check for emptyness of list should be done outside
     daqBaseObject* listMember = NULL;
+    daqSizeT count = 0;
+    daqList_getCount(list, &count);
+    if (count <= 0)
+        return;
     daqList_getItemAt(list, 0, &listMember);
     enum ComponentType componentType = Unk;
 
@@ -173,11 +175,11 @@ void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool 
     daqDeviceInfo* deviceInfo = NULL;
     daqDevice_getInfo(device, &deviceInfo);
     daqCharPtr* str = NULL;
-    daqBaseObject_toString(deviceInfo, str);
+    daqBaseObject_toString((daqBaseObject*)deviceInfo, str);
 
     addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) device);
 
-    if(printout)
+    if(printout && str != NULL)
         printf("Hello from device. Device Info: \n%s\n", *str);
 
     daqReleaseRef(deviceInfo);
@@ -228,12 +230,12 @@ void printDaqFunctionBlock(daqFunctionBlock* functionBlock, daqDict* listOfAvail
 {
     // Missing self display
     daqCharPtr* str = NULL;
-    daqBaseObject_toString(functionBlock, str);
+    daqBaseObject_toString((daqBaseObject*)functionBlock, str);
     
     addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) functionBlock);
 
-    if (printout)
-        printf("Hello from function blcok. Function Block: \n%s\n", *str);
+    if (printout && str != NULL)
+        printf("Hello from function block. Function Block: \n%s\n", *str);
 
     daqList* functionBlocks = NULL;
     daqFunctionBlock_getFunctionBlocks(functionBlock, &functionBlocks, NULL);
@@ -263,11 +265,11 @@ void printDaqFunctionBlock(daqFunctionBlock* functionBlock, daqDict* listOfAvail
 void printDaqFolder(daqFolder* folder, daqDict* listOfAllDevices, daqBool printout)
 {
     daqCharPtr* str = NULL;
-    daqBaseObject_toString(folder, str);
+    daqBaseObject_toString((daqBaseObject*)folder, str);
 
     addDaqComponentToDict(listOfAllDevices, (daqComponent*) folder);
 
-    if (printout)
+    if (printout&& str!=NULL)
         printf("Hello from folder. Folder:\n%s\n", *str);
 
     daqList* listOfItems = NULL;
@@ -282,11 +284,11 @@ void printDaqFolder(daqFolder* folder, daqDict* listOfAllDevices, daqBool printo
 void printDaqServer(daqServer* server, daqDict* listOfAllAvailableDevices, daqBool printout)
 {
     daqCharPtr* str = NULL;
-    daqBaseObject_toString(server, str);
+    daqBaseObject_toString((daqBaseObject*)server, str);
 
     addDaqComponentToDict(listOfAllAvailableDevices, (daqComponent*) server);
 
-    if(printout)
+    if(printout && str != NULL)
         printf("Hello from server. Server:\n%s\n", *str);
 
     daqList* listOfSignals = NULL;
@@ -302,22 +304,22 @@ void printDaqSyncComponent(daqSyncComponent* syncComp, daqDict* listOfAvailableD
 {
     // Leaf node
     daqCharPtr* str = NULL;
-    daqBaseObject_toString(syncComp, str);
+    daqBaseObject_toString((daqBaseObject*)syncComp, str);
 
     addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) syncComp);
 
-    if(printout)
+    if(printout && str != NULL)
         printf("Hello from sync component. Sync component:\n%s\n", *str);
 }
 
 void printInputPort(daqInputPort* inputPort, daqDict* listOfAvailableDevices, daqBool printout)
 {
     daqCharPtr* str = NULL;
-    daqBaseObject_toString(inputPort, str);
+    daqBaseObject_toString((daqBaseObject*)inputPort, str);
 
     addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) inputPort);
 
-    if (printout)
+    if (printout && str != NULL)
         printf("Hello from input port. InputPort:\n%s\n", *str);
 }
 
@@ -325,11 +327,11 @@ void printDaqSignal(daqSignal* signal, daqDict* listOfAvailableDevices, daqBool 
 {
     // Leaf node
     daqCharPtr* str = NULL;
-    daqBaseObject_toString(signal, str);
+    daqBaseObject_toString((daqBaseObject*)signal, str);
 
     addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) signal);
 
-    if (printout)
+    if (printout && str != NULL)
         printf("Hello from signal. Signal:\n%s\n", *str);
 }
 
@@ -340,11 +342,6 @@ void searchComponentTree(daqString** componentDescription, daqDict* listOfCompon
     daqDict_get(listOfComponents, queryString, componentDescription);
     daqReleaseRef(queryString);
 }
-
-// There is an argument for including the a specific print function for ioFolder (as it is itself a specific type of a folder)
-// The IOFolder would use get signals as a substitute for a recursive search with getItems, but presenting a flat structure in return.
-// It can be used to display an alterantive way of parsing and recieving items in a folder
-// (due to limitations imposed upon IOFolder, we could afford it in this givin function).
 
 int main()
 {
@@ -357,57 +354,34 @@ int main()
 
     daqDict* listOfComponents = NULL;
 
-    componentTreePrintOut(instance, listOfComponents, True);
+    componentTreePrintOut((daqDevice*)instance, &listOfComponents, True);
 
-    // Application that can be asked to display a component tree, check if the component with the specified gloabalID exists, displays
+    daqSizeT count = 0;
+    daqDict_getCount(listOfComponents, &count);
+    printf("%llu\n", count);
 
-    const char* input;
-    scanf("(%ms)", &input);
-    printf("Hello, how do you do %s", input);
-    daqBool exitCase = True;
-    // Main application loop
-    while(True)
+    daqList* keys = NULL;
+    daqDict_getKeyList(listOfComponents, &keys);
+    daqIterator* it = NULL;
+    daqList_createStartIterator(keys, &it);
+
+    while(daqIterator_moveNext(it) == DAQ_SUCCESS)
     {
-        int choice = checkInput(&exitCase);
-
-        switch (choice) 
+        daqBaseObject* current = NULL;
+        daqIterator_getCurrent(it, &current);
+        daqString* comp = NULL;
+        if(DAQ_SUPPORTS_INTERFACE(current, DAQ_STRING_INTF_ID))
         {
-            case 1:
-            {
-
-            }
-            case 2:
-            {
-                
-            }
-            default:
-            {
-                
-            }
+            daqQueryInterface(current, DAQ_STRING_INTF_ID, &comp);
+            daqConstCharPtr constChar = NULL;
+            daqString_getCharPtr(comp, &constChar);
+            printf("%s\n", constChar);
         }
-
-        if(exitCase)
-            break;
+        daqReleaseRef(current);
     }
 
-    // Create a tree (so that we can immidiately use the search functionality)
-
-    componentTreePrintOut(instance, listOfComponents, False);
-
-    // Check for user input
-
-    // 1-User requested a display of componentTree
-    // 2-User would like to search for a component with by specifying the globalID
-    // 3-Exit the application
-
-    // if display of a tree is requested, delete the previously stored tree and display the newly built one (call the componentTreePrintOut with the printout set to true)
-
-
-
-    componentTreePrintOut(instance, listOfComponents, True);
-
-    // Clean up after yourself before you exit, when exit procedure is called (remember the daqReleaseRef calls for all non core types)
-
+    daqReleaseRef(it);
+    daqReleaseRef(keys);
     daqReleaseRef(listOfComponents);
     daqReleaseRef(instance);
     daqReleaseRef(simulator);
