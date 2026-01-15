@@ -1,4 +1,3 @@
-
 /*
  * In this example we will demonstrate the structure of openDAQ tree structure
  * by traversing across it.
