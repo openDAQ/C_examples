@@ -13,7 +13,8 @@ set(C_MODIFIED_EXAMPLES
     6_read_with_formatted_timestamps.c
     7_print_data_descriptor_and_calculater_sample_rate.c
     8_create_and_read_sample_rate_buffers.c
-    2_0_tree_traversal.c)
+    2_0_tree_traversal.c
+	3_0_property_name_and_value_visualization.c)
 
 
 foreach(src ${C_MODIFIED_EXAMPLES})
