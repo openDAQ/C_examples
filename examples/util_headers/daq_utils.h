@@ -41,10 +41,10 @@ static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* statu
 /*
  * Performs a zero-count read and returns the reader status obtained from the read operation.
  */
-static inline daqErrCode zeroCountReaderStatus(daqStreamReader* reader, daqReaderStatus** status);
+static inline daqErrCode zeroCountRead(daqStreamReader* reader, daqReaderStatus** status);
 
 /*
- * Gets the descriptor's sample rate if the descriptor's rule is Linear.
+ * Gets the descriptor's sample rate. Requires linear rule signal and uses delta.
  */
 static inline daqErrCode getSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
 
@@ -265,7 +265,7 @@ static inline void printDaqFormattedString(const char* outputFormatString, daqSt
     printf(outputFormatString, stringConstChar);
 }
 
-static inline daqErrCode zeroCountReaderStatus(daqStreamReader* reader, daqReaderStatus** status)
+static inline daqErrCode zeroCountRead(daqStreamReader* reader, daqReaderStatus** status)
 {
     daqSizeT count = 0;
     daqFloat samples[1];
@@ -288,22 +288,22 @@ static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* statu
     daqReleaseRef(checkStr);
     daqReleaseRef(eventId);
 
-    if (check == True)
+    if (check == False)
     {
-        daqDict* parameters = NULL;
-        daqEventPacket_getParameters(eventPacket, &parameters);
-        daqString* domainDescriptorStr = NULL;
-        daqString_createString(&domainDescriptorStr, "DomainDataDescriptor");
-
-        daqDict_get(parameters, domainDescriptorStr, (daqBaseObject**) domainDescriptor);
-        daqReleaseRef(domainDescriptorStr);
-        daqReleaseRef(parameters);
+        daqReleaseRef(eventPacket);
+        return DAQ_ERR_INVALID_DATA;
     }
 
-    daqReleaseRef(eventPacket);
+    daqDict* parameters = NULL;
+    daqEventPacket_getParameters(eventPacket, &parameters);
+    daqString* domainDescriptorStr = NULL;
+    daqString_createString(&domainDescriptorStr, "DomainDataDescriptor");
 
-    if (check == False)
-        return DAQ_ERR_INVALID_DATA;
+    daqDict_get(parameters, domainDescriptorStr, (daqBaseObject**) domainDescriptor);
+    daqReleaseRef(domainDescriptorStr);
+    daqReleaseRef(parameters);
+
+    daqReleaseRef(eventPacket);
 
     return DAQ_SUCCESS;
 }

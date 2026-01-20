@@ -37,23 +37,23 @@ int main(void)
     daqDataDescriptor* domainDataDescriptor = NULL;
     daqReaderStatus* status = NULL;
 
-    zeroCountReaderStatus(streamReader, &status);
+    zeroCountRead(streamReader, &status);
     domainDescriptorFromReaderStatus(status, &domainDataDescriptor);
 
     daqSizeT sampleRate;
     getSampleRate(&sampleRate, domainDataDescriptor);
 
-    // Picking 1000 as a constant here is arbitrary as it servers a simplification derived from
+    // Picking 2000 as a constant here is arbitrary as it servers a simplification derived from
     // the fact that arrays in C require constant expression to be compiled.
-    daqFloat samples[1000 * 2];
-
-    daqSizeT sampleAmount = sampleRate * 2;
+    daqFloat samples[2000];
+    daqSizeT sampleAmount = sampleRate;
+    const daqSizeT timeoutMs = 1000;
 
     printf("Sample amount: %llu\n", sampleAmount);
 
     for (daqSizeT i = 0; i < 200; i++)
     {
-        daqStreamReader_read(streamReader, samples, &sampleAmount, 10000, NULL);
+        daqStreamReader_read(streamReader, samples, &sampleAmount, timeoutMs, NULL);
 
         if (sampleAmount > 0)
             printf("Entry: %llu, Sample value: %f\n", (i+1), samples[sampleAmount-1]);
