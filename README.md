@@ -1,2 +1,2 @@
 # C_examples
-Repository that contains examples to firstly assist with te development of labVIEW openDAQ driver and secondly expand our range of C examples available
+This repository contains examples propper usage of our API calls in C with the use of openDAQ C-bindings. Examples demonstrate common patterns found in openDAQ application development.
