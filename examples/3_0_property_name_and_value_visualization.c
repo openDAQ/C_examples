@@ -24,6 +24,127 @@ enum PropertyType
     EnumerationProperty
 };
 
+int propertyValueTypeCheck(daqProperty* property, daqCoreType coreType)
+{
+    daqCoreType propCoreType = daqCtUndefined;
+    daqProperty_getValueType(property, propCoreType);
+
+    if (propCoreType == coreType)
+        return 1;
+    return 0;
+}
+
+// Missing handling for IntProp, SelectionProp, SparseSelectionProp, ReferenceProp, FunctionProp
+// Note on universal attributes (default value, read-only, visible, ...):
+// - They will be seen on all visualizations of properties
+// - 
+
+
+// BoolProperty
+void boolProp(daqProperty* property)
+{
+    // Retrive metadata, check what type the value is...
+    if (propertyValueTypeCheck(property, daqCtBool))
+    {
+        // We have to check the default value and the current value that the property is set to
+    }
+}
+
+// FloatValue
+void floatProp(daqProperty* property)
+{
+    // Retrive metadata, check what type the value is...
+    if (propertyValueTypeCheck(property, daqCtFloat))
+    {
+        // Min value, max value, default value, suggested values, visible
+        daqFloat minValue = 0;
+        daqProperty_getMinValue(property, &minValue);
+
+        daqFloat maxValue = 0;
+        daqProperty_getMaxValue(property, &minValue);
+
+        daqBaseObject* defaultValueObj = NULL;
+        daqProperty_getDefaultValue(property, &defaultValueObj);
+        daqFloat defaultValue = 0;
+        daqQueryInterface(defaultValueObj, DAQ_FLOAT_OBJECT_INTF_ID, &defaultValue);
+        daqReleaseRef(defaultValueObj);
+
+        daqList* listOfRecommendedValues = NULL;
+        daqProperty_getSuggestedValues(property, &listOfRecommendedValues);
+
+
+        daqBool visible = False;
+        daqProperty_getVisible(property, &visible);
+        // Display min, max, default and suggested values
+
+    }
+}
+
+// StringProperty
+void stringProp(daqProperty* property)
+{
+    // Retrive metadata, check what type the value is...
+    if(propertyValueTypeCheck(property, daqCtString))
+    {
+        // Default value, suggested values, visible
+    }
+}
+
+// RatioProperty
+void ratioProp(daqProperty* property)
+{
+    // Retrive metadata, check what type the value is...
+    if(propertyValueTypeCheck(property, daqCtRatio))
+    {
+        
+    }
+}
+
+// ListProperty
+void listProp(daqProperty* property)
+{
+    if (propertyValueTypeCheck(property, daqCtList))
+    {
+        
+    }
+}
+
+// DictProperty
+void dictProp(daqProperty* property)
+{
+    if(propertyValueTypeCheck(property, daqCtDict))
+    {
+        
+    }
+}
+
+// ObjectProperty
+void objectProp(daqProperty* property)
+{
+    if(propertyValueTypeCheck(property, daqCtDict))
+    {
+        
+    }
+}
+
+// StructureProperty
+void structProp(daqProperty* property)
+{
+    if(propertyValueTypeCheck(property, daqCtStruct))
+    {
+        
+    }
+}
+
+// EnumerationProperty
+void enumProp(daqProperty* property)
+{
+    if(propertyValueTypeCheck(property, daqCtEnumeration))
+    {
+        
+    }
+}
+
 void printCoreTypeObjects(daqProperty* coreTypeObject)
 {
     // TODO
@@ -65,6 +186,7 @@ void displayPropertyTypes(daqPropertyObject* propertyObject)
             else if (propCoreType == daqCtUndefined)
             {
                 // Maybe needed (don't know yet)
+
             }
             daqString* propName = NULL;
             daqProperty_getName(prop, &propName);
