@@ -1,2 +1,2 @@
-# C_examples
+# OpenDAQ C examples of API usage
 This repository contains examples of propper usage of our API calls in C with the use of openDAQ C-bindings. Examples are based on common patterns found in openDAQ application development. Once completed, the full exampleset will contain all functionalities found in our openDAQ GUI demo.
