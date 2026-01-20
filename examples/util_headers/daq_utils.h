@@ -48,7 +48,7 @@ static inline daqErrCode zeroCountReaderStatus(daqStreamReader* reader, daqReade
  * Method that takes the tick resolution from domain data descriptor 
  * and returns the calculated sample rate.
  */
-static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
+static inline daqErrCode getSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
 
 /*
  * Method that devides the inverse of tickResolution with the given delta to calculate the sample rate.
@@ -58,7 +58,7 @@ static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tic
 /*
  * Method that check if the provided DataRule is linear
  */
-static inline daqBool checkLinearRule(daqDataRule* dataRule);
+static inline int checkIsLinearRule(daqDataRule* dataRule);
 
 void daqSleepMs(int milliseconds)
 {
@@ -172,7 +172,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqString_createString(&typeStr, "OpenDAQNativeStreaming");
 
     daqServer* server = NULL;
-    daqErrCode err = daqDevice_addServer((daqDevice*)*instance, typeStr, serverConfig, &server);
+    daqDevice_addServer((daqDevice*)*instance, typeStr, serverConfig, &server);
     daqServer_enableDiscovery(server);
 
     daqReleaseRef(typeStr);
@@ -304,10 +304,10 @@ static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* statu
 
     daqReleaseRef(eventPacket);
 
-    if (check == True)
-        return DAQ_SUCCESS;
+    if (check == False)
+        return DAQ_ERR_INVALID_DATA;
 
-    return DAQ_ERR_INVALID_DATA;
+    return DAQ_SUCCESS;
 }
 
 static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta)
@@ -326,47 +326,47 @@ static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tic
     return DAQ_SUCCESS;
 }
 
-static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor)
+static inline daqErrCode getSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor)
 {
     daqDataRule* dataRule = NULL;
     daqDataDescriptor_getRule(domainDataDescriptor, &dataRule);
 
-    if (checkLinearRule(dataRule))
-    {
-        daqRatio* ratio = NULL;
-        daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
-
-        daqDict* parametersDataRule = NULL;
-        daqDataRule_getParameters(dataRule, &parametersDataRule);
-
-        daqString* deltaString = NULL;
-        daqString_createString(&deltaString, "delta");
-
-        daqBaseObject* deltaObj = NULL;
-        daqDict_get(parametersDataRule, deltaString, &deltaObj);
-
-        daqNumber* delta = NULL;
-        daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
-
-        calculateSampleRate(sampleRate, ratio, delta);
-
-        daqReleaseRef(delta);
-        daqReleaseRef(deltaObj);
-        daqReleaseRef(deltaString);
-        daqReleaseRef(parametersDataRule);
-        daqReleaseRef(ratio);
-    }
-    else
+    if (!checkIsLinearRule(dataRule))
     {
         printf("Data rule of the signal is not linear, therefore we cannot calculate sample rate.");
+        daqReleaseRef(dataRule);
+        return DAQ_ERR_INVALID_DATA;
     }
+
+    daqRatio* ratio = NULL;
+    daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
+
+    daqDict* parametersDataRule = NULL;
+    daqDataRule_getParameters(dataRule, &parametersDataRule);
+
+    daqString* deltaString = NULL;
+    daqString_createString(&deltaString, "delta");
+
+    daqBaseObject* deltaObj = NULL;
+    daqDict_get(parametersDataRule, deltaString, &deltaObj);
+
+    daqNumber* delta = NULL;
+    daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
+
+    calculateSampleRate(sampleRate, ratio, delta);
+
+    daqReleaseRef(delta);
+    daqReleaseRef(deltaObj);
+    daqReleaseRef(deltaString);
+    daqReleaseRef(parametersDataRule);
+    daqReleaseRef(ratio);
 
     daqReleaseRef(dataRule);
 
     return DAQ_SUCCESS;
 }
 
-static inline daqBool checkLinearRule(daqDataRule* dataRule)
+static inline int checkIsLinearRule(daqDataRule* dataRule)
 {
     daqDataRuleType dataRuleType;
     daqDataRule_getType(dataRule, &dataRuleType);

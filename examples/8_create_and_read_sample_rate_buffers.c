@@ -20,8 +20,19 @@ int main(void)
     daqSignal* connectedSignal = NULL;
     daqList_getItemAt(availableSignals, 0, (daqBaseObject**)&connectedSignal);
 
+    daqStreamReaderBuilder* streamReaderBuilder = NULL;
+    daqStreamReaderBuilder_createStreamReaderBuilder(&streamReaderBuilder);
+
+    daqStreamReaderBuilder_setReadMode(streamReaderBuilder, daqReadModeScaled);
+    daqStreamReaderBuilder_setDomainReadType(streamReaderBuilder, daqSampleTypeInt64);
+    daqStreamReaderBuilder_setValueReadType(streamReaderBuilder, daqSampleTypeFloat64);
+    daqStreamReaderBuilder_setReadTimeoutType(streamReaderBuilder, daqReadTimeoutTypeAny);
+    daqStreamReaderBuilder_setSignal(streamReaderBuilder, connectedSignal);
+
     daqStreamReader* streamReader = NULL;
-    daqStreamReader_createStreamReader(&streamReader, connectedSignal, daqSampleTypeFloat64, daqSampleTypeInt64, daqReadModeRawValue, daqReadTimeoutTypeAny);
+    daqStreamReaderBuilder_build(streamReaderBuilder, &streamReader);
+
+    daqReleaseRef(streamReaderBuilder);
 
     daqDataDescriptor* domainDataDescriptor = NULL;
     daqReaderStatus* status = NULL;
@@ -30,7 +41,7 @@ int main(void)
     domainDescriptorFromReaderStatus(status, &domainDataDescriptor);
 
     daqSizeT sampleRate;
-    retrieveSampleRate(&sampleRate, domainDataDescriptor);
+    getSampleRate(&sampleRate, domainDataDescriptor);
 
     // Picking 1000 as a constant here is arbitrary as it servers a simplification derived from
     // the fact that arrays in C require constant expression to be compiled.
