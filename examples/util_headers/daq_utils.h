@@ -33,6 +33,31 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
  */
 static inline void printDaqFormattedString(const char* string, daqString* daqString);
 
+/*
+ * Gets the Domain Data Descriptor contained within the event-type reader status.
+ */
+static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* status, daqDataDescriptor** domainDescriptor);
+
+/*
+ * Performs a zero-count read and returns the reader status obtained from the read operation.
+ */
+static inline daqErrCode zeroCountRead(daqStreamReader* reader, daqReaderStatus** status);
+
+/*
+ * Gets the descriptor's sample rate. Requires linear rule signal and uses delta.
+ */
+static inline daqErrCode getSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
+
+/*
+ * Divides the inverse of tickResolution with the given delta to calculate the sample rate.
+ */
+static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta);
+
+/*
+ * Checks if the provided DataRule is linear.
+ */
+static inline int checkIsLinearRule(daqDataRule* dataRule);
+
 void daqSleepMs(int milliseconds)
 {
 #ifdef _WIN32
@@ -145,7 +170,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqString_createString(&typeStr, "OpenDAQNativeStreaming");
 
     daqServer* server = NULL;
-    daqErrCode err = daqDevice_addServer((daqDevice*)*instance, typeStr, serverConfig, &server);
+    daqDevice_addServer((daqDevice*)*instance, typeStr, serverConfig, &server);
     daqServer_enableDiscovery(server);
 
     daqReleaseRef(typeStr);
@@ -238,4 +263,111 @@ static inline void printDaqFormattedString(const char* outputFormatString, daqSt
     daqString_getCharPtr(daqString, &stringConstChar);
 
     printf(outputFormatString, stringConstChar);
+}
+
+static inline daqErrCode zeroCountRead(daqStreamReader* reader, daqReaderStatus** status)
+{
+    daqSizeT count = 0;
+    daqFloat samples[1];
+    return daqStreamReader_read(reader, &samples, &count, 1000, status);
+}
+
+static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* status, daqDataDescriptor** domainDescriptor)
+{
+    daqEventPacket* eventPacket = NULL;
+    daqReaderStatus_getEventPacket(status, &eventPacket);
+    daqString* eventId = NULL;
+    daqEventPacket_getEventId(eventPacket, &eventId);
+
+    daqBool check = False;
+    daqString* checkStr = NULL;
+    daqString_createString(&checkStr, "DATA_DESCRIPTOR_CHANGED");
+
+    daqBaseObject_equals(eventId, checkStr, &check);
+
+    daqReleaseRef(checkStr);
+    daqReleaseRef(eventId);
+
+    if (check == False)
+    {
+        daqReleaseRef(eventPacket);
+        return DAQ_ERR_INVALID_DATA;
+    }
+
+    daqDict* parameters = NULL;
+    daqEventPacket_getParameters(eventPacket, &parameters);
+    daqString* domainDescriptorStr = NULL;
+    daqString_createString(&domainDescriptorStr, "DomainDataDescriptor");
+
+    daqDict_get(parameters, domainDescriptorStr, (daqBaseObject**) domainDescriptor);
+    daqReleaseRef(domainDescriptorStr);
+    daqReleaseRef(parameters);
+
+    daqReleaseRef(eventPacket);
+
+    return DAQ_SUCCESS;
+}
+
+static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta)
+{
+    daqFloat deltaFloat = 0;
+    daqNumber_getFloatValue(delta, &deltaFloat);
+
+    daqInt numerator = 1;
+    daqRatio_getNumerator(tickResolution, &numerator);
+
+    daqInt denominator = 1;
+    daqRatio_getDenominator(tickResolution, &denominator);
+
+    *sampleRate = (daqSizeT) ((daqFloat) denominator / (daqFloat) numerator / deltaFloat);
+
+    return DAQ_SUCCESS;
+}
+
+static inline daqErrCode getSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor)
+{
+    daqDataRule* dataRule = NULL;
+    daqDataDescriptor_getRule(domainDataDescriptor, &dataRule);
+
+    if (!checkIsLinearRule(dataRule))
+    {
+        printf("Data rule of the signal is not linear, therefore we cannot calculate sample rate.");
+        daqReleaseRef(dataRule);
+        return DAQ_ERR_INVALID_DATA;
+    }
+
+    daqRatio* ratio = NULL;
+    daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
+
+    daqDict* parametersDataRule = NULL;
+    daqDataRule_getParameters(dataRule, &parametersDataRule);
+
+    daqString* deltaString = NULL;
+    daqString_createString(&deltaString, "delta");
+
+    daqBaseObject* deltaObj = NULL;
+    daqDict_get(parametersDataRule, deltaString, &deltaObj);
+
+    daqNumber* delta = NULL;
+    daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
+
+    calculateSampleRate(sampleRate, ratio, delta);
+
+    daqReleaseRef(delta);
+    daqReleaseRef(deltaObj);
+    daqReleaseRef(deltaString);
+    daqReleaseRef(parametersDataRule);
+    daqReleaseRef(ratio);
+
+    daqReleaseRef(dataRule);
+
+    return DAQ_SUCCESS;
+}
+
+static inline int checkIsLinearRule(daqDataRule* dataRule)
+{
+    daqDataRuleType dataRuleType;
+    daqDataRule_getType(dataRule, &dataRuleType);
+
+    return dataRuleType == daqDataRuleTypeLinear;
 }
