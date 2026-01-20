@@ -39,7 +39,7 @@ static inline void printDaqFormattedString(const char* string, daqString* daqStr
 static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* status, daqDataDescriptor** domainDescriptor);
 
 /*
- * Method for obtaning the status from a StreamReader that is connected to a signal.
+ * Performs a zero-count read and returns the reader status obtained from the read operation.
  */
 static inline daqErrCode zeroCountReaderStatus(daqStreamReader* reader, daqReaderStatus** status);
 
