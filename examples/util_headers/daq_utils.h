@@ -54,7 +54,7 @@ static inline daqErrCode getSampleRate(daqSizeT* sampleRate, daqDataDescriptor* 
 static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta);
 
 /*
- * Method that check if the provided DataRule is linear
+ * Checks if the provided DataRule is linear.
  */
 static inline int checkIsLinearRule(daqDataRule* dataRule);
 
