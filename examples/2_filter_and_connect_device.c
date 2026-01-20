@@ -60,7 +60,7 @@ int main(void)
         daqString* name = NULL;
         daqDeviceInfo_getName(connectedDeviceInfo, &name);
 
-        printDaqFormattedString("The name fo the connected device is:", name);
+        printDaqFormattedString("The name fo the connected device is: %s", name);
 
         daqReleaseRef(name);
         daqReleaseRef(connectedDevice);
