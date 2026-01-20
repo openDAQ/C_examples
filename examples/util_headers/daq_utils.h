@@ -44,8 +44,7 @@ static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* statu
 static inline daqErrCode zeroCountReaderStatus(daqStreamReader* reader, daqReaderStatus** status);
 
 /*
- * Method that takes the tick resolution from domain data descriptor 
- * and returns the calculated sample rate.
+ * Gets the descriptor's sample rate if the descriptor's rule is Linear.
  */
 static inline daqErrCode getSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
 
