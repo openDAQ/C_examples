@@ -34,8 +34,7 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
 static inline void printDaqFormattedString(const char* string, daqString* daqString);
 
 /*
- * Method for gaining Domain Data Descriptor from the status 
- * received from while reading data from a signal.
+ * Gets the Domain Data Descriptor contained within the event-type reader status.
  */
 static inline daqErrCode domainDescriptorFromReaderStatus(daqReaderStatus* status, daqDataDescriptor** domainDescriptor);
 
