@@ -5,14 +5,14 @@ project(labVIEW_example_suite_V2 VERSION 1.0.0 LANGUAGES C)
 
 
 set(C_MODIFIED_EXAMPLES 
-    1_discover_devices.c
-    2_filter_and_connect_device.c
-    3_get_signals.c
-    4_filter_and_read_last_value_of_signal.c
-    5_stream_reader_read_in_loop.c
-    6_read_with_formatted_timestamps.c
-    7_print_data_descriptor_and_calculater_sample_rate.c
-    8_create_and_read_sample_rate_buffers.c)
+    discover_devices.c
+    filter_and_connect_device.c
+    get_signals.c
+    filter_and_read_last_value_of_signal.c
+    stream_reader_read_in_loop.c
+    read_with_formatted_timestamps.c
+    print_data_descriptor_and_calculater_sample_rate.c
+    create_and_read_sample_rate_buffers.c)
 
 
 foreach(src ${C_MODIFIED_EXAMPLES})

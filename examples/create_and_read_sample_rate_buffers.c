@@ -56,8 +56,9 @@ int main(void)
     daqSizeT sampleRate;
     getSampleRate(&sampleRate, domainDataDescriptor);
 
+    daqFloat* samples = NULL;
     const daqSizeT bufSize = sampleRate * 2;
-    daqFloat* samples = malloc(bufSize * sizeof(daqFloat));
+    samples = malloc(bufSize * sizeof(daqFloat));
     daqSizeT sampleAmount = sampleRate;
     const daqSizeT timeoutMs = 1000;
 
