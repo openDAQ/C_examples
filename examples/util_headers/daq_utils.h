@@ -49,7 +49,7 @@ static inline daqErrCode zeroCountReaderStatus(daqStreamReader* reader, daqReade
 static inline daqErrCode getSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
 
 /*
- * Method that devides the inverse of tickResolution with the given delta to calculate the sample rate.
+ * Divides the inverse of tickResolution with the given delta to calculate the sample rate.
  */
 static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tickResolution, daqNumber* delta);
 
