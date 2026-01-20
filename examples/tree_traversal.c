@@ -52,7 +52,6 @@ void componentTreePrintOut(daqDevice* headDevice, daqDict** listOfAvailableDevic
 
 void printObjectList(daqList* list, daqDict* listOfAvailableDevices, daqBool printout)
 {
-    // Check for emptyness of list should be done outside
     daqBaseObject* listMember = NULL;
     daqSizeT count = 0;
     daqList_getCount(list, &count);

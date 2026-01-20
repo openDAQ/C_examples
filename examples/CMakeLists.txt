@@ -13,7 +13,7 @@ set(C_MODIFIED_EXAMPLES
     read_with_formatted_timestamps.c
     print_data_descriptor_and_calculater_sample_rate.c
     create_and_read_sample_rate_buffers.c
-	2_0_tree_traversal.c)
+    tree_traversal.c)
 
 foreach(src ${C_MODIFIED_EXAMPLES})
     get_filename_component(exec_name ${src} NAME_WLE)
