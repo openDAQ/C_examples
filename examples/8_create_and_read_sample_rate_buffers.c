@@ -17,6 +17,19 @@ int main(void)
     daqList* availableSignals = NULL;
     daqDevice_getSignalsRecursive(simulator, &availableSignals, NULL);
 
+    daqSizeT count = 0;
+    daqList_getCount(availableSignals, &count);
+
+    if (count <= 0)
+    {
+        printf("No available signals were found.\n");
+        daqReleaseRef(availableSignals);
+        daqReleaseRef(simulator);
+        daqReleaseRef(instance);
+        daqReleaseRef(simulatorInstance);
+        return 0;
+    }
+
     daqSignal* connectedSignal = NULL;
     daqList_getItemAt(availableSignals, 0, (daqBaseObject**)&connectedSignal);
 
