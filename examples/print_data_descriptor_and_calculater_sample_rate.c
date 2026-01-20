@@ -34,12 +34,12 @@ int main(void)
         daqString* nameCurrentSignal = NULL;
         daqComponent_getName((daqComponent*) currentSignal, &nameCurrentSignal);
 
-        daqConstCharPtr signalDescriptorNameConstChar = NULL;
-        daqString_getCharPtr(nameCurrentSignal, &signalDescriptorNameConstChar);
+        daqConstCharPtr currentSignalNameConstChar = NULL;
+        daqString_getCharPtr(nameCurrentSignal, &currentSignalNameConstChar);
 
         daqReleaseRef(nameCurrentSignal);
 
-        if (!strcmp(signalNameConstChar, signalDescriptorNameConstChar))
+        if (!strcmp(signalNameConstChar, currentSignalNameConstChar))
         {
             wantedSignal = currentSignal;
             break;
@@ -69,45 +69,53 @@ int main(void)
     daqDataRule* dataRule = NULL;
     daqDataDescriptor_getRule(domainDescriptor, &dataRule);
 
-    if (checkLinearRule(dataRule))
-    {
-        daqRatio* ratio = NULL;
-        daqDataDescriptor_getTickResolution(domainDescriptor, &ratio);
-
-        daqDict* parametersDataRule = NULL;
-        daqDataRule_getParameters(dataRule, &parametersDataRule);
-
-        daqString* deltaString = NULL;
-        daqString_createString(&deltaString, "delta");
-
-        daqBaseObject* deltaObj = NULL;
-        daqDict_get(parametersDataRule, deltaString, &deltaObj);
-
-        daqNumber* delta = NULL;
-        daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
-
-        daqSizeT sampleRate = 1;
-        calculateSampleRate(&sampleRate, ratio, delta);
-
-        printf("Calculated sample rate is: %llu Hz\n", sampleRate);
-
-        daqReleaseRef(delta);
-        daqReleaseRef(deltaObj);
-        daqReleaseRef(deltaString);
-
-        daqReleaseRef(parametersDataRule);
-        daqReleaseRef(ratio);
-    }
-    else
-    {
-        printf("Data rule of the signal is not linear, therefore we cannot calculate the sample rate.");
-    }
-
-    daqReleaseRef(dataRule);
     daqReleaseRef(dataDescriptor);
-    daqReleaseRef(domainDescriptor);
     daqReleaseRef(domainSignal);
     daqReleaseRef(wantedSignal);
+
+    if (!checkIsLinearRule(dataRule))
+    {
+        printf("Data rule of the signal is not linear, therefore we cannot calculate the sample rate.");
+
+        daqReleaseRef(dataRule);
+        daqReleaseRef(domainDescriptor);
+
+        daqReleaseRef(simulator);
+        daqReleaseRef(instance);
+        daqReleaseRef(simulatorInstance);
+
+        return 0;
+    }
+
+    daqRatio* ratio = NULL;
+    daqDataDescriptor_getTickResolution(domainDescriptor, &ratio);
+
+    daqDict* parametersDataRule = NULL;
+    daqDataRule_getParameters(dataRule, &parametersDataRule);
+
+    daqString* deltaString = NULL;
+    daqString_createString(&deltaString, "delta");
+
+    daqBaseObject* deltaObj = NULL;
+    daqDict_get(parametersDataRule, deltaString, &deltaObj);
+
+    daqNumber* delta = NULL;
+    daqQueryInterface(deltaObj, DAQ_NUMBER_INTF_ID, &delta);
+
+    daqSizeT sampleRate = 1;
+    calculateSampleRate(&sampleRate, ratio, delta);
+
+    printf("Calculated sample rate is: %llu Hz\n", sampleRate);
+
+    daqReleaseRef(delta);
+    daqReleaseRef(deltaObj);
+    daqReleaseRef(deltaString);
+
+    daqReleaseRef(parametersDataRule);
+    daqReleaseRef(ratio);
+
+    daqReleaseRef(dataRule);
+    daqReleaseRef(domainDescriptor);
 
     daqReleaseRef(simulator);
     daqReleaseRef(instance);
