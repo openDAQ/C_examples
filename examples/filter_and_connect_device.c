@@ -7,11 +7,19 @@
 
 int main(void)
 {
+    daqInstanceBuilder* builder = NULL;
+    daqInstanceBuilder_createInstanceBuilder(&builder);
+        
+    daqString* modulePath = NULL;
+    daqString_createString(&modulePath, MODULE_PATH);
+    daqInstanceBuilder_setModulePath(builder, modulePath);
+    
+    daqInstanceBuilder_setGlobalLogLevel(builder, daqLogLevelOff);
+
     daqInstance* instance = NULL;
+    daqInstance_createInstanceFromBuilder(&instance, builder);
+
     daqList* availableDevices = NULL;
-
-    createInstance(&instance, "");
-
     daqDevice_getAvailableDevices((daqDevice*)instance, &availableDevices);
 
     daqIterator* iterator = NULL;
@@ -68,6 +76,7 @@ int main(void)
 
     daqReleaseRef(availableDevices);
     daqReleaseRef(instance);
+    daqReleaseRef(builder);
 
     return 0;
 }
