@@ -88,6 +88,17 @@ void stringProp(daqProperty* property)
     {
         // Default value, suggested values, visible
     }
+    daqBaseObject* defaultStringObj = NULL;
+    daqProperty_getDefaultValue(property, &defaultStringObj);
+    daqString* defaultString = NULL;
+    daqQueryInterface(defaultStringObj, DAQ_STRING_INTF_ID, &defaultString);
+
+    daqBool visible = False;
+    daqProperty_getVisible(property, &visible);
+
+    daqList* suggestedStrings = NULL;
+    daqProperty_getSuggestedValues(property, &suggestedStrings);
+    // Display
 }
 
 // RatioProperty
@@ -98,6 +109,22 @@ void ratioProp(daqProperty* property)
     {
         
     }
+    daqBaseObject* defaultRatioObj = NULL;
+    daqProperty_getDefaultValue(property, &defaultRatioObj);
+    daqRatio* defaultRatio = NULL;
+    daqQueryInterface(defaultRatioObj, DAQ_RATIO_INTF_ID, &defaultRatio);
+
+    // Min and max are included here
+    daqNumber* minValue = NULL;
+    daqNumber* maxValue = NULL;
+    daqProperty_getMinValue(property, &minValue);
+    daqProperty_getMaxValue(property, &maxValue);
+
+    // When displaying min/max, there needs to be an emptiness check
+
+    daqBool visible = False;
+    daqProperty_getVisible(property, &visible);
+    // Not sure about suggested values....
 }
 
 // ListProperty
@@ -107,6 +134,11 @@ void listProp(daqProperty* property)
     {
         
     }
+    daqBool visible = False;
+    daqProperty_getVisible(property, &visible);
+
+    daqCoreType itemType = daqCtUndefined;
+    daqProperty_getItemType(property, &itemType);
 }
 
 // DictProperty
