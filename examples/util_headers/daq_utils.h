@@ -58,12 +58,6 @@ static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tic
  */
 static inline int checkIsLinearRule(daqDataRule* dataRule);
 
-/*
- * Method that takes the tick resolution from domain data descriptor 
- * and returns the calculated sample rate.
- */
-static inline daqErrCode retrieveSampleRate(daqSizeT* sampleRate, daqDataDescriptor* domainDataDescriptor);
-
 void daqSleepMs(int milliseconds)
 {
 #ifdef _WIN32
@@ -163,14 +157,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelOff);
 
-    daqErrCode err = 0;
-    err = daqInstanceBuilder_build(instanceBuilder, instance);
-
-    if (err != 0)
-    {
-        printf("Error occured when creating simulator device.");
-        return DAQ_FAILED(err);
-    }
+    daqInstanceBuilder_build(instanceBuilder, instance);
 
     daqReleaseRef(modulePath);
     daqReleaseRef(instanceBuilder);
