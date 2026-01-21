@@ -1,6 +1,7 @@
 /*
- * In this example we will demonstrate the structure of openDAQ tree structure
- * by traversing across it.
+ * In openDAQ devices are represented by a tree structure. Example demonstrates how to fully explore that tree and displays
+ * the type of the object alongside its name. After saving every object into an dictionary, example displays all of saved objects
+ * globalIds.
  */
 
 #include <daq_utils.h>
