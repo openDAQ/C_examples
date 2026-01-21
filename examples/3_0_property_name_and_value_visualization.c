@@ -27,7 +27,7 @@ enum PropertyType
 int propertyValueTypeCheck(daqProperty* property, daqCoreType coreType)
 {
     daqCoreType propCoreType = daqCtUndefined;
-    daqProperty_getValueType(property, propCoreType);
+    daqProperty_getValueType(property, &propCoreType);
 
     if (propCoreType == coreType)
         return 1;
@@ -48,6 +48,16 @@ void boolProp(daqProperty* property)
     {
         // We have to check the default value and the current value that the property is set to
     }
+    daqBool* visible = NULL;
+    daqProperty_getVisible(property, visible);
+
+    daqBaseObject* defaultVisibleObj = NULL;
+    daqProperty_getDefaultValue(property, &defaultVisibleObj);
+
+    daqBool* defaultVisible = NULL;
+    daqQueryInterface(property, DAQ_BOOLEAN_INTF_ID, &defaultVisible);
+
+
 }
 
 // FloatProperty
@@ -57,11 +67,11 @@ void floatProp(daqProperty* property)
     if (propertyValueTypeCheck(property, daqCtFloat))
     {
         // Min value, max value, default value, suggested values, visible
-        daqFloat minValue = 0;
-        daqProperty_getMinValue(property, &minValue);
+        daqNumber* minValueNum = NULL;
+        daqProperty_getMinValue(property, &minValueNum);
 
-        daqFloat maxValue = 0;
-        daqProperty_getMaxValue(property, &minValue);
+        daqNumber* maxValueNum = NULL;
+        daqProperty_getMaxValue(property, &maxValueNum);
 
         daqBaseObject* defaultValueObj = NULL;
         daqProperty_getDefaultValue(property, &defaultValueObj);
@@ -71,7 +81,6 @@ void floatProp(daqProperty* property)
 
         daqList* listOfRecommendedValues = NULL;
         daqProperty_getSuggestedValues(property, &listOfRecommendedValues);
-
 
         daqBool visible = False;
         daqProperty_getVisible(property, &visible);
@@ -83,11 +92,11 @@ void floatProp(daqProperty* property)
 // IntProperty
 void intProp(daqProperty* property)
 {
-    daqInt minValue = 0;
-    daqProperty_getMinValue(property, &minValue);
+    daqNumber* minValueNum = NULL;
+    daqProperty_getMinValue(property, &minValueNum);
 
-    daqInt maxValue = 0;
-    daqProperty_getMaxValue(property, &maxValue);
+    daqNumber* maxValueNum = NULL;
+    daqProperty_getMaxValue(property, maxValueNum);
 
     daqBaseObject* defaultValueObj = NULL;
     daqProperty_getDefaultValue(property, &defaultValueObj);
@@ -105,6 +114,16 @@ void intProp(daqProperty* property)
     daqString* name = NULL;
     daqProperty_getName(property, &name);
 
+    // Display attributes if they are not empty
+    if (minValueNum != NULL)
+    {
+
+    }
+
+    daqReleaseRef(name);
+    daqReleaseRef(listOfSuggestedValues);
+    daqReleaseRef(maxValueNum);
+    daqReleaseRef(minValueNum);
 }
 
 // StringProperty
@@ -132,10 +151,6 @@ void stringProp(daqProperty* property)
 void ratioProp(daqProperty* property)
 {
     // Retrive metadata, check what type the value is...
-    if(propertyValueTypeCheck(property, daqCtRatio))
-    {
-        
-    }
     daqBaseObject* defaultRatioObj = NULL;
     daqProperty_getDefaultValue(property, &defaultRatioObj);
     daqRatio* defaultRatio = NULL;
@@ -157,10 +172,6 @@ void ratioProp(daqProperty* property)
 // ListProperty
 void listProp(daqProperty* property)
 {
-    if (propertyValueTypeCheck(property, daqCtList))
-    {
-        
-    }
     daqBool visible = False;
     daqProperty_getVisible(property, &visible);
 
@@ -171,10 +182,6 @@ void listProp(daqProperty* property)
 // DictProperty
 void dictProp(daqProperty* property)
 {
-    if(propertyValueTypeCheck(property, daqCtDict))
-    {
-        
-    }
     daqBool visible = False;
     daqProperty_getVisible(property, &visible);
 
@@ -188,17 +195,20 @@ void dictProp(daqProperty* property)
 // ObjectProperty
 void objectProp(daqProperty* property)
 {
-    if(propertyValueTypeCheck(property, daqCtDict))
-    {
-        
-    }
     daqBool visible = False;
     daqProperty_getVisible(property, &visible);
 
     daqBaseObject* defaultObjectObj = NULL;
     daqProperty_getDefaultValue(property, defaultObjectObj);
 
+    // PropertyObject value
+    daqBaseObject* valueObj = NULL;
+    daqProperty_getValue(property, &valueObj);
 
+    daqPropertyObject* defaultPropObj = NULL;
+    daqQueryInterface(defaultObjectObj, DAQ_PROPERTY_OBJECT_INTF_ID, &defaultPropObj);
+
+    // Check if empty and then rerun the objectProp on the defaultPropObj
 }
 
 // StructureProperty
@@ -208,7 +218,7 @@ void structProp(daqProperty* property)
     {
         
     }
-
+    // Value is Struct Core Type
 }
 
 // EnumerationProperty
@@ -261,13 +271,12 @@ void displayPropertyTypes(daqPropertyObject* propertyObject)
             else if (propCoreType == daqCtUndefined)
             {
                 // Maybe needed (don't know yet)
-
             }
             daqString* propName = NULL;
             daqProperty_getName(prop, &propName);
             printDaqFormattedString("Property name: %s", propName);
             daqBaseObject* propValueObj = NULL;
-            daqProperty_getValue(prop, propValueObj);
+            daqProperty_getValue(prop, &propValueObj);
             daqConstCharPtr propValueObjStr = "";
             daqBaseObject_toString(propValueObj, propValueObjStr);
             printf("\nValue of the property: %s\n", propValueObjStr);
