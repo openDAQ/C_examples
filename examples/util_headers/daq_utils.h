@@ -157,7 +157,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelOff);
 
-    daqInstanceBuilder_build(instanceBuilder, instance);
+    daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
 
     daqReleaseRef(modulePath);
     daqReleaseRef(instanceBuilder);
