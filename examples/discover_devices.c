@@ -10,6 +10,12 @@ int main(void)
 {
     daqInstanceBuilder* builder = NULL;
     daqInstanceBuilder_createInstanceBuilder(&builder);
+    
+    daqString* modulePath = NULL;
+    daqString_createString(&modulePath, MODULE_PATH);
+    daqInstanceBuilder_setModulePath(builder, modulePath);
+    
+    daqInstanceBuilder_setGlobalLogLevel(builder, daqLogLevelOff);
 
     daqInstance* instance = NULL;
     daqInstance_createInstanceFromBuilder(&instance, builder);

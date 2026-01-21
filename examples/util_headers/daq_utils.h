@@ -155,7 +155,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqInstanceBuilder_setModulePath(instanceBuilder, modulePath);
 
-    daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelWarn);
+    daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelOff);
 
     daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
 
@@ -247,7 +247,7 @@ static inline daqErrCode createInstance(daqInstance** instance, const char* modu
 
     daqInstanceBuilder_addModulePath(instanceBuilder, modulePathStr);
 
-    daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelWarn);
+    daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelOff);
 
     daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
 

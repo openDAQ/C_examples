@@ -43,7 +43,7 @@ int main(void)
         // of the reader (in this case)
         daqStreamReader_read(reader, samples, &count, timeoutMs, NULL);
         if (count > 0)
-            printf(" %u no. of times read, %llu sample, %f value\n",
+            printf(" %u no. of times read, %llu samples, %f value\n",
                     i, count, samples[count - 1]);
     }
 
