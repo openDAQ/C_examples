@@ -1,10 +1,8 @@
 get_current_folder_name(TARGET_FOLDER_NAME)
 
-project(labVIEW_example_suite_V2 VERSION 1.0.0 LANGUAGES C)
+project(C_example_suite VERSION 1.0.0 LANGUAGES C)
 
-
-
-set(C_MODIFIED_EXAMPLES 
+set(EXAMPLE_SOURCES 
     discover_devices.c
     filter_and_connect_device.c
     get_signals.c
@@ -15,7 +13,7 @@ set(C_MODIFIED_EXAMPLES
     create_and_read_sample_rate_buffers.c
     tree_traversal.c)
 
-foreach(src ${C_MODIFIED_EXAMPLES})
+foreach(src ${EXAMPLE_SOURCES})
     get_filename_component(exec_name ${src} NAME_WLE)
     add_executable(${exec_name} ${src})
 	target_include_directories(${exec_name} PRIVATE util_headers)
