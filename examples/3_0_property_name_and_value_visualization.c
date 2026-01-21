@@ -50,7 +50,7 @@ void boolProp(daqProperty* property)
     }
 }
 
-// FloatValue
+// FloatProperty
 void floatProp(daqProperty* property)
 {
     // Retrive metadata, check what type the value is...
@@ -78,6 +78,33 @@ void floatProp(daqProperty* property)
         // Display min, max, default and suggested values
 
     }
+}
+
+// IntProperty
+void intProp(daqProperty* property)
+{
+    daqInt minValue = 0;
+    daqProperty_getMinValue(property, &minValue);
+
+    daqInt maxValue = 0;
+    daqProperty_getMaxValue(property, &maxValue);
+
+    daqBaseObject* defaultValueObj = NULL;
+    daqProperty_getDefaultValue(property, &defaultValueObj);
+
+    daqInt defaultValue = 0;
+    daqQueryInterface(defaultValueObj, DAQ_INTEGER_INTF_ID, &defaultValue);
+    daqReleaseRef(defaultValueObj);
+
+    daqList* listOfSuggestedValues = NULL;
+    daqProperty_getSuggestedValues(property, &listOfSuggestedValues);
+
+    daqBool visible = False;
+    daqProperty_getVisible(property, &visible);
+
+    daqString* name = NULL;
+    daqProperty_getName(property, &name);
+
 }
 
 // StringProperty
@@ -148,6 +175,14 @@ void dictProp(daqProperty* property)
     {
         
     }
+    daqBool visible = False;
+    daqProperty_getVisible(property, &visible);
+
+    daqCoreType itemType = daqCtUndefined;
+    daqProperty_getItemType(property, &itemType);
+
+    daqCoreType keyType = daqCtUndefined;
+    daqProperty_getKeyType(property, &keyType);
 }
 
 // ObjectProperty
@@ -157,6 +192,13 @@ void objectProp(daqProperty* property)
     {
         
     }
+    daqBool visible = False;
+    daqProperty_getVisible(property, &visible);
+
+    daqBaseObject* defaultObjectObj = NULL;
+    daqProperty_getDefaultValue(property, defaultObjectObj);
+
+
 }
 
 // StructureProperty
@@ -166,6 +208,7 @@ void structProp(daqProperty* property)
     {
         
     }
+
 }
 
 // EnumerationProperty
