@@ -12,7 +12,8 @@ set(EXAMPLE_SOURCES
     print_data_descriptor_and_calculater_sample_rate.c
     create_and_read_sample_rate_buffers.c
     tree_traversal.c
-    3_0_property_name_and_value_visualization.c)
+    3_0_property_name_and_value_visualization.c
+    metadata_c_conversion.c)
 
 foreach(src ${EXAMPLE_SOURCES})
     get_filename_component(exec_name ${src} NAME_WLE)

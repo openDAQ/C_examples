@@ -39,6 +39,120 @@ int propertyValueTypeCheck(daqProperty* property, daqCoreType coreType)
 // - They will be seen on all visualizations of properties
 // - 
 
+void determinePropertyTypeAndPrint(daqProperty* property)
+{
+    daqCoreType propCoreType = daqCtUndefined;
+    daqProperty_getValueType(property, &propCoreType);
+
+    switch(propCoreType)
+    {
+        case daqCtBool:
+        {
+            boolProp(property);
+            break;
+        }
+        case daqCtFloat:
+        {
+            floatProp(property);
+            break;
+        }
+        case daqCtString:
+        {
+            stringProp(property);
+            break;
+        }
+        case daqCtList:
+        {
+            listProp(property);
+            break;
+        }
+        case daqCtDict:
+        {
+            dictProp(property);
+            break;
+        }
+        case daqCtRatio:
+        {
+            ratioProp(property);
+            break;
+        }
+        case daqCtFunc:
+        {
+            // Function prop
+            functionProp(property);
+            break;
+        }
+        case daqCtProc:
+        {
+            // Function prop w/ no output
+            functionProp(property);
+            break;
+        }
+        case daqCtStruct:
+        {
+            structProp(property);
+            break;
+        }
+        case daqCtEnumeration:
+        {
+            enumProp(property);
+            break;
+        }
+        case daqCtInt:
+        {
+            // Check between selection, sparse selection and int property
+            daqBaseObject* selectionValues = NULL;
+            daqProperty_getSelectionValues(property, &selectionValues);
+            if (selectionValues == NULL)
+            {
+                intProp(property);
+                break;
+            }
+
+            if(DAQ_SUPPORTS_INTERFACE(selectionValues, DAQ_DICT_INTF_ID))
+                sparseSelectionProp(property);
+            else
+                selectionProp(property);
+
+            break;
+        }
+        default:
+        {
+            prop(property);
+            break;
+        }
+    }
+}
+
+// FunctionProperty (also handles ProcedureProperty)
+void functionProp(daqProperty* property)
+{
+    daqCallableInfo* callInfo = NULL;
+    daqProperty_getCallableInfo(property, &callInfo);
+
+    daqBool* visible = NULL;
+    daqProperty_getVisible(property, visible);
+
+
+}
+
+// SparseSelectionProperty
+void sparseSelectionProp(daqProperty* property)
+{
+    
+}
+
+// SelectionProperty
+void selectionProp(daqProperty* property)
+{
+
+}
+
+// Property
+void prop(daqProperty* property)
+{
+
+}
 
 // BoolProperty
 void boolProp(daqProperty* property)
@@ -111,16 +225,22 @@ void intProp(daqProperty* property)
     daqBool visible = False;
     daqProperty_getVisible(property, &visible);
 
-    daqString* name = NULL;
-    daqProperty_getName(property, &name);
+    // We will display the name outside of this function
+    daqBool* readOnly = NULL;
+    daqProperty_getReadOnly(property, readOnly);
 
     // Display attributes if they are not empty
-    if (minValueNum != NULL)
+    if (minValueNum != NULL && maxValueNum != NULL)
     {
+        daqInt minValue = 0;
+        daqNumber_getIntValue(minValueNum, &minValue);
+        daqInt maxValue = 0;
+        daqNumber_getIntValue(maxValueNum, &maxValue);
 
+        printf("Minimum acceptable value of the property is: %lld\n", minValue);
+        printf("Maximum acceptable value of the property is: %lld\n", maxValue);
     }
 
-    daqReleaseRef(name);
     daqReleaseRef(listOfSuggestedValues);
     daqReleaseRef(maxValueNum);
     daqReleaseRef(minValueNum);
@@ -199,7 +319,7 @@ void objectProp(daqProperty* property)
     daqProperty_getVisible(property, &visible);
 
     daqBaseObject* defaultObjectObj = NULL;
-    daqProperty_getDefaultValue(property, defaultObjectObj);
+    daqProperty_getDefaultValue(property, &defaultObjectObj);
 
     // PropertyObject value
     daqBaseObject* valueObj = NULL;
@@ -215,24 +335,28 @@ void objectProp(daqProperty* property)
 void structProp(daqProperty* property)
 {
     if(propertyValueTypeCheck(property, daqCtStruct))
-    {
-        
-    }
+    {}
     // Value is Struct Core Type
+    daqBaseObject* defValueObj = NULL;
+    daqProperty_getDefaultValue(property, &defValueObj);
+
+    daqStruct* defValue = NULL;
+    if (defValueObj)
+        daqQueryInterface(defValueObj, DAQ_STRUCT_INTF_ID, &defValue);
+
+    daqBool* visible = False;
+    daqProperty_getVisible(property, visible);
+    
+    
 }
 
 // EnumerationProperty
 void enumProp(daqProperty* property)
 {
-    if(propertyValueTypeCheck(property, daqCtEnumeration))
-    {
-        
-    }
-}
+    daqBaseObject* selectionValueObj = NULL;
+    daqProperty_getSelectionValues(property, &selectionValueObj);
 
-void printCoreTypeObjects(daqProperty* coreTypeObject)
-{
-    // TODO
+
 }
 
 void displayPropertyTypes(daqPropertyObject* propertyObject)
