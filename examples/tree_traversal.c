@@ -8,52 +8,85 @@
 
 enum ComponentType
 {
-    Unk = 0,
-    Device,
-    FunctionBlock,
-    IOFolder,
-    Channel,
-    Server,
-    Signal,
-    Folder,
-    Component,
-    SyncComponent,
-    InputPort
+    DaqUnknown = 0,
+    DaqDevice,
+    DaqFunctionBlock,
+    DaqIOFolder,
+    DaqChannel,
+    DaqServer,
+    DaqSignal,
+    DaqFolder,
+    DaqComponent,
+    DaqSyncComponent,
+    DaqInputPort
 };
 
-void componentTreePrintOut(daqDevice* headDevice, daqDict** listOfAvailableDevices, daqBool printout);
+void addDaqComponentToDict(daqDict* listOfAvailableComponents, daqComponent* component);
 
-void printDaqSignal(daqSignal* signal, daqDict* listOfAvailableDevices, daqBool printout);
-void printInputPort(daqInputPort* inputPort, daqDict* listOfAvailableDevices, daqBool printout);
-void printDaqSyncComponent(daqSyncComponent* syncComp, daqDict* listOfAvailableDevices, daqBool printout);
-void printDaqServer(daqServer* server, daqDict* listOfAvailableDevices, daqBool printout);
-void printDaqFolder(daqFolder* folder, daqDict* listOfAvailableDevices, daqBool printout);
-void printDaqFunctionBlock(daqFunctionBlock* functionBlock, daqDict* listOfAvailableDevices, daqBool printout);
-void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool printout);
+void printComponentTree(daqDevice* headDevice, daqDict** listOfAvailableComponents, daqBool printout);
 
-void addDaqComponentToDict(daqDict* listOfAvailableDevices, daqComponent* component);
+void printDaqDevice(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout);
 
+void printDaqFunctionBlock(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout);
 
-void addDaqComponentToDict(daqDict* listOfAvailableDevices, daqComponent* component)
+void printDaqFolder(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout);
+
+void printDaqServer(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout);
+
+void printDaqSyncComponent(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout);
+
+void printInputPort(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout);
+
+void printDaqSignal(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout);
+
+void addDaqComponentToDict(daqDict* listOfAvailableComponents, daqComponent* component)
 {
     daqString* globalId = NULL;
     daqString* description = NULL;
     daqComponent_getGlobalId(component, &globalId);
     daqComponent_getDescription(component, &description);
 
-    daqDict_set(listOfAvailableDevices, globalId, description);
+    daqDict_set(listOfAvailableComponents, globalId, description);
 
     daqReleaseRef(globalId);
     daqReleaseRef(description);
 }
 
-void componentTreePrintOut(daqDevice* headDevice, daqDict** listOfAvailableDevices, daqBool printout)
+void printComponentTree(daqDevice* headDevice, daqDict** listOfAvailableComponents, daqBool printout)
 {
-    daqDict_createDict(listOfAvailableDevices);
-    printDaqDevice(headDevice, *listOfAvailableDevices, printout);
+    daqDict_createDict(listOfAvailableComponents);
+    printDaqDevice(headDevice, *listOfAvailableComponents, printout);
 }
 
-void printObjectList(daqList* list, daqDict* listOfAvailableDevices, daqBool printout)
+enum ComponentType getComponentType(daqBaseObject* baseObject)
+{
+    enum ComponentType componentType = DaqUnknown;
+
+    if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_DEVICE_INTF_ID) && (componentType == DaqUnknown))
+        componentType = DaqDevice;
+
+    if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SERVER_INTF_ID) && (componentType == DaqUnknown))
+        componentType = DaqServer;
+
+    if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SYNC_COMPONENT_INTF_ID) && (componentType == DaqUnknown))
+        componentType = DaqSyncComponent;
+
+    if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_FUNCTION_BLOCK_INTF_ID) && (componentType == DaqUnknown))
+        componentType = DaqFunctionBlock;
+
+    if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_FOLDER_INTF_ID) && (componentType == DaqUnknown))
+        componentType = DaqFolder;
+
+    if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_INPUT_PORT_INTF_ID) && (componentType == DaqUnknown))
+        componentType = DaqInputPort;
+
+    if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SIGNAL_INTF_ID) && (componentType == DaqUnknown))
+        componentType = DaqSignal;
+
+    return componentType;
+}
+
+void printObjectList(daqList* list, daqDict* listOfAvailableComponents, daqBool printout)
 {
     daqBaseObject* listMember = NULL;
     daqSizeT count = 0;
@@ -61,28 +94,8 @@ void printObjectList(daqList* list, daqDict* listOfAvailableDevices, daqBool pri
     if (count <= 0)
         return;
     daqList_getItemAt(list, 0, &listMember);
-    enum ComponentType componentType = Unk;
-
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_DEVICE_INTF_ID) && (componentType == Unk))
-        componentType = Device;
-
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SERVER_INTF_ID) && (componentType == Unk))
-        componentType = Server;
-
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SYNC_COMPONENT_INTF_ID) && (componentType == Unk))
-        componentType = SyncComponent;
-
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_FUNCTION_BLOCK_INTF_ID) && (componentType == Unk))
-        componentType = FunctionBlock;
-
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_FOLDER_INTF_ID) && (componentType == Unk))
-        componentType = Folder;
-
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_INPUT_PORT_INTF_ID) && (componentType == Unk))
-        componentType = InputPort;
-
-    if (DAQ_SUPPORTS_INTERFACE(listMember, DAQ_SIGNAL_INTF_ID) && (componentType == Unk))
-        componentType = Signal;
+    
+    enum ComponentType componentType = getComponentType(listMember);
 
     daqSizeT numberOfObjects = 0;
     daqList_getCount(list, &numberOfObjects);
@@ -93,66 +106,45 @@ void printObjectList(daqList* list, daqDict* listOfAvailableDevices, daqBool pri
 
         switch (componentType)
         {
-        case Device:
+        case DaqDevice:
         {
-            daqDevice* device = NULL;
-            daqQueryInterface(listMember, DAQ_DEVICE_INTF_ID, &device);
-            printDaqDevice(device, listOfAvailableDevices, printout);
-            daqReleaseRef(device);
+            printDaqDevice(listMember, listOfAvailableComponents, printout);
             daqReleaseRef(listMember);
             break;
         }
-        case Server:
+        case DaqServer:
         {
-            daqServer* server = NULL;
-            daqQueryInterface(listMember, DAQ_SERVER_INTF_ID, &server);
-            printDaqServer(server, listOfAvailableDevices, printout);
-            daqReleaseRef(server);
+            printDaqServer(listMember, listOfAvailableComponents, printout);
             daqReleaseRef(listMember);
             break;
         }
-        case SyncComponent:
+        case DaqSyncComponent:
         {
-            daqSyncComponent* syncComponent = NULL;
-            daqQueryInterface(listMember, DAQ_SYNC_COMPONENT_INTF_ID, &syncComponent);
-            printDaqSyncComponent(syncComponent, listOfAvailableDevices, printout);
-            daqReleaseRef(syncComponent);
+            printDaqSyncComponent(listMember, listOfAvailableComponents, printout);
             daqReleaseRef(listMember);
             break;
         }
-        case FunctionBlock:
+        case DaqFunctionBlock:
         {
-            daqFunctionBlock* functionBlock = NULL;
-            daqQueryInterface(listMember, DAQ_FUNCTION_BLOCK_INTF_ID, &functionBlock);
-            printDaqFunctionBlock(functionBlock, listOfAvailableDevices, printout);
-            daqReleaseRef(functionBlock);
+            printDaqFunctionBlock(listMember, listOfAvailableComponents, printout);
             daqReleaseRef(listMember);
             break;
         }
-        case Folder:
+        case DaqFolder:
         {
-            daqFolder* folder = NULL;
-            daqQueryInterface(listMember, DAQ_FOLDER_INTF_ID, &folder);
-            printDaqFolder(folder, listOfAvailableDevices, printout);
-            daqReleaseRef(folder);
+            printDaqFolder(listMember, listOfAvailableComponents, printout);
             daqReleaseRef(listMember);
             break;
         }
-        case InputPort:
+        case DaqInputPort:
         {
-            daqInputPort* inputPort = NULL;
-            daqQueryInterface(listMember, DAQ_INPUT_PORT_INTF_ID, &inputPort);
-            printInputPort(inputPort, listOfAvailableDevices, printout);
-            daqReleaseRef(inputPort);
+            printInputPort(listMember, listOfAvailableComponents, printout);
             daqReleaseRef(listMember);
             break;
         }
-        case Signal:
+        case DaqSignal:
         {
-            daqSignal* signal = NULL;
-            daqQueryInterface(listMember, DAQ_SIGNAL_INTF_ID, &signal);
-            printDaqSignal(signal, listOfAvailableDevices, printout);
-            daqReleaseRef(signal);
+            printDaqSignal(listMember, listOfAvailableComponents, printout);
             daqReleaseRef(listMember);
             break;
         }
@@ -165,8 +157,10 @@ void printObjectList(daqList* list, daqDict* listOfAvailableDevices, daqBool pri
     }
 }
 
-void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool printout)
+void printDaqDevice(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout)
 {
+    daqDevice* device = NULL;
+    daqQueryInterface(baseObject, DAQ_DEVICE_INTF_ID, &device);
     daqString* name = NULL;
     daqComponent_getName((daqComponent*)device, &name);
 
@@ -175,13 +169,13 @@ void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool 
 
     daqReleaseRef(name);
 
-    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) device);
+    addDaqComponentToDict(listOfAvailableComponents, (daqComponent*) device);
 
     daqFolder* ioFolder = NULL;
     daqDevice_getInputsOutputsFolder(device, &ioFolder);
     if (ioFolder != NULL)
     {
-        printDaqFolder(ioFolder, listOfAvailableDevices, printout);
+        printDaqFolder(ioFolder, listOfAvailableComponents, printout);
         daqReleaseRef(ioFolder);
     }
 
@@ -189,7 +183,7 @@ void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool 
     daqDevice_getSyncComponent(device, &syncComponent);
     if (syncComponent != NULL)
     {
-        printDaqSyncComponent(syncComponent, listOfAvailableDevices, printout);
+        printDaqSyncComponent(syncComponent, listOfAvailableComponents, printout);
         daqReleaseRef(syncComponent);
     }
 
@@ -197,7 +191,7 @@ void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool 
     daqDevice_getDevices(device, &devices, NULL);
     if (devices != NULL)
     {
-        printObjectList(devices, listOfAvailableDevices, printout);
+        printObjectList(devices, listOfAvailableComponents, printout);
         daqReleaseRef(devices);
     }
 
@@ -205,7 +199,7 @@ void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool 
     daqDevice_getFunctionBlocks(device, &functionBlocks, NULL);
     if (functionBlocks != NULL)
     {
-        printObjectList(functionBlocks, listOfAvailableDevices, printout);
+        printObjectList(functionBlocks, listOfAvailableComponents, printout);
         daqReleaseRef(functionBlocks);
     }
 
@@ -213,13 +207,17 @@ void printDaqDevice(daqDevice* device, daqDict* listOfAvailableDevices, daqBool 
     daqDevice_getServers(device, &servers);
     if (servers != NULL)
     {
-        printObjectList(servers, listOfAvailableDevices, printout);
+        printObjectList(servers, listOfAvailableComponents, printout);
         daqReleaseRef(servers);
     }
+
+    daqReleaseRef(device);
 }
 
-void printDaqFunctionBlock(daqFunctionBlock* functionBlock, daqDict* listOfAvailableDevices, daqBool printout)
+void printDaqFunctionBlock(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout)
 {
+    daqFunctionBlock* functionBlock = NULL;
+    daqQueryInterface(baseObject, DAQ_FUNCTION_BLOCK_INTF_ID, &functionBlock);
     daqString* name = NULL;
     daqComponent_getName((daqComponent*)functionBlock, &name);
 
@@ -228,13 +226,13 @@ void printDaqFunctionBlock(daqFunctionBlock* functionBlock, daqDict* listOfAvail
 
     daqReleaseRef(name);
 
-    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) functionBlock);
+    addDaqComponentToDict(listOfAvailableComponents, (daqComponent*) functionBlock);
 
     daqList* functionBlocks = NULL;
     daqFunctionBlock_getFunctionBlocks(functionBlock, &functionBlocks, NULL);
     if (functionBlocks != NULL)
     {
-        printObjectList(functionBlocks, listOfAvailableDevices, printout);
+        printObjectList(functionBlocks, listOfAvailableComponents, printout);
         daqReleaseRef(functionBlocks);
     }
 
@@ -242,7 +240,7 @@ void printDaqFunctionBlock(daqFunctionBlock* functionBlock, daqDict* listOfAvail
     daqFunctionBlock_getInputPorts(functionBlock, &inputPorts, NULL);
     if (inputPorts != NULL)
     {
-        printObjectList(inputPorts, listOfAvailableDevices, printout);
+        printObjectList(inputPorts, listOfAvailableComponents, printout);
         daqReleaseRef(inputPorts);
     }
 
@@ -250,13 +248,17 @@ void printDaqFunctionBlock(daqFunctionBlock* functionBlock, daqDict* listOfAvail
     daqFunctionBlock_getSignals(functionBlock, &listOfSignals, NULL);
     if (listOfSignals != NULL)
     {
-        printObjectList(listOfSignals, listOfAvailableDevices, printout);
+        printObjectList(listOfSignals, listOfAvailableComponents, printout);
         daqReleaseRef(listOfSignals);
     }
+
+    daqReleaseRef(functionBlock);
 }
 
-void printDaqFolder(daqFolder* folder, daqDict* listOfAllDevices, daqBool printout)
+void printDaqFolder(daqBaseObject* baseObject, daqDict* listOfAllDevices, daqBool printout)
 {
+    daqFolder* folder = NULL;
+    daqQueryInterface(baseObject, DAQ_FOLDER_INTF_ID, &folder);
     daqString* name = NULL;
     daqComponent_getName((daqComponent*)folder, &name);
 
@@ -275,10 +277,15 @@ void printDaqFolder(daqFolder* folder, daqDict* listOfAllDevices, daqBool printo
         printObjectList(listOfItems, listOfAllDevices, printout);
         daqReleaseRef(listOfItems);
     }
+
+    daqReleaseRef(folder);
 }
 
-void printDaqServer(daqServer* server, daqDict* listOfAllAvailableDevices, daqBool printout)
+void printDaqServer(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout)
 {
+    daqServer* server = NULL;
+    daqQueryInterface(baseObject, DAQ_SERVER_INTF_ID, &server);
+
     daqString* name = NULL;
     daqComponent_getName((daqComponent*)server, &name);
 
@@ -287,19 +294,23 @@ void printDaqServer(daqServer* server, daqDict* listOfAllAvailableDevices, daqBo
 
     daqReleaseRef(name);
 
-    addDaqComponentToDict(listOfAllAvailableDevices, (daqComponent*) server);
+    addDaqComponentToDict(listOfAvailableComponents, (daqComponent*) server);
 
     daqList* listOfSignals = NULL;
     daqServer_getSignals(server, &listOfSignals, NULL);
     if (listOfSignals != NULL)
     {
-        printObjectList(listOfSignals, listOfAllAvailableDevices, printout);
+        printObjectList(listOfSignals, listOfAvailableComponents, printout);
         daqReleaseRef(listOfSignals);
     }
+
+    daqReleaseRef(server);
 }
 
-void printDaqSyncComponent(daqSyncComponent* syncComp, daqDict* listOfAvailableDevices, daqBool printout)
+void printDaqSyncComponent(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout)
 {
+    daqSyncComponent* syncComp = NULL;
+    daqQueryInterface(baseObject, DAQ_SYNC_COMPONENT_INTF_ID, &syncComp);
     daqString* name = NULL;
     daqComponent_getName((daqComponent*)syncComp, &name);
 
@@ -308,11 +319,15 @@ void printDaqSyncComponent(daqSyncComponent* syncComp, daqDict* listOfAvailableD
 
     daqReleaseRef(name);
 
-    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) syncComp);
+    addDaqComponentToDict(listOfAvailableComponents, (daqComponent*) syncComp);
+
+    daqReleaseRef(syncComp);
 }
 
-void printInputPort(daqInputPort* inputPort, daqDict* listOfAvailableDevices, daqBool printout)
+void printInputPort(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout)
 {
+    daqInputPort* inputPort = NULL;
+    daqQueryInterface(baseObject, DAQ_INPUT_PORT_INTF_ID, &inputPort);
     daqString* name = NULL;
     daqComponent_getName((daqComponent*)inputPort, &name);
 
@@ -321,11 +336,15 @@ void printInputPort(daqInputPort* inputPort, daqDict* listOfAvailableDevices, da
 
     daqReleaseRef(name);
 
-    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) inputPort);
+    addDaqComponentToDict(listOfAvailableComponents, (daqComponent*) inputPort);
+
+    daqReleaseRef(inputPort);
 }
 
-void printDaqSignal(daqSignal* signal, daqDict* listOfAvailableDevices, daqBool printout)
+void printDaqSignal(daqBaseObject* baseObject, daqDict* listOfAvailableComponents, daqBool printout)
 {
+    daqSignal* signal = NULL;
+    daqQueryInterface(baseObject, DAQ_SIGNAL_INTF_ID, &signal);
     daqString* name = NULL;
     daqComponent_getName((daqComponent*)signal, &name);
 
@@ -334,7 +353,9 @@ void printDaqSignal(daqSignal* signal, daqDict* listOfAvailableDevices, daqBool 
 
     daqReleaseRef(name);
 
-    addDaqComponentToDict(listOfAvailableDevices, (daqComponent*) signal);
+    addDaqComponentToDict(listOfAvailableComponents, (daqComponent*) signal);
+
+    daqReleaseRef(signal);
 }
 
 int main()
@@ -348,7 +369,7 @@ int main()
 
     daqDict* listOfComponents = NULL;
 
-    componentTreePrintOut((daqDevice*)instance, &listOfComponents, True);
+    printComponentTree((daqDevice*)instance, &listOfComponents, True);
 
     daqSizeT count = 0;
     daqDict_getCount(listOfComponents, &count);
