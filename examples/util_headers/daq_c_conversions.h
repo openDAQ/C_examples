@@ -222,6 +222,10 @@ daqStruct* openDAQStructConversion(struct Coordinates coordinates, daqTypeManage
 /*
  * Conversion from and to openDAQ String (daqEnumeration) core type
  * from C language (enum ComponentStutesTypeEnum).
+ * Warning: These types of conversions require prior knowledge of 
+ * the enumeration structure and its definition in C. For conversion 
+ * from C to openDAQ a pointer to the TypeManager is needed because
+ * of the way openDAQ enumeration is implemented.
  */
 enum ComponentStatusTypeEnum
 {
@@ -242,25 +246,14 @@ enum ComponentStatusTypeEnum enumOpenDAQConversion(daqEnumeration* componentStat
     return compStatusType;
 }
 
-daqEnumeration* openDAQEnumConversion(enum ComponentStatusTypeEnum componentStatusType)
+daqEnumeration* openDAQEnumConversion(enum ComponentStatusTypeEnum componentStatusType, daqTypeManager* typeManager)
 {
     daqEnumeration* mid = NULL;
     daqEnumerationType* enmType = NULL;
     daqInteger* inp = intOpenDAQConversion(componentStatusType);
 
-    daqList* enumTypes = NULL;
-    daqList_createList(&enumTypes);
-    daqList_pushBack(enumTypes, stringOpenDAQConversion("Error"));
-    daqList_pushBack(enumTypes, stringOpenDAQConversion("Ok"));
-    daqList_pushBack(enumTypes, stringOpenDAQConversion("Warning"));
+    daqEnumeration_createEnumerationWithIntValue(&mid, stringOpenDAQConversion("ComponentStatusType"), inp, typeManager);
 
-    daqEnumerationType_createEnumerationType(enmType, stringOpenDAQConversion("ComponentStatusType"), enumTypes, 0);
-
-    daqEnumeration_createEnumerationWithIntValueAndType(&mid, enmType, inp);
-
-    daqReleaseRef(enumTypes);
     daqReleaseRef(inp);
-    daqReleaseRef(enmType);
-
     return mid;
 }
