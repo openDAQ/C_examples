@@ -23,49 +23,47 @@ enum ComponentType
 
 enum ComponentType getComponentType(daqBaseObject* baseObject);
 
-void printDaqDevice(daqBaseObject* baseObject, daqBool printout);
+void printDaqDevice(daqBaseObject* baseObject, uint8_t indent);
 
-void printDaqFunctionBlock(daqBaseObject* baseObject, daqBool printout);
+void printDaqFunctionBlock(daqBaseObject* baseObject, uint8_t indent);
 
-void printDaqFolder(daqBaseObject* baseObject, daqBool printout);
+void printDaqFolder(daqBaseObject* baseObject, uint8_t indent);
 
-void printDaqServer(daqBaseObject* baseObject, daqBool printout);
+void printDaqServer(daqBaseObject* baseObject, uint8_t indent);
 
-void printDaqSyncComponent(daqBaseObject* baseObject, daqBool printout);
+void printDaqSyncComponent(daqBaseObject* baseObject, uint8_t indent);
 
-void printInputPort(daqBaseObject* baseObject, daqBool printout);
+void printInputPort(daqBaseObject* baseObject, uint8_t indent);
 
-void printDaqSignal(daqBaseObject* baseObject, daqBool printout);
+void printDaqSignal(daqBaseObject* baseObject, uint8_t indent);
 
 enum ComponentType getComponentType(daqBaseObject* baseObject)
 {
-    enum ComponentType componentType = DaqUnknown;
-
     if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_DEVICE_INTF_ID))
-        componentType = DaqDevice;
+        return DaqDevice;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SERVER_INTF_ID))
-        componentType = DaqServer;
+        return DaqServer;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SYNC_COMPONENT_INTF_ID))
-        componentType = DaqSyncComponent;
+        return DaqSyncComponent;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_FUNCTION_BLOCK_INTF_ID))
-        componentType = DaqFunctionBlock;
+        return DaqFunctionBlock;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_FOLDER_INTF_ID))
-        componentType = DaqFolder;
+        return DaqFolder;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_INPUT_PORT_INTF_ID))
-        componentType = DaqInputPort;
+        return DaqInputPort;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SIGNAL_INTF_ID))
-        componentType = DaqSignal;
+        return DaqSignal;
 
-    return componentType;
+    return DaqUnknown;
 }
 
-void printObjectList(daqList* list, enum ComponentType compType, daqBool printout)
+void printObjectList(daqList* list, enum ComponentType compType, uint8_t indent)
 {
     daqBaseObject* listMember = NULL;
     daqSizeT count = 0;
@@ -73,11 +71,9 @@ void printObjectList(daqList* list, enum ComponentType compType, daqBool printou
     if (count <= 0)
         return;
     daqList_getItemAt(list, 0, &listMember);
-    
-    enum ComponentType componentType = compType;
 
-    if (componentType == DaqUnknown)
-        componentType = getComponentType(listMember);
+    if (compType == DaqUnknown)
+        compType = getComponentType(listMember);
 
     count = 0;
     daqList_getCount(list, &count);
@@ -86,76 +82,62 @@ void printObjectList(daqList* list, enum ComponentType compType, daqBool printou
     {
         daqList_getItemAt(list, i, &listMember);
 
-        switch (componentType)
+        switch (compType)
         {
         case DaqDevice:
-        {
-            printDaqDevice(listMember, printout);
-            daqReleaseRef(listMember);
+            printDaqDevice(listMember, indent+1);
             break;
-        }
+        
         case DaqServer:
-        {
-            printDaqServer(listMember, printout);
-            daqReleaseRef(listMember);
+            printDaqServer(listMember, indent+1);
             break;
-        }
+        
         case DaqSyncComponent:
-        {
-            printDaqSyncComponent(listMember, printout);
-            daqReleaseRef(listMember);
+            printDaqSyncComponent(listMember, indent+1);
             break;
-        }
+
         case DaqFunctionBlock:
-        {
-            printDaqFunctionBlock(listMember, printout);
-            daqReleaseRef(listMember);
+            printDaqFunctionBlock(listMember, indent+1);
             break;
-        }
+
         case DaqFolder:
-        {
-            printDaqFolder(listMember, printout);
-            daqReleaseRef(listMember);
+            printDaqFolder(listMember, indent+1);
             break;
-        }
+
         case DaqInputPort:
-        {
-            printInputPort(listMember, printout);
-            daqReleaseRef(listMember);
+            printInputPort(listMember, indent+1);
             break;
-        }
+
         case DaqSignal:
-        {
-            printDaqSignal(listMember, printout);
-            daqReleaseRef(listMember);
+            printDaqSignal(listMember, indent+1);
             break;
-        }
+
         default:
-        {
-            daqReleaseRef(listMember);
             break;
         }
-        }
+
+        daqReleaseRef(listMember);
     }
 }
 
-void printDaqDevice(daqBaseObject* baseObject, daqBool printout)
+void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
 {
     daqDevice* device = NULL;
     daqQueryInterface(baseObject, DAQ_DEVICE_INTF_ID, &device);
     daqString* localId = NULL;
     daqComponent_getLocalId((daqComponent*)device, &localId);
 
-    if (printout && localId != NULL)
+    if (localId != NULL)
+    {
+        printf("%*c", indent, ' ');
         printDaqFormattedString("Device: %s\n", localId);
-
-    daqReleaseRef(localId);
+    }
 
     daqFolder* ioFolder = NULL;
     daqDevice_getInputsOutputsFolder(device, &ioFolder);
     if (ioFolder != NULL)
     {
-        printDaqFolder(ioFolder, printout);
+        printDaqFolder(ioFolder, indent+1);
         daqReleaseRef(ioFolder);
     }
 
@@ -163,7 +145,7 @@ void printDaqDevice(daqBaseObject* baseObject, daqBool printout)
     daqDevice_getSyncComponent(device, &syncComponent);
     if (syncComponent != NULL)
     {
-        printDaqSyncComponent(syncComponent, printout);
+        printDaqSyncComponent(syncComponent, indent+1);
         daqReleaseRef(syncComponent);
     }
 
@@ -171,7 +153,7 @@ void printDaqDevice(daqBaseObject* baseObject, daqBool printout)
     daqDevice_getDevices(device, &devices, NULL);
     if (devices != NULL)
     {
-        printObjectList(devices, DaqDevice, printout);
+        printObjectList(devices, DaqDevice, indent+1);
         daqReleaseRef(devices);
     }
 
@@ -179,7 +161,7 @@ void printDaqDevice(daqBaseObject* baseObject, daqBool printout)
     daqDevice_getFunctionBlocks(device, &functionBlocks, NULL);
     if (functionBlocks != NULL)
     {
-        printObjectList(functionBlocks, DaqFunctionBlock, printout);
+        printObjectList(functionBlocks, DaqFunctionBlock, indent+1);
         daqReleaseRef(functionBlocks);
     }
 
@@ -187,30 +169,32 @@ void printDaqDevice(daqBaseObject* baseObject, daqBool printout)
     daqDevice_getServers(device, &servers);
     if (servers != NULL)
     {
-        printObjectList(servers, DaqServer, printout);
+        printObjectList(servers, DaqServer, indent+1);
         daqReleaseRef(servers);
     }
 
+    daqReleaseRef(localId);
     daqReleaseRef(device);
 }
 
-void printDaqFunctionBlock(daqBaseObject* baseObject, daqBool printout)
+void printDaqFunctionBlock(daqBaseObject* baseObject, uint8_t indent)
 {
     daqFunctionBlock* functionBlock = NULL;
     daqQueryInterface(baseObject, DAQ_FUNCTION_BLOCK_INTF_ID, &functionBlock);
     daqString* localId = NULL;
     daqComponent_getLocalId((daqComponent*)functionBlock, &localId);
 
-    if (printout && localId != NULL)
+    if (localId != NULL)
+    {
+        printf("%*c", indent, ' ');
         printDaqFormattedString("Function block: %s\n", localId);
-
-    daqReleaseRef(localId);
+    }
 
     daqList* functionBlocks = NULL;
     daqFunctionBlock_getFunctionBlocks(functionBlock, &functionBlocks, NULL);
     if (functionBlocks != NULL)
     {
-        printObjectList(functionBlocks, DaqFunctionBlock, printout);
+        printObjectList(functionBlocks, DaqFunctionBlock, indent+1);
         daqReleaseRef(functionBlocks);
     }
 
@@ -218,7 +202,7 @@ void printDaqFunctionBlock(daqBaseObject* baseObject, daqBool printout)
     daqFunctionBlock_getInputPorts(functionBlock, &inputPorts, NULL);
     if (inputPorts != NULL)
     {
-        printObjectList(inputPorts, DaqInputPort, printout);
+        printObjectList(inputPorts, DaqInputPort, indent+1);
         daqReleaseRef(inputPorts);
     }
 
@@ -226,37 +210,40 @@ void printDaqFunctionBlock(daqBaseObject* baseObject, daqBool printout)
     daqFunctionBlock_getSignals(functionBlock, &listOfSignals, NULL);
     if (listOfSignals != NULL)
     {
-        printObjectList(listOfSignals, DaqSignal, printout);
+        printObjectList(listOfSignals, DaqSignal, indent+1);
         daqReleaseRef(listOfSignals);
     }
 
+    daqReleaseRef(localId);
     daqReleaseRef(functionBlock);
 }
 
-void printDaqFolder(daqBaseObject* baseObject, daqBool printout)
+void printDaqFolder(daqBaseObject* baseObject, uint8_t indent)
 {
     daqFolder* folder = NULL;
     daqQueryInterface(baseObject, DAQ_FOLDER_INTF_ID, &folder);
     daqString* localId = NULL;
-    daqComponent_getName((daqComponent*)folder, &localId);
+    daqComponent_getName((daqComponent*) folder, &localId);
 
-    if (printout && localId!=NULL)
+    if (localId != NULL)
+    {
+        printf("%*c", indent, ' ');
         printDaqFormattedString("Folder: %s\n", localId);
-
-    daqReleaseRef(localId);
+    }
 
     daqList* listOfItems = NULL;
     daqFolder_getItems(folder, &listOfItems, NULL);
     if (listOfItems != NULL)
     {
-        printObjectList(listOfItems, DaqUnknown, printout);
+        printObjectList(listOfItems, DaqUnknown, indent+1);
         daqReleaseRef(listOfItems);
     }
 
+    daqReleaseRef(localId);
     daqReleaseRef(folder);
 }
 
-void printDaqServer(daqBaseObject* baseObject, daqBool printout)
+void printDaqServer(daqBaseObject* baseObject, uint8_t indent)
 {
     daqServer* server = NULL;
     daqQueryInterface(baseObject, DAQ_SERVER_INTF_ID, &server);
@@ -264,64 +251,72 @@ void printDaqServer(daqBaseObject* baseObject, daqBool printout)
     daqString* localId = NULL;
     daqComponent_getLocalId((daqComponent*)server, &localId);
 
-    if(printout && localId != NULL)
+    if (localId != NULL)
+    {
+        printf("%*c", indent, ' ');
         printDaqFormattedString("Server: %s\n", localId);
-
-    daqReleaseRef(localId);
+    }
 
     daqList* listOfSignals = NULL;
     daqServer_getSignals(server, &listOfSignals, NULL);
     if (listOfSignals != NULL)
     {
-        printObjectList(listOfSignals, DaqSignal, printout);
+        printObjectList(listOfSignals, DaqSignal, indent+1);
         daqReleaseRef(listOfSignals);
     }
 
+    daqReleaseRef(localId);
     daqReleaseRef(server);
 }
 
-void printDaqSyncComponent(daqBaseObject* baseObject, daqBool printout)
+void printDaqSyncComponent(daqBaseObject* baseObject, uint8_t indent)
 {
     daqSyncComponent* syncComp = NULL;
     daqQueryInterface(baseObject, DAQ_SYNC_COMPONENT_INTF_ID, &syncComp);
     daqString* localId = NULL;
     daqComponent_getLocalId((daqComponent*)syncComp, &localId);
 
-    if(printout && localId != NULL)
+    if (localId != NULL)
+    {
+        printf("%*c", indent, ' ');
         printDaqFormattedString("Sync component: %s\n", localId);
+    }
 
     daqReleaseRef(localId);
-
     daqReleaseRef(syncComp);
 }
 
-void printInputPort(daqBaseObject* baseObject, daqBool printout)
+void printInputPort(daqBaseObject* baseObject, uint8_t indent)
 {
     daqInputPort* inputPort = NULL;
     daqQueryInterface(baseObject, DAQ_INPUT_PORT_INTF_ID, &inputPort);
     daqString* localId = NULL;
     daqComponent_getLocalId((daqComponent*)inputPort, &localId);
 
-    if (printout && localId != NULL)
+    if (localId != NULL)
+    {
+        printf("%*c", indent, ' ');
         printDaqFormattedString("Input port: %s\n", localId);
+    }
 
     daqReleaseRef(localId);
-
     daqReleaseRef(inputPort);
 }
 
-void printDaqSignal(daqBaseObject* baseObject, daqBool printout)
+void printDaqSignal(daqBaseObject* baseObject, uint8_t indent)
 {
     daqSignal* signal = NULL;
     daqQueryInterface(baseObject, DAQ_SIGNAL_INTF_ID, &signal);
     daqString* localId = NULL;
     daqComponent_getLocalId((daqComponent*)signal, &localId);
 
-    if (printout && localId != NULL)
+    if (localId != NULL)
+    {
+        printf("%*c", indent, ' ');
         printDaqFormattedString("Signal: %s\n", localId);
+    }
 
     daqReleaseRef(localId);
-
     daqReleaseRef(signal);
 }
 
@@ -334,7 +329,7 @@ int main()
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    printDaqDevice((daqDevice*) instance, True);
+    printDaqDevice((daqDevice*) instance, 0);
 
     daqReleaseRef(simulator);
     daqReleaseRef(instance);
