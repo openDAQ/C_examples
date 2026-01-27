@@ -7,9 +7,9 @@
  */
 int64_t openDAQIntConversion(daqInteger* integer)
 {
-    daqInt* value;
+    daqInt value = 0;
     daqInteger_getValue(integer, &value);
-    return *value;
+    return value;
 }
 
 daqInteger* intOpenDAQConversion(int64_t integer)
@@ -45,7 +45,7 @@ char* openDAQStringConversion(daqString* str)
 daqBoolean* booleanOpenDAQConversion(uint8_t value)
 {
     daqBoolean* object = NULL;
-    daqBoolean_createBoolean(object, value);
+    daqBoolean_createBoolean(&object, value);
     return object;
 }
 
@@ -175,18 +175,60 @@ daqRange* openDAQRangeConversion(struct Range range)
  */
 struct Coordinates
 {
-    double x;
-    double y;
-    double z;
+    int64_t x;
+    int64_t y;
+    int64_t z;
 };
 
 struct Coordinates structOpenDAQConvetsion(daqStruct* coordinates)
 {
-    daqList* names = NULL;
     daqList* values = NULL;
-    daqStruct_getFieldNames(coordinates, &names);
     daqStruct_getFieldValues(coordinates, &values);
 
+    struct Coordinates coordinate = {0,0,0};
+
+    daqInteger* value = NULL;
+
+    daqSizeT count = 0;
+    daqList_getCount(values, &count);
+
+    daqBaseObject* valueObj = NULL;
+    for (daqSizeT i = 0; i<count; i++)
+    {
+        daqList_getItemAt(values, i, &valueObj);
+        daqQueryInterface(valueObj, DAQ_INTEGER_INTF_ID, &value);
+        switch(i)
+        {
+        case 0:
+        {
+            coordinate.x = openDAQIntConversion(value);
+            daqReleaseRef(value);
+            daqReleaseRef(valueObj);
+            break;
+        }
+        case 1:
+        {
+            coordinate.y = openDAQIntConversion(value);
+            daqReleaseRef(value);
+            daqReleaseRef(valueObj);
+            break;
+        }
+        case 2:
+        {
+            coordinate.z = openDAQIntConversion(value);
+            daqReleaseRef(value);
+            daqReleaseRef(valueObj);
+            break;
+        }
+        default:
+        {
+            daqReleaseRef(value);
+            daqReleaseRef(valueObj);
+            break;
+        }
+        }
+    }
+    return coordinate;
 }
 
 daqStruct* openDAQStructConversion(struct Coordinates coordinates, daqTypeManager* typeManager)
@@ -249,7 +291,6 @@ enum ComponentStatusTypeEnum enumOpenDAQConversion(daqEnumeration* componentStat
 daqEnumeration* openDAQEnumConversion(enum ComponentStatusTypeEnum componentStatusType, daqTypeManager* typeManager)
 {
     daqEnumeration* mid = NULL;
-    daqEnumerationType* enmType = NULL;
     daqInteger* inp = intOpenDAQConversion(componentStatusType);
 
     daqEnumeration_createEnumerationWithIntValue(&mid, stringOpenDAQConversion("ComponentStatusType"), inp, typeManager);
