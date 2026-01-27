@@ -21,7 +21,8 @@ daqInteger* intOpenDAQConversion(int64_t integer)
 
 // String conversion
 /*
- * Conversion from and to openDAQ String (daqString) core type from C language (const char*)
+ * Conversion from and to openDAQ String (daqString) core type
+ * from C language (const char*).
  */
 daqString* stringOpenDAQConversion(const char* str)
 {
@@ -39,7 +40,7 @@ char* openDAQStringConversion(daqString* str)
 
 // Bool conversion
 /*
- * Conversion from and to openDAQ Boolean (daqString) core type from C language (uint8_t)
+ * Conversion from and to openDAQ Boolean (daqString) core type from C language (uint8_t).
  */
 daqBoolean* booleanOpenDAQConversion(uint8_t value)
 {
@@ -57,7 +58,7 @@ uint8_t openDAQBooleanConversion(daqBoolean* boolean)
 
 // Float conversion
 /*
- *Conversion from and to openDAQ String (daqFloat) core type from C language (double)
+ *Conversion from and to openDAQ String (daqFloat) core type from C language (double).
  */
 daqFloatObject* floatOpenDAQConversion(double value)
 {
@@ -75,7 +76,8 @@ double openDAQFloatConversion(daqFloatObject* value)
 
 // Complex number conversion
 /*
- * Conversion from and to openDAQ Complex (daqComplex) core type from C language (struct ComplexNumber)
+ * Conversion from and to openDAQ Complex (daqComplex) core type 
+ * from C language (struct ComplexNumber).
  */
 struct ComplexNumber
 {
@@ -103,7 +105,8 @@ daqComplexNumber* openDAQComplexConversion(struct ComplexNumber* complexNumber)
 
 // Range conversion
 /*
- * Conversion from and to openDAQ String (daqRange) core type from C language (struct Range)
+ * Conversion from and to openDAQ String (daqRange) core type 
+ * from C language (struct Range).
  */
 struct Range
 {
@@ -162,7 +165,14 @@ daqRange* openDAQRangeConversion(struct Range range)
     return rng;
 }
 
-// Struct conversion (think about this one)
+// Struct conversion 
+/*
+ * Conversion from and to daqStruct objects to C style structs.
+ * Warning: These types of conversions require prior knowledge of 
+ * the struct structure and its definition in C. For conversion 
+ * from C to openDAQ a pointer to the TypeManager is needed because
+ * of the way openDAQ structs are implemented.
+ */
 struct Coordinates
 {
     double x;
@@ -172,12 +182,40 @@ struct Coordinates
 
 struct Coordinates structOpenDAQConvetsion(daqStruct* coordinates)
 {
-    
+    daqList* names = NULL;
+    daqList* values = NULL;
+    daqStruct_getFieldNames(coordinates, &names);
+    daqStruct_getFieldValues(coordinates, &values);
+
 }
 
-daqStruct* openDAQStructConversion(struct Coordinates coordinates)
+daqStruct* openDAQStructConversion(struct Coordinates coordinates, daqTypeManager* typeManager)
 {
+    daqStructBuilder* coordinatesBuilder = NULL;
+    daqStructBuilder_createStructBuilder(&coordinatesBuilder, stringOpenDAQConversion("Coordinates"), typeManager);
 
+    daqStructBuilder_set(coordinatesBuilder, stringOpenDAQConversion("x"), (daqBaseObject*)intOpenDAQConversion(coordinates.x));
+    daqStructBuilder_set(coordinatesBuilder, stringOpenDAQConversion("y"), (daqBaseObject*) intOpenDAQConversion(coordinates.y));
+    daqStructBuilder_set(coordinatesBuilder, stringOpenDAQConversion("z"), (daqBaseObject*) intOpenDAQConversion(coordinates.z));
+
+    // Alternative way of setting the values in a struct
+    if (0)
+    {
+        daqList* valuesList = NULL;
+        daqList_createList(&valuesList);
+
+        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(coordinates.x));
+        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(coordinates.y));
+        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(coordinates.z));
+
+        daqStructBuilder_setFieldValues(coordinatesBuilder, valuesList);
+        daqReleaseRef(valuesList);
+    }
+    daqStruct* coordinatesStruct = NULL;
+    daqStructBuilder_build(coordinatesBuilder, &coordinatesStruct);
+    daqReleaseRef(coordinatesBuilder);
+
+    return coordinatesStruct;
 }
 
 // Enumeration conversion (needs an additional run through)
