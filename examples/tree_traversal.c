@@ -21,8 +21,6 @@ enum ComponentType
     DaqInputPort
 };
 
-void printComponentTree(daqDevice* headDevice, daqBool printout);
-
 enum ComponentType getComponentType(daqBaseObject* baseObject);
 
 void printDaqDevice(daqBaseObject* baseObject, daqBool printout);
@@ -38,11 +36,6 @@ void printDaqSyncComponent(daqBaseObject* baseObject, daqBool printout);
 void printInputPort(daqBaseObject* baseObject, daqBool printout);
 
 void printDaqSignal(daqBaseObject* baseObject, daqBool printout);
-
-void printComponentTree(daqDevice* headDevice, daqBool printout)
-{
-    printDaqDevice(headDevice, printout);
-}
 
 enum ComponentType getComponentType(daqBaseObject* baseObject)
 {
