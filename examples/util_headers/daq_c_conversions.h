@@ -26,16 +26,16 @@ daqInteger* intOpenDAQConversion(int64_t integer)
  */
 daqString* stringOpenDAQConversion(const char* str)
 {
-    daqString* strOut = NULL;
-    daqString_createString(&strOut, str);
-    return strOut;
+    daqString* stringOutput = NULL;
+    daqString_createString(&stringOutput, str);
+    return stringOutput;
 }
 
 char* openDAQStringConversion(daqString* str)
 {
-    char* out = NULL;
-    daqString_getCharPtr(str, &out);
-    return out;
+    char* cString = NULL;
+    daqString_getCharPtr(str, &cString);
+    return cString;
 }
 
 // Bool conversion
@@ -62,16 +62,16 @@ uint8_t openDAQBooleanConversion(daqBoolean* boolean)
  */
 daqFloatObject* floatOpenDAQConversion(double value)
 {
-    daqFloatObject* fl = 0;
-    daqFloatObject_createFloatObject(&fl, value);
-    return fl;
+    daqFloatObject* floatObject = 0;
+    daqFloatObject_createFloatObject(&floatObject, value);
+    return floatObject;
 }
 
 double openDAQFloatConversion(daqFloatObject* value)
 {
-    double vl = 0;
-    daqFloatObject_getValue(value, &vl);
-    return vl;
+    double cDouble = 0;
+    daqFloatObject_getValue(value, &cDouble);
+    return cDouble;
 }
 
 // Complex number conversion
@@ -82,25 +82,25 @@ double openDAQFloatConversion(daqFloatObject* value)
 struct ComplexNumber
 {
     double real;
-    double complex;
+    double imaginary;
 };
 
 struct ComplexNumber complexOpenDAQConversion(daqComplexNumber* complexNumber)
 {
-    struct ComplexNumber cmp;
-    double middle = 0;
-    daqComplexNumber_getReal(complexNumber, &middle);
-    cmp.real = middle;
-    daqComplexNumber_getImaginary(complexNumber, &middle);
-    cmp.complex = middle;
-    return cmp;
+    struct ComplexNumber structComplexNumber;
+    double tempDouble= 0;
+    daqComplexNumber_getReal(complexNumber, &tempDouble);
+    structComplexNumber.real = tempDouble;
+    daqComplexNumber_getImaginary(complexNumber, &tempDouble);
+    structComplexNumber.imaginary = tempDouble;
+    return structComplexNumber;
 }
 
 daqComplexNumber* openDAQComplexConversion(struct ComplexNumber* complexNumber)
 {
-    daqComplexNumber* cmp = NULL;
-    daqComplexNumber_createComplexNumber(&cmp, complexNumber->real, complexNumber->complex);
-    return cmp;
+    daqComplexNumber* complexNumberObject = NULL;
+    daqComplexNumber_createComplexNumber(&complexNumberObject, complexNumber->real, complexNumber->imaginary);
+    return complexNumberObject;
 }
 
 // Range conversion
@@ -116,23 +116,23 @@ struct Range
 
 struct Range rangeOpenDAQConversion(daqRange* range)
 {
-    struct Range rng;
+    struct Range rangeStruct;
     daqNumber* number;
     daqRange_getLowValue(range, &number);
     double intermmidiate = 0;
     daqNumber_getFloatValue(number, &intermmidiate);
-    rng.min = intermmidiate;
+    rangeStruct.min = intermmidiate;
     daqReleaseRef(number);
     daqRange_getHighValue(range, &number);
     daqNumber_getFloatValue(number, &intermmidiate);
-    rng.max = intermmidiate;
+    rangeStruct.max = intermmidiate;
     daqReleaseRef(number);
-    return rng;
+    return rangeStruct;
 }
 
 daqRange* openDAQRangeConversion(struct Range range)
 {
-    daqRange* rng = NULL;
+    daqRange* rangeObject = NULL;
     daqNumber* lowValue = NULL;
     daqNumber* highValue = NULL;
 
@@ -158,11 +158,11 @@ daqRange* openDAQRangeConversion(struct Range range)
     daqReleaseRef(highBaseObject);
 
     // Create and populate the daqRange object
-    daqRange_createRange(&rng, lowValue, highValue);
+    daqRange_createRange(&rangeObject, lowValue, highValue);
 
     daqReleaseRef(lowValue);
     daqReleaseRef(highValue);
-    return rng;
+    return rangeObject;
 }
 
 // Struct conversion 
