@@ -38,12 +38,27 @@ void addCoordinateStructToTypeManager(daqContext* context)
 
     daqTypeManager_addType(typeManager, (daqType*) newType);
     daqReleaseRef(newType);
+    daqReleaseRef(names);
 
+    daqList_createList(&names);
+
+    daqList_pushBack(names, (daqBaseObject*) stringOpenDAQConversion("Error"));
+    daqList_pushBack(names, (daqBaseObject*) stringOpenDAQConversion("Ok"));
+    daqList_pushBack(names, (daqBaseObject*) stringOpenDAQConversion("Warning"));
+
+    daqEnumerationType* enumType = NULL;
+    daqEnumerationType_createEnumerationType(&enumType, stringOpenDAQConversion("DAQ_ComponentStatusTypeEnum"), names, 0);
+
+    daqTypeManager_addType(typeManager, (daqType*) enumType);
+    daqReleaseRef(enumType);
 
     daqBool check = False;
     daqTypeManager_hasType(typeManager, stringOpenDAQConversion("DAQ_Coordinates"), &check);
 
-    if(check)
+    daqBool enumCheck = False;
+    daqTypeManager_hasType(typeManager, stringOpenDAQConversion("DAQ_ComponentStatusTypeEnum"), &enumCheck);
+
+    if(check && enumCheck)
         printf("\nNew type added.\n");
     else
         printf("\nFailed to add a new type.\n");
@@ -295,25 +310,27 @@ enum ComponentStatusTypeEnum
     Warning
 };
 
-enum ComponentStatusTypeEnum openDAQEnumConversion(daqEnumeration* componentStatusType)
+enum ComponentStatusTypeEnum openDAQEnumConversion(daqEnumeration* daq)
 {
-    enum ComponentStatusTypeEnum compStatusType = Error;
-    daqInt check;
-    daqEnumeration_getIntValue(componentStatusType, &check);
-    if (check < 2)
+    enum ComponentStatusTypeEnum native = Error;
+    daqInt temp;
+    daqEnumeration_getIntValue(daq, &temp);
+
+    if (temp < 2)
     {
-        compStatusType = check;
+        native = temp;
     }
-    return compStatusType;
+
+    return native;
 }
 
 daqEnumeration* EnumOpenDAQConversion(enum ComponentStatusTypeEnum native, daqTypeManager* typeManager)
 {
     daqEnumeration* daq = NULL;
-    daqInteger* inp = intOpenDAQConversion(native);
+    daqInteger* temp = intOpenDAQConversion(native);
 
-    daqEnumeration_createEnumerationWithIntValue(&daq, stringOpenDAQConversion("ComponentStatusType"), inp, typeManager);
+    daqEnumeration_createEnumerationWithIntValue(&daq, stringOpenDAQConversion("ComponentStatusType"), temp, typeManager);
 
-    daqReleaseRef(inp);
+    daqReleaseRef(temp);
     return daq;
 }
