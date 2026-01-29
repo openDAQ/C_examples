@@ -3,7 +3,7 @@
  * determine their (core)type and display their value.
  */
 
-#include <daq_utils.h>
+#include <daq_c_conversions.h>
 
 enum PropertyType
 {
@@ -24,6 +24,20 @@ enum PropertyType
     EnumerationProperty
 };
 
+void functionProp(daqProperty* property);
+void sparseSelectionProp(daqProperty* property);
+void selectionProp(daqProperty* property);
+void boolProp(daqProperty* property);
+void floatProp(daqProperty* property);
+void intProp(daqProperty* property);
+void stringProp(daqProperty* property);
+void ratioProp(daqProperty* property);
+void listProp(daqProperty* property);
+void dictProp(daqProperty* property);
+void structProp(daqProperty* property);
+void enumProp(daqProperty* property);
+void prop(daqProperty* property);
+
 int propertyValueTypeCheck(daqProperty* property, daqCoreType coreType)
 {
     daqCoreType propCoreType = daqCtUndefined;
@@ -39,8 +53,22 @@ int propertyValueTypeCheck(daqProperty* property, daqCoreType coreType)
 // - They will be seen on all visualizations of properties
 // - 
 
+void displayCommonMetadata(daqProperty* property)
+{
+    // Read-only
+    // Visible
+    daqBool visible = False;
+    daqBool readOnly = False;
+    daqProperty_getVisible(property, &visible);
+    daqProperty_getReadOnly(property, &readOnly);
+
+    printf("\n\n- Visible: %s\n", visible == True ? "True" : "False");
+    printf("- ReadOnly: %s\n", readOnly == True ? "True" : "False");
+}
+
 void determinePropertyTypeAndPrint(daqProperty* property)
 {
+    displayCommonMetadata(property);
     daqCoreType propCoreType = daqCtUndefined;
     daqProperty_getValueType(property, &propCoreType);
 
@@ -130,22 +158,20 @@ void functionProp(daqProperty* property)
     daqCallableInfo* callInfo = NULL;
     daqProperty_getCallableInfo(property, &callInfo);
 
-    daqBool* visible = NULL;
-    daqProperty_getVisible(property, visible);
-
+    
 
 }
 
 // SparseSelectionProperty
 void sparseSelectionProp(daqProperty* property)
 {
-    
+
 }
 
 // SelectionProperty
 void selectionProp(daqProperty* property)
 {
-
+    
 }
 
 // Property
@@ -162,8 +188,6 @@ void boolProp(daqProperty* property)
     {
         // We have to check the default value and the current value that the property is set to
     }
-    daqBool* visible = NULL;
-    daqProperty_getVisible(property, visible);
 
     daqBaseObject* defaultVisibleObj = NULL;
     daqProperty_getDefaultValue(property, &defaultVisibleObj);
@@ -196,8 +220,6 @@ void floatProp(daqProperty* property)
         daqList* listOfRecommendedValues = NULL;
         daqProperty_getSuggestedValues(property, &listOfRecommendedValues);
 
-        daqBool visible = False;
-        daqProperty_getVisible(property, &visible);
         // Display min, max, default and suggested values
 
     }
@@ -222,28 +244,24 @@ void intProp(daqProperty* property)
     daqList* listOfSuggestedValues = NULL;
     daqProperty_getSuggestedValues(property, &listOfSuggestedValues);
 
-    daqBool visible = False;
-    daqProperty_getVisible(property, &visible);
-
-    // We will display the name outside of this function
-    daqBool* readOnly = NULL;
-    daqProperty_getReadOnly(property, readOnly);
-
     // Display attributes if they are not empty
-    if (minValueNum != NULL && maxValueNum != NULL)
+    if (minValueNum != NULL)
     {
         daqInt minValue = 0;
         daqNumber_getIntValue(minValueNum, &minValue);
-        daqInt maxValue = 0;
-        daqNumber_getIntValue(maxValueNum, &maxValue);
-
-        printf("Minimum acceptable value of the property is: %lld\n", minValue);
-        printf("Maximum acceptable value of the property is: %lld\n", maxValue);
+        printf("\n- Minimum value: %lld\n", minValue);
+        daqReleaseRef(minValueNum);
+        if (maxValueNum != NULL)
+        {
+            daqInt maxValue = 0;
+            daqNumber_getIntValue(maxValueNum, &maxValue);
+            printf("- Maximum value: %lld\n", maxValue);
+            daqReleaseRef(maxValueNum);
+        }
     }
 
-    daqReleaseRef(listOfSuggestedValues);
-    daqReleaseRef(maxValueNum);
-    daqReleaseRef(minValueNum);
+    if(listOfSuggestedValues!=NULL)
+        daqReleaseRef(listOfSuggestedValues);
 }
 
 // StringProperty
@@ -258,13 +276,26 @@ void stringProp(daqProperty* property)
     daqProperty_getDefaultValue(property, &defaultStringObj);
     daqString* defaultString = NULL;
     daqQueryInterface(defaultStringObj, DAQ_STRING_INTF_ID, &defaultString);
-
-    daqBool visible = False;
-    daqProperty_getVisible(property, &visible);
-
+    printDaqFormattedString("\n- String default value: %s\n", defaultString);
     daqList* suggestedStrings = NULL;
     daqProperty_getSuggestedValues(property, &suggestedStrings);
     // Display
+    daqSizeT count = 0;
+    if (suggestedStrings)
+        daqList_getCount(suggestedStrings, &count);
+    daqBaseObject* currentObj = NULL;
+    daqString* currentStr = NULL;
+
+    for (daqSizeT i = 0; i< count; i++)
+    {
+        daqList_getItemAt(suggestedStrings, i, &currentObj);
+        daqString* temp = daqQueryInterfacePtr(currentObj, DAQ_STRING_INTF_ID);
+
+        printf("\n%s\n", openDAQStringConversion(temp));
+
+        daqReleaseRef(temp);
+        daqReleaseRef(currentObj);
+    }
 }
 
 // RatioProperty
@@ -344,10 +375,6 @@ void structProp(daqProperty* property)
     if (defValueObj)
         daqQueryInterface(defValueObj, DAQ_STRUCT_INTF_ID, &defValue);
 
-    daqBool* visible = False;
-    daqProperty_getVisible(property, visible);
-    
-    
 }
 
 // EnumerationProperty
@@ -355,7 +382,6 @@ void enumProp(daqProperty* property)
 {
     daqBaseObject* selectionValueObj = NULL;
     daqProperty_getSelectionValues(property, &selectionValueObj);
-
 
 }
 
@@ -387,26 +413,23 @@ void displayPropertyTypes(daqPropertyObject* propertyObject)
 
             daqCoreType propCoreType = daqCtUndefined;
             daqProperty_getValueType(prop, &propCoreType);
+            daqString* propName = NULL;
+            daqProperty_getName(prop, &propName);
+            printDaqFormattedString("\n\nProperty name: %s", propName);
+            daqReleaseRef(propName);
+
             if (propCoreType == daqCtObject)
             {
                 // Write them up first
-                printCoreTypeObjects(prop);
+                determinePropertyTypeAndPrint(prop);
             }
             else if (propCoreType == daqCtUndefined)
             {
                 // Maybe needed (don't know yet)
             }
-            daqString* propName = NULL;
-            daqProperty_getName(prop, &propName);
-            printDaqFormattedString("Property name: %s", propName);
-            daqBaseObject* propValueObj = NULL;
-            daqProperty_getValue(prop, &propValueObj);
-            daqConstCharPtr propValueObjStr = "";
-            daqBaseObject_toString(propValueObj, propValueObjStr);
-            printf("\nValue of the property: %s\n", propValueObjStr);
-
-            daqReleaseRef(propValueObj);
-            daqReleaseRef(propName);
+            else
+                determinePropertyTypeAndPrint(prop);
+            
             daqReleaseRef(prop);
         }
 
