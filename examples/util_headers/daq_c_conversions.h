@@ -1,9 +1,66 @@
 #include <daq_utils.h>
 
-daqString* stringOpenDAQConversion(const char* native);
+struct ComplexNumber
+{
+    double real;
+    double imaginary;
+};
+
+struct Range
+{
+    double min;
+    double max;
+};
+
+struct Coordinates
+{
+    int64_t x;
+    int64_t y;
+    int64_t z;
+};
+
+enum ComponentStatusTypeEnum
+{
+    Error = 0,
+    Ok,
+    Warning
+};
+
+// Adds Coodinates struct and ComponentStatusTypeEnum to types in Type Manager
+void addCoordinateStructToTypeManager(daqContext* context);
+
+// Int conversion
+daqInt openDAQIntConversion(daqInteger* daq);
 daqInteger* intOpenDAQConversion(daqInt native);
 
-// add types to typeManager
+// String conversion
+char* openDAQStringConversion(daqString* daq);
+daqString* stringOpenDAQConversion(const char* native);
+
+// Bool conversion
+daqBoolean* booleanOpenDAQConversion(uint8_t native);
+uint8_t openDAQBooleanConversion(daqBoolean* daq);
+
+// Float conversion
+daqFloatObject* floatOpenDAQConversion(double native);
+double openDAQFloatConversion(daqFloatObject* daq);
+
+// Complex number conversion
+struct ComplexNumber openDAQComplexConversion(daqComplexNumber* daq);
+daqComplexNumber* complexOpenDAQConversion(struct ComplexNumber* native);
+
+// Range conversion
+struct Range openDAQRangeConversion(daqRange* daq);
+daqRange* RangeOpenDAQConversion(struct Range native);
+
+// Struct conversion 
+struct Coordinates openDAQCoordinatesStructConversion(daqStruct* daq);
+daqStruct* coordinatesStructOpenDAQConversion(struct Coordinates native, daqTypeManager* typeManager);
+
+// Enumeration conversion
+enum ComponentStatusTypeEnum openDAQEnumConversion(daqEnumeration* daq);
+daqEnumeration* EnumOpenDAQConversion(enum ComponentStatusTypeEnum native, daqTypeManager* typeManager);
+
 void addCoordinateStructToTypeManager(daqContext* context)
 {
     daqTypeManager* typeManager = NULL;
@@ -69,8 +126,6 @@ void addCoordinateStructToTypeManager(daqContext* context)
     daqReleaseRef(typeManager);
 }
 
-
-// Int conversion
 /*
  * The following two funtions represent the conversion between the openDAQ native
  * daqInt type and its coresponding C integer type.
@@ -89,7 +144,6 @@ daqInteger* intOpenDAQConversion(daqInt native)
     return daq;
 }
 
-// String conversion
 /*
  * Conversion from and to openDAQ String (daqString) core type
  * from C language (const char*).
@@ -108,7 +162,6 @@ char* openDAQStringConversion(daqString* daq)
     return native;
 }
 
-// Bool conversion
 /*
  * Conversion from and to openDAQ Boolean (daqString) core type from C language (uint8_t).
  */
@@ -126,7 +179,6 @@ uint8_t openDAQBooleanConversion(daqBoolean* daq)
     return native;
 }
 
-// Float conversion
 /*
  *Conversion from and to openDAQ String (daqFloat) core type from C language (double).
  */
@@ -144,20 +196,13 @@ double openDAQFloatConversion(daqFloatObject* daq)
     return native;
 }
 
-// Complex number conversion
 /*
  * Conversion from and to openDAQ Complex (daqComplex) core type 
  * from C language (struct ComplexNumber).
  */
-struct ComplexNumber
-{
-    double real;
-    double imaginary;
-};
-
 struct ComplexNumber openDAQComplexConversion(daqComplexNumber* daq)
 {
-    struct ComplexNumber native;
+    struct ComplexNumber native = {0, 0};
     double tempDouble= 0;
     daqComplexNumber_getReal(daq, &tempDouble);
     native.real = tempDouble;
@@ -173,20 +218,13 @@ daqComplexNumber* complexOpenDAQConversion(struct ComplexNumber* native)
     return daq;
 }
 
-// Range conversion
 /*
  * Conversion from and to openDAQ String (daqRange) core type 
  * from C language (struct Range).
  */
-struct Range
-{
-    double min;
-    double max;
-};
-
 struct Range openDAQRangeConversion(daqRange* daq)
 {
-    struct Range native;
+    struct Range native = {0, 0};
     daqNumber* temp;
     daqRange_getLowValue(daq, &temp);
     double intermmidiate = 0;
@@ -224,7 +262,6 @@ daqRange* RangeOpenDAQConversion(struct Range native)
     return daq;
 }
 
-// Struct conversion 
 /*
  * Conversion from and to daqStruct objects to C style structs.
  * Warning: These types of conversions require prior knowledge of 
@@ -232,13 +269,6 @@ daqRange* RangeOpenDAQConversion(struct Range native)
  * from C to openDAQ a pointer to the TypeManager is needed because
  * of the way openDAQ structs are implemented.
  */
-struct Coordinates
-{
-    int64_t x;
-    int64_t y;
-    int64_t z;
-};
-
 struct Coordinates openDAQCoordinatesStructConversion(daqStruct* daq)
 {
     struct Coordinates native = {0,0,0};
@@ -267,17 +297,18 @@ daqStruct* coordinatesStructOpenDAQConversion(struct Coordinates native, daqType
 
     if (0)
     {
-        // Alternative way of setting the values in a struct
+        // We can set values in the struct either via directly assigning them to the
+        // corresponding struct values or adding them in the correct sequence 
+        // to a daqList and setting the list.
+        daqList* values = NULL;
+        daqList_createList(&values);
 
-        daqList* valuesList = NULL;
-        daqList_createList(&valuesList);
+        daqList_pushBack(values, (daqBaseObject*) intOpenDAQConversion(native.x));
+        daqList_pushBack(values, (daqBaseObject*) intOpenDAQConversion(native.y));
+        daqList_pushBack(values, (daqBaseObject*) intOpenDAQConversion(native.z));
 
-        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(native.x));
-        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(native.y));
-        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(native.z));
-
-        daqStructBuilder_setFieldValues(builder, valuesList);
-        daqReleaseRef(valuesList);
+        daqStructBuilder_setFieldValues(builder, values);
+        daqReleaseRef(values);
     }
     else
     {
@@ -294,7 +325,6 @@ daqStruct* coordinatesStructOpenDAQConversion(struct Coordinates native, daqType
     return daq;
 }
 
-// Enumeration conversion (needs an additional run through)
 /*
  * Conversion from and to openDAQ String (daqEnumeration) core type
  * from C language (enum ComponentStutesTypeEnum).
@@ -303,23 +333,15 @@ daqStruct* coordinatesStructOpenDAQConversion(struct Coordinates native, daqType
  * from C to openDAQ a pointer to the TypeManager is needed because
  * of the way openDAQ enumeration is implemented.
  */
-enum ComponentStatusTypeEnum
-{
-    Error = 0,
-    Ok,
-    Warning
-};
-
 enum ComponentStatusTypeEnum openDAQEnumConversion(daqEnumeration* daq)
 {
     enum ComponentStatusTypeEnum native = Error;
-    daqInt temp;
+    uint8_t temp;
     daqEnumeration_getIntValue(daq, &temp);
 
+    // Sanity check
     if (temp < 2)
-    {
         native = temp;
-    }
 
     return native;
 }
