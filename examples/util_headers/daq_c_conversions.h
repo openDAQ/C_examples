@@ -224,69 +224,36 @@ struct Coordinates
     int64_t z;
 };
 
-struct Coordinates openDAQStructConversion(daqStruct* daq)
+struct Coordinates openDAQCoordinatesStructConversion(daqStruct* daq)
 {
-    daqList* values = NULL;
-    daqStruct_getFieldValues(daq, &values);
-
     struct Coordinates native = {0,0,0};
 
-    daqInteger* temp = NULL;
-
-    daqSizeT count = 0;
-    daqList_getCount(values, &count);
-
     daqBaseObject* tempObj = NULL;
-    for (daqSizeT i = 0; i<count; i++)
-    {
-        daqList_getItemAt(values, i, &tempObj);
-        daqQueryInterface(tempObj, DAQ_INTEGER_INTF_ID, &temp);
-        switch(i)
-        {
-        case 0:
-        {
-            native.x = openDAQIntConversion(temp);
-            daqReleaseRef(temp);
-            daqReleaseRef(tempObj);
-            break;
-        }
-        case 1:
-        {
-            native.y = openDAQIntConversion(temp);
-            daqReleaseRef(temp);
-            daqReleaseRef(tempObj);
-            break;
-        }
-        case 2:
-        {
-            native.z = openDAQIntConversion(temp);
-            daqReleaseRef(temp);
-            daqReleaseRef(tempObj);
-            break;
-        }
-        default:
-        {
-            daqReleaseRef(temp);
-            daqReleaseRef(tempObj);
-            break;
-        }
-        }
-    }
+
+    daqStruct_get(daq, stringOpenDAQConversion("x"), tempObj);
+    native.x = openDAQIntConversion((daqInteger*) daqQueryInterfacePtr(tempObj, DAQ_INTEGER_INTF_ID));
+    daqReleaseRef(tempObj);
+
+    daqStruct_get(daq, stringOpenDAQConversion("y"), tempObj);
+    native.y = openDAQIntConversion((daqInteger*) daqQueryInterfacePtr(tempObj, DAQ_INTEGER_INTF_ID));
+    daqReleaseRef(tempObj);
+
+    daqStruct_get(daq, stringOpenDAQConversion("z"), tempObj);
+    native.z = openDAQIntConversion((daqInteger*) daqQueryInterfacePtr(tempObj, DAQ_INTEGER_INTF_ID));
+    daqReleaseRef(tempObj);
+
     return native;
 }
 
-daqStruct* structOpenDAQConversion(struct Coordinates native, daqTypeManager* typeManager)
+daqStruct* coordinatesStructOpenDAQConversion(struct Coordinates native, daqTypeManager* typeManager)
 {
     daqStructBuilder* builder = NULL;
     daqStructBuilder_createStructBuilder(&builder, stringOpenDAQConversion("DAQ_Coordinates"), typeManager);
 
-    daqStructBuilder_set(builder, stringOpenDAQConversion("x"), (daqBaseObject*)intOpenDAQConversion(native.x));
-    daqStructBuilder_set(builder, stringOpenDAQConversion("y"), (daqBaseObject*) intOpenDAQConversion(native.y));
-    daqStructBuilder_set(builder, stringOpenDAQConversion("z"), (daqBaseObject*) intOpenDAQConversion(native.z));
-
-    // Alternative way of setting the values in a struct
     if (0)
     {
+        // Alternative way of setting the values in a struct
+
         daqList* valuesList = NULL;
         daqList_createList(&valuesList);
 
@@ -296,6 +263,14 @@ daqStruct* structOpenDAQConversion(struct Coordinates native, daqTypeManager* ty
 
         daqStructBuilder_setFieldValues(builder, valuesList);
         daqReleaseRef(valuesList);
+    }
+    else
+    {
+        daqStructBuilder_set(builder, stringOpenDAQConversion("x"), (daqBaseObject*) intOpenDAQConversion(native.x));
+
+        daqStructBuilder_set(builder, stringOpenDAQConversion("y"), (daqBaseObject*) intOpenDAQConversion(native.y));
+
+        daqStructBuilder_set(builder, stringOpenDAQConversion("z"), (daqBaseObject*) intOpenDAQConversion(native.z));
     }
     daqStruct* daq = NULL;
     daqStructBuilder_build(builder, &daq);
