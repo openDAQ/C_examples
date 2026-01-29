@@ -80,7 +80,6 @@ void addCoordinateStructToTypeManager(daqContext* context)
     daqList_pushBack(defaultValues, (daqBaseObject*) intOpenDAQConversion(0));
 
     daqSimpleType* simpleType = NULL;
-
     daqSimpleType_createSimpleType(&simpleType, daqCtInt);
 
     daqList* types = NULL;
@@ -116,9 +115,9 @@ void addCoordinateStructToTypeManager(daqContext* context)
     daqTypeManager_hasType(typeManager, stringOpenDAQConversion("DAQ_ComponentStatusTypeEnum"), &enumCheck);
 
     if(check && enumCheck)
-        printf("\nNew type added.\n");
+        printf("\nNew types added.\n");
     else
-        printf("\nFailed to add a new type.\n");
+        printf("\nFailed to add new types.\n");
 
     daqReleaseRef(types);
     daqReleaseRef(defaultValues);
