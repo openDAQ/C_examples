@@ -1,22 +1,77 @@
 #include <daq_utils.h>
 
+daqString* stringOpenDAQConversion(const char* native);
+daqInteger* intOpenDAQConversion(daqInt native);
+
+// add types to typeManager
+void addCoordinateStructToTypeManager(daqContext* context)
+{
+    daqTypeManager* typeManager = NULL;
+    daqContext_getTypeManager(context, &typeManager);
+    
+    daqList* names = NULL;
+    daqList_createList(&names);
+
+    daqList_pushBack(names, (daqBaseObject*) stringOpenDAQConversion("x"));
+    daqList_pushBack(names, (daqBaseObject*) stringOpenDAQConversion("y"));
+    daqList_pushBack(names, (daqBaseObject*) stringOpenDAQConversion("z"));
+
+    daqList* defaultValues = NULL;
+    daqList_createList(&defaultValues);
+    daqList_pushBack(defaultValues, (daqBaseObject*) intOpenDAQConversion(0));
+    daqList_pushBack(defaultValues, (daqBaseObject*) intOpenDAQConversion(0));
+    daqList_pushBack(defaultValues, (daqBaseObject*) intOpenDAQConversion(0));
+
+    daqSimpleType* simpleType = NULL;
+
+    daqSimpleType_createSimpleType(&simpleType, daqCtInt);
+
+    daqList* types = NULL;
+    daqList_createList(&types);
+    daqList_pushBack(types, simpleType);
+    daqList_pushBack(types, simpleType);
+    daqList_pushBack(types, simpleType);
+    daqReleaseRef(simpleType);
+
+    daqStructType* newType = NULL;
+    daqStructType_createStructType(&newType, stringOpenDAQConversion("DAQ_Coordinates"), names, defaultValues, types);
+
+    daqTypeManager_addType(typeManager, (daqType*) newType);
+    daqReleaseRef(newType);
+
+
+    daqBool check = False;
+    daqTypeManager_hasType(typeManager, stringOpenDAQConversion("DAQ_Coordinates"), &check);
+
+    if(check)
+        printf("\nNew type added.\n");
+    else
+        printf("\nFailed to add a new type.\n");
+
+    daqReleaseRef(types);
+    daqReleaseRef(defaultValues);
+    daqReleaseRef(names);
+    daqReleaseRef(typeManager);
+}
+
+
 // Int conversion
 /*
  * The following two funtions represent the conversion between the openDAQ native
  * daqInt type and its coresponding C integer type.
  */
-int64_t openDAQIntConversion(daqInteger* integer)
+daqInt openDAQIntConversion(daqInteger* daq)
 {
-    daqInt value = 0;
-    daqInteger_getValue(integer, &value);
-    return value;
+    daqInt native = 0;
+    daqInteger_getValue(daq, &native);
+    return native;
 }
 
-daqInteger* intOpenDAQConversion(int64_t integer)
+daqInteger* intOpenDAQConversion(daqInt native)
 {
-    daqInteger* object = NULL;
-    daqInteger_createInteger(&object, integer);
-    return object;
+    daqInteger* daq = NULL;
+    daqInteger_createInteger(&daq, native);
+    return daq;
 }
 
 // String conversion
@@ -24,54 +79,54 @@ daqInteger* intOpenDAQConversion(int64_t integer)
  * Conversion from and to openDAQ String (daqString) core type
  * from C language (const char*).
  */
-daqString* stringOpenDAQConversion(const char* str)
+daqString* stringOpenDAQConversion(const char* native)
 {
-    daqString* stringOutput = NULL;
-    daqString_createString(&stringOutput, str);
-    return stringOutput;
+    daqString* daq = NULL;
+    daqString_createString(&daq, native);
+    return daq;
 }
 
-char* openDAQStringConversion(daqString* str)
+char* openDAQStringConversion(daqString* daq)
 {
-    char* cString = NULL;
-    daqString_getCharPtr(str, &cString);
-    return cString;
+    char* native = NULL;
+    daqString_getCharPtr(daq, &native);
+    return native;
 }
 
 // Bool conversion
 /*
  * Conversion from and to openDAQ Boolean (daqString) core type from C language (uint8_t).
  */
-daqBoolean* booleanOpenDAQConversion(uint8_t value)
+daqBoolean* booleanOpenDAQConversion(uint8_t native)
 {
-    daqBoolean* object = NULL;
-    daqBoolean_createBoolean(&object, value);
-    return object;
+    daqBoolean* daq = NULL;
+    daqBoolean_createBoolean(&daq, native);
+    return daq;
 }
 
-uint8_t openDAQBooleanConversion(daqBoolean* boolean)
+uint8_t openDAQBooleanConversion(daqBoolean* daq)
 {
-    uint8_t value = 0;
-    daqBoolean_getValue(boolean, &value);
-    return value;
+    uint8_t native = 0;
+    daqBoolean_getValue(daq, &native);
+    return native;
 }
 
 // Float conversion
 /*
  *Conversion from and to openDAQ String (daqFloat) core type from C language (double).
  */
-daqFloatObject* floatOpenDAQConversion(double value)
+daqFloatObject* floatOpenDAQConversion(double native)
 {
-    daqFloatObject* floatObject = 0;
-    daqFloatObject_createFloatObject(&floatObject, value);
-    return floatObject;
+    daqFloatObject* daq = 0;
+    daqFloatObject_createFloatObject(&daq, native);
+    return daq;
 }
 
-double openDAQFloatConversion(daqFloatObject* value)
+double openDAQFloatConversion(daqFloatObject* daq)
 {
-    double cDouble = 0;
-    daqFloatObject_getValue(value, &cDouble);
-    return cDouble;
+    double native = 0;
+    daqFloatObject_getValue(daq, &native);
+    return native;
 }
 
 // Complex number conversion
@@ -85,22 +140,22 @@ struct ComplexNumber
     double imaginary;
 };
 
-struct ComplexNumber complexOpenDAQConversion(daqComplexNumber* complexNumber)
+struct ComplexNumber openDAQComplexConversion(daqComplexNumber* daq)
 {
-    struct ComplexNumber structComplexNumber;
+    struct ComplexNumber native;
     double tempDouble= 0;
-    daqComplexNumber_getReal(complexNumber, &tempDouble);
-    structComplexNumber.real = tempDouble;
-    daqComplexNumber_getImaginary(complexNumber, &tempDouble);
-    structComplexNumber.imaginary = tempDouble;
-    return structComplexNumber;
+    daqComplexNumber_getReal(daq, &tempDouble);
+    native.real = tempDouble;
+    daqComplexNumber_getImaginary(daq, &tempDouble);
+    native.imaginary = tempDouble;
+    return native;
 }
 
-daqComplexNumber* openDAQComplexConversion(struct ComplexNumber* complexNumber)
+daqComplexNumber* complexOpenDAQConversion(struct ComplexNumber* native)
 {
-    daqComplexNumber* complexNumberObject = NULL;
-    daqComplexNumber_createComplexNumber(&complexNumberObject, complexNumber->real, complexNumber->imaginary);
-    return complexNumberObject;
+    daqComplexNumber* daq = NULL;
+    daqComplexNumber_createComplexNumber(&daq, native->real, native->imaginary);
+    return daq;
 }
 
 // Range conversion
@@ -114,55 +169,44 @@ struct Range
     double max;
 };
 
-struct Range rangeOpenDAQConversion(daqRange* range)
+struct Range openDAQRangeConversion(daqRange* daq)
 {
-    struct Range rangeStruct;
-    daqNumber* number;
-    daqRange_getLowValue(range, &number);
+    struct Range native;
+    daqNumber* temp;
+    daqRange_getLowValue(daq, &temp);
     double intermmidiate = 0;
-    daqNumber_getFloatValue(number, &intermmidiate);
-    rangeStruct.min = intermmidiate;
-    daqReleaseRef(number);
-    daqRange_getHighValue(range, &number);
-    daqNumber_getFloatValue(number, &intermmidiate);
-    rangeStruct.max = intermmidiate;
-    daqReleaseRef(number);
-    return rangeStruct;
+    daqNumber_getFloatValue(temp, &intermmidiate);
+    native.min = intermmidiate;
+    daqReleaseRef(temp);
+
+    daqRange_getHighValue(daq, &temp);
+    daqNumber_getFloatValue(temp, &intermmidiate);
+    native.max = intermmidiate;
+    daqReleaseRef(temp);
+    return native;
 }
 
-daqRange* openDAQRangeConversion(struct Range range)
+daqRange* RangeOpenDAQConversion(struct Range native)
 {
-    daqRange* rangeObject = NULL;
+    daqRange* daq = NULL;
     daqNumber* lowValue = NULL;
     daqNumber* highValue = NULL;
 
-    daqFloatObject* lowFloat = NULL;
-    daqFloatObject_createFloatObject(&lowFloat, range.min);
-    daqFloatObject* highFloat = NULL;
-    daqFloatObject_createFloatObject(&highFloat, range.max);
+    daqFloatObject* lowFloat = floatOpenDAQConversion(native.min);
+    daqFloatObject* highFloat = floatOpenDAQConversion(native.max);
 
-    daqBaseObject* lowBaseObject = NULL;
-    daqQueryInterface(lowFloat, DAQ_BASE_OBJECT_INTF_ID, &lowBaseObject);
-    daqBaseObject* highBaseObject = NULL;
-    daqQueryInterface(highFloat, DAQ_BASE_OBJECT_INTF_ID, &highBaseObject);
-
-    if (DAQ_SUPPORTS_INTERFACE(lowBaseObject, DAQ_NUMBER_INTF_ID))
-    {
-        daqQueryInterface(lowBaseObject, DAQ_NUMBER_INTF_ID, &lowValue);
-        daqQueryInterface(highBaseObject, DAQ_NUMBER_INTF_ID, &highValue);
-    }
+    daqQueryInterface(lowFloat, DAQ_NUMBER_INTF_ID, &lowValue);
+    daqQueryInterface(highFloat, DAQ_NUMBER_INTF_ID, &highValue);
 
     daqReleaseRef(lowFloat);
     daqReleaseRef(highFloat);
-    daqReleaseRef(lowBaseObject);
-    daqReleaseRef(highBaseObject);
 
     // Create and populate the daqRange object
-    daqRange_createRange(&rangeObject, lowValue, highValue);
+    daqRange_createRange(&daq, lowValue, highValue);
 
     daqReleaseRef(lowValue);
     daqReleaseRef(highValue);
-    return rangeObject;
+    return daq;
 }
 
 // Struct conversion 
@@ -180,65 +224,65 @@ struct Coordinates
     int64_t z;
 };
 
-struct Coordinates structOpenDAQConvetsion(daqStruct* coordinates)
+struct Coordinates openDAQStructConversion(daqStruct* daq)
 {
     daqList* values = NULL;
-    daqStruct_getFieldValues(coordinates, &values);
+    daqStruct_getFieldValues(daq, &values);
 
-    struct Coordinates coordinate = {0,0,0};
+    struct Coordinates native = {0,0,0};
 
-    daqInteger* value = NULL;
+    daqInteger* temp = NULL;
 
     daqSizeT count = 0;
     daqList_getCount(values, &count);
 
-    daqBaseObject* valueObj = NULL;
+    daqBaseObject* tempObj = NULL;
     for (daqSizeT i = 0; i<count; i++)
     {
-        daqList_getItemAt(values, i, &valueObj);
-        daqQueryInterface(valueObj, DAQ_INTEGER_INTF_ID, &value);
+        daqList_getItemAt(values, i, &tempObj);
+        daqQueryInterface(tempObj, DAQ_INTEGER_INTF_ID, &temp);
         switch(i)
         {
         case 0:
         {
-            coordinate.x = openDAQIntConversion(value);
-            daqReleaseRef(value);
-            daqReleaseRef(valueObj);
+            native.x = openDAQIntConversion(temp);
+            daqReleaseRef(temp);
+            daqReleaseRef(tempObj);
             break;
         }
         case 1:
         {
-            coordinate.y = openDAQIntConversion(value);
-            daqReleaseRef(value);
-            daqReleaseRef(valueObj);
+            native.y = openDAQIntConversion(temp);
+            daqReleaseRef(temp);
+            daqReleaseRef(tempObj);
             break;
         }
         case 2:
         {
-            coordinate.z = openDAQIntConversion(value);
-            daqReleaseRef(value);
-            daqReleaseRef(valueObj);
+            native.z = openDAQIntConversion(temp);
+            daqReleaseRef(temp);
+            daqReleaseRef(tempObj);
             break;
         }
         default:
         {
-            daqReleaseRef(value);
-            daqReleaseRef(valueObj);
+            daqReleaseRef(temp);
+            daqReleaseRef(tempObj);
             break;
         }
         }
     }
-    return coordinate;
+    return native;
 }
 
-daqStruct* openDAQStructConversion(struct Coordinates coordinates, daqTypeManager* typeManager)
+daqStruct* structOpenDAQConversion(struct Coordinates native, daqTypeManager* typeManager)
 {
-    daqStructBuilder* coordinatesBuilder = NULL;
-    daqStructBuilder_createStructBuilder(&coordinatesBuilder, stringOpenDAQConversion("Coordinates"), typeManager);
+    daqStructBuilder* builder = NULL;
+    daqStructBuilder_createStructBuilder(&builder, stringOpenDAQConversion("DAQ_Coordinates"), typeManager);
 
-    daqStructBuilder_set(coordinatesBuilder, stringOpenDAQConversion("x"), (daqBaseObject*)intOpenDAQConversion(coordinates.x));
-    daqStructBuilder_set(coordinatesBuilder, stringOpenDAQConversion("y"), (daqBaseObject*) intOpenDAQConversion(coordinates.y));
-    daqStructBuilder_set(coordinatesBuilder, stringOpenDAQConversion("z"), (daqBaseObject*) intOpenDAQConversion(coordinates.z));
+    daqStructBuilder_set(builder, stringOpenDAQConversion("x"), (daqBaseObject*)intOpenDAQConversion(native.x));
+    daqStructBuilder_set(builder, stringOpenDAQConversion("y"), (daqBaseObject*) intOpenDAQConversion(native.y));
+    daqStructBuilder_set(builder, stringOpenDAQConversion("z"), (daqBaseObject*) intOpenDAQConversion(native.z));
 
     // Alternative way of setting the values in a struct
     if (0)
@@ -246,18 +290,18 @@ daqStruct* openDAQStructConversion(struct Coordinates coordinates, daqTypeManage
         daqList* valuesList = NULL;
         daqList_createList(&valuesList);
 
-        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(coordinates.x));
-        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(coordinates.y));
-        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(coordinates.z));
+        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(native.x));
+        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(native.y));
+        daqList_pushBack(valuesList, (daqBaseObject*) intOpenDAQConversion(native.z));
 
-        daqStructBuilder_setFieldValues(coordinatesBuilder, valuesList);
+        daqStructBuilder_setFieldValues(builder, valuesList);
         daqReleaseRef(valuesList);
     }
-    daqStruct* coordinatesStruct = NULL;
-    daqStructBuilder_build(coordinatesBuilder, &coordinatesStruct);
-    daqReleaseRef(coordinatesBuilder);
+    daqStruct* daq = NULL;
+    daqStructBuilder_build(builder, &daq);
+    daqReleaseRef(builder);
 
-    return coordinatesStruct;
+    return daq;
 }
 
 // Enumeration conversion (needs an additional run through)
@@ -276,7 +320,7 @@ enum ComponentStatusTypeEnum
     Warning
 };
 
-enum ComponentStatusTypeEnum enumOpenDAQConversion(daqEnumeration* componentStatusType)
+enum ComponentStatusTypeEnum openDAQEnumConversion(daqEnumeration* componentStatusType)
 {
     enum ComponentStatusTypeEnum compStatusType = Error;
     daqInt check;
@@ -288,13 +332,13 @@ enum ComponentStatusTypeEnum enumOpenDAQConversion(daqEnumeration* componentStat
     return compStatusType;
 }
 
-daqEnumeration* openDAQEnumConversion(enum ComponentStatusTypeEnum componentStatusType, daqTypeManager* typeManager)
+daqEnumeration* EnumOpenDAQConversion(enum ComponentStatusTypeEnum native, daqTypeManager* typeManager)
 {
-    daqEnumeration* mid = NULL;
-    daqInteger* inp = intOpenDAQConversion(componentStatusType);
+    daqEnumeration* daq = NULL;
+    daqInteger* inp = intOpenDAQConversion(native);
 
-    daqEnumeration_createEnumerationWithIntValue(&mid, stringOpenDAQConversion("ComponentStatusType"), inp, typeManager);
+    daqEnumeration_createEnumerationWithIntValue(&daq, stringOpenDAQConversion("ComponentStatusType"), inp, typeManager);
 
     daqReleaseRef(inp);
-    return mid;
+    return daq;
 }
