@@ -51,7 +51,7 @@ daqComplexNumber* complexOpenDAQConversion(struct ComplexNumber* native);
 
 // Range conversion
 struct Range openDAQRangeConversion(daqRange* daq);
-daqRange* RangeOpenDAQConversion(struct Range native);
+daqRange* rangeOpenDAQConversion(struct Range native);
 
 // Struct conversion 
 struct Coordinates openDAQCoordinatesStructConversion(daqStruct* daq);
@@ -238,7 +238,7 @@ struct Range openDAQRangeConversion(daqRange* daq)
     return native;
 }
 
-daqRange* RangeOpenDAQConversion(struct Range native)
+daqRange* rangeOpenDAQConversion(struct Range native)
 {
     daqRange* daq = NULL;
     daqNumber* lowValue = NULL;

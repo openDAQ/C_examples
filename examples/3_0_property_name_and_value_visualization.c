@@ -213,15 +213,36 @@ void floatProp(daqProperty* property)
 
         daqBaseObject* defaultValueObj = NULL;
         daqProperty_getDefaultValue(property, &defaultValueObj);
-        daqFloat defaultValue = 0;
-        daqQueryInterface(defaultValueObj, DAQ_FLOAT_OBJECT_INTF_ID, &defaultValue);
-        daqReleaseRef(defaultValueObj);
+
+        if (defaultValueObj != NULL)
+        {
+            daqFloatObject* defaultValue = NULL;
+            daqQueryInterface(defaultValueObj, DAQ_FLOAT_OBJECT_INTF_ID, &defaultValue);
+            daqReleaseRef(defaultValueObj);
+            daqFloat value = 0;
+            daqFloatObject_getValue(defaultValue, &value);
+            printf("- Default Value: %f\n", value);
+            daqReleaseRef(defaultValue);
+        }
 
         daqList* listOfRecommendedValues = NULL;
         daqProperty_getSuggestedValues(property, &listOfRecommendedValues);
 
         // Display min, max, default and suggested values
-
+        if(minValueNum != NULL)
+        {
+            daqFloat value = 0;
+            daqNumber_getFloatValue(minValueNum, &value);
+            printf("- Minimum Value: %f\n", value);
+            daqReleaseRef(minValueNum);
+            if (maxValueNum != NULL)
+            {
+                value = 0;
+                daqNumber_getFloatValue(maxValueNum, &value);
+                printf("- Maximum Value: %f\n", value);
+                daqReleaseRef(maxValueNum);
+            }
+        }
     }
 }
 
@@ -237,10 +258,16 @@ void intProp(daqProperty* property)
     daqBaseObject* defaultValueObj = NULL;
     daqProperty_getDefaultValue(property, &defaultValueObj);
 
-    daqInt defaultValue = 0;
-    daqQueryInterface(defaultValueObj, DAQ_INTEGER_INTF_ID, &defaultValue);
-    daqReleaseRef(defaultValueObj);
+    if (defaultValueObj != NULL)
+    {
+        daqInteger* defaultValueOb = NULL;
+        daqQueryInterface(defaultValueObj, DAQ_INTEGER_INTF_ID, &defaultValueOb);
+        daqInt defaultValue = 0;
+        daqInteger_getValue(defaultValueOb, &defaultValue);
+        daqReleaseRef(defaultValueOb);
 
+        printf("- Default value: %lld\n", defaultValue);
+    }
     daqList* listOfSuggestedValues = NULL;
     daqProperty_getSuggestedValues(property, &listOfSuggestedValues);
 
@@ -249,7 +276,7 @@ void intProp(daqProperty* property)
     {
         daqInt minValue = 0;
         daqNumber_getIntValue(minValueNum, &minValue);
-        printf("\n- Minimum value: %lld\n", minValue);
+        printf("- Minimum value: %lld\n", minValue);
         daqReleaseRef(minValueNum);
         if (maxValueNum != NULL)
         {
