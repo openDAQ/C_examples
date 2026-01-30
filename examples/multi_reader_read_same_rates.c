@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <Windows.h>
 
+/**
+* Set of parameters describing the time domain.
+*/
 struct DomainMetadata
 {
     daqSizeT sampleRate;
@@ -11,7 +14,15 @@ struct DomainMetadata
     daqInt referenceDomainOffset;
 };
 
-daqInt getOffsetFromStatus(daqReaderStatus* status);
+/**
+* Create multi reader from a list of signals.
+*/
+daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader);
+
+/**
+* Handle event in the daqMultiReaderStatus by updating the DomainMetadata object.
+*/
+daqErrCode handleEvent(daqMultiReaderStatus* status, struct DomainMetadata* metadata);
 
 /**
 * Extracts sample rate, start and delta from linear data rule and updates metadata fields.
@@ -28,66 +39,15 @@ daqErrCode processReferenceDomainInfo(daqDataDescriptor* domainDataDescriptor, s
 */
 daqBool isDataDescriptorChangeEvent(daqEventPacket* eventPacket);
 
-daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
-{
-    daqErrCode err = DAQ_SUCCESS;
+/**
+* Get offset to the first sample in the read buffer.
+*/
+daqInt getOffsetFromStatus(daqReaderStatus* status);
 
-    daqMultiReaderBuilder* builder = NULL;
-    daqMultiReaderBuilder_createMultiReaderBuilder(&builder);
-
-    daqMultiReaderBuilder_setValueReadType(builder, daqSampleTypeFloat64);
-    daqMultiReaderBuilder_setDomainReadType(builder, daqSampleTypeInt64);
-
-    daqSizeT signalCount = 0;
-    daqList_getCount(signals, &signalCount);
-    for (daqSizeT i = 0; i < signalCount; ++i) {
-        daqSignal* signal = NULL;
-        daqList_getItemAt(signals, i, &signal);
-        if (signal == NULL) {
-            err = DAQ_ERR_GENERALERROR;
-            break;
-        }
-        daqMultiReaderBuilder_addSignal(builder, signal);
-        daqReleaseRef(signal);
-    }
-    daqMultiReaderBuilder_build(builder, reader);
-    daqReleaseRef(builder);
-
-    return err;
-}
-
-daqErrCode handleEvent(daqMultiReaderStatus* status, struct DomainMetadata* metadata)
-{
-    daqErrCode err = DAQ_SUCCESS;
-
-    // NOTE: MultiReaderStatus cannot use the ReaderStatus interface for getting the event packet
-    daqEventPacket* eventPacket = NULL;
-    daqMultiReaderStatus_getMainDescriptor(status, &eventPacket);
-
-    if (isDataDescriptorChangeEvent(eventPacket) == False)
-    {
-        daqReleaseRef(eventPacket);
-        return DAQ_ERR_INVALID_DATA;
-    }
-
-    daqDict* parameters = NULL;
-    daqEventPacket_getParameters(eventPacket, &parameters);
-
-    daqString* domainDescriptorStr = NULL;
-    daqString_createString(&domainDescriptorStr, "DomainDataDescriptor");
-
-    daqDataDescriptor* domainDescriptor = NULL;
-    daqDict_get(parameters, domainDescriptorStr, (daqBaseObject**) &domainDescriptor);
-
-    processDataRule(domainDescriptor, metadata);
-    processReferenceDomainInfo(domainDescriptor, metadata);
-
-    daqReleaseRef(domainDescriptorStr);
-    daqReleaseRef(domainDescriptor);
-    daqReleaseRef(parameters);
-    daqReleaseRef(eventPacket);
-    return err;
-}
+/**
+* Get a daqNumber from daqDict object.
+*/
+daqErrCode getNumberFromDict(daqDict* dict, const char* key, daqNumber** out);
 
 void readDataSameRateSignals(daqList* signals)
 {
@@ -187,36 +147,64 @@ int main(void) {
 	return 0;
 }
 
-daqInt getOffsetFromStatus(daqReaderStatus* status)
-{
-    daqNumber* offsetNum = NULL;
-    daqReaderStatus_getOffset(status, &offsetNum);
-    daqInt offset = 0;
-    daqNumber_getIntValue(offsetNum, &offset);
-
-    daqReleaseRef(offsetNum);
-    return offset;
-}
-
-daqErrCode getNumberFromDict(daqDict* dict, const char* key, daqNumber** out)
+daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
 {
     daqErrCode err = DAQ_SUCCESS;
 
-    daqString* keyStr = NULL;
-    err = daqString_createString(&keyStr, key);
+    daqMultiReaderBuilder* builder = NULL;
+    daqMultiReaderBuilder_createMultiReaderBuilder(&builder);
 
-    if (err)
-        return err;
+    daqMultiReaderBuilder_setValueReadType(builder, daqSampleTypeFloat64);
+    daqMultiReaderBuilder_setDomainReadType(builder, daqSampleTypeInt64);
 
-    daqBaseObject* obj = NULL;
-    err = daqDict_get(dict, keyStr, &obj);
-    daqReleaseRef(keyStr);
+    daqSizeT signalCount = 0;
+    daqList_getCount(signals, &signalCount);
+    for (daqSizeT i = 0; i < signalCount; ++i) {
+        daqSignal* signal = NULL;
+        daqList_getItemAt(signals, i, &signal);
+        if (signal == NULL) {
+            err = DAQ_ERR_GENERALERROR;
+            break;
+        }
+        daqMultiReaderBuilder_addSignal(builder, signal);
+        daqReleaseRef(signal);
+    }
+    daqMultiReaderBuilder_build(builder, reader);
+    daqReleaseRef(builder);
 
-    if (err)
-        return err;
+    return err;
+}
 
-    err = daqQueryInterface(obj, DAQ_NUMBER_INTF_ID, out);
-    daqReleaseRef(obj);
+daqErrCode handleEvent(daqMultiReaderStatus* status, struct DomainMetadata* metadata)
+{
+    daqErrCode err = DAQ_SUCCESS;
+
+    // NOTE: MultiReaderStatus cannot use the ReaderStatus interface for getting the event packet
+    daqEventPacket* eventPacket = NULL;
+    daqMultiReaderStatus_getMainDescriptor(status, &eventPacket);
+
+    if (isDataDescriptorChangeEvent(eventPacket) == False)
+    {
+        daqReleaseRef(eventPacket);
+        return DAQ_ERR_INVALID_DATA;
+    }
+
+    daqDict* parameters = NULL;
+    daqEventPacket_getParameters(eventPacket, &parameters);
+
+    daqString* domainDescriptorStr = NULL;
+    daqString_createString(&domainDescriptorStr, "DomainDataDescriptor");
+
+    daqDataDescriptor* domainDescriptor = NULL;
+    daqDict_get(parameters, domainDescriptorStr, (daqBaseObject**)&domainDescriptor);
+
+    processDataRule(domainDescriptor, metadata);
+    processReferenceDomainInfo(domainDescriptor, metadata);
+
+    daqReleaseRef(domainDescriptorStr);
+    daqReleaseRef(domainDescriptor);
+    daqReleaseRef(parameters);
+    daqReleaseRef(eventPacket);
     return err;
 }
 
@@ -305,4 +293,37 @@ daqBool isDataDescriptorChangeEvent(daqEventPacket* eventPacket)
     daqReleaseRef(checkStr);
     daqReleaseRef(eventId);
     return check;
+}
+
+daqInt getOffsetFromStatus(daqReaderStatus* status)
+{
+    daqNumber* offsetNum = NULL;
+    daqReaderStatus_getOffset(status, &offsetNum);
+    daqInt offset = 0;
+    daqNumber_getIntValue(offsetNum, &offset);
+
+    daqReleaseRef(offsetNum);
+    return offset;
+}
+
+daqErrCode getNumberFromDict(daqDict* dict, const char* key, daqNumber** out)
+{
+    daqErrCode err = DAQ_SUCCESS;
+
+    daqString* keyStr = NULL;
+    err = daqString_createString(&keyStr, key);
+
+    if (err)
+        return err;
+
+    daqBaseObject* obj = NULL;
+    err = daqDict_get(dict, keyStr, &obj);
+    daqReleaseRef(keyStr);
+
+    if (err)
+        return err;
+
+    err = daqQueryInterface(obj, DAQ_NUMBER_INTF_ID, out);
+    daqReleaseRef(obj);
+    return err;
 }
