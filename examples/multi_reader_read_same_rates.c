@@ -26,6 +26,16 @@ struct DomainMetadata
 void readDataSameRateSignals(daqList* signals);
 
 /**
+* Add existing device.
+*/
+daqErrCode addExistingDevice(daqInstance** instance, daqDevice** device, const char* connectionStr);
+
+/**
+* Get signals to read.
+*/
+daqList* getSignals(daqDevice* device, daqBool useAITag);
+
+/**
 * Create multi reader from a list of signals.
 */
 daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader);
@@ -72,15 +82,16 @@ daqBool allocateBuffers(void** buffers, daqSizeT count, daqSizeT n);
 void freeIfAllocated(void** buffers, daqSizeT count, daqBool allocated);
 
 int main(void) {
-    // Setup simulated device generating samples on 8 channels.
-    daqInstance* simulatorInstance = NULL;
-    setupSimulator(&simulatorInstance);
+    //daqInstance* simulatorInstance = NULL;
     daqInstance* instance = NULL;
     daqDevice* device = NULL;
-    addSimulator(&device, &instance);
 
-    daqList* signals;
-    daqDevice_getSignalsRecursive(device, &signals, NULL);
+    // Setup simulated device generating samples on 8 channels.
+    //setupSimulator(&simulatorInstance);
+    addSimulator(&device, &instance);
+    addExistingDevice(&instance, &device, "daq://Dewesoft_DB24049746");
+
+    daqList* signals = getSignals(device, True);
 
     // Start reading samples from the signals.
     readDataSameRateSignals(signals);
@@ -88,7 +99,7 @@ int main(void) {
     daqReleaseRef(signals);
     daqReleaseRef(device);
     daqReleaseRef(instance);
-    daqReleaseRef(simulatorInstance);
+    //daqReleaseRef(simulatorInstance);
 	return 0;
 }
 
@@ -166,6 +177,89 @@ void readDataSameRateSignals(daqList* signals)
     daqReleaseRef(multireader);
 }
 
+// Helper
+void printSignalGlobalId(daqSignal* signal)
+{
+    daqString* localId = NULL;
+    daqComponent_getGlobalId((daqComponent*)signal, &localId);
+
+    printDaqFormattedString("%s\n", localId);
+}
+
+daqErrCode addExistingDevice(daqInstance** instance, daqDevice** device, const char* connectionStr)
+{
+    createInstance(instance, MODULE_PATH);
+
+    daqString* connectionString = NULL;
+    daqString_createString(&connectionString, connectionStr);
+    daqErrCode err = daqDevice_addDevice((daqDevice*)*instance, device, connectionString, NULL);
+    daqReleaseRef(connectionString);
+
+    if (err != DAQ_SUCCESS)
+        printf("Add device failed");
+    return err;
+}
+
+daqList* getSignals(daqDevice* device, daqBool useAITag)
+{
+    daqList* signals = NULL;
+    if (useAITag) {
+        // Create empty
+        daqList_createListWithElementType(&signals, DAQ_SIGNAL_INTF_ID);
+
+        // TODO: Access via AI tag
+        daqString* ai = NULL;
+        daqString_createString(&ai, "AI");
+
+        daqList* tags = NULL;
+        daqList_createListWithElementType(&tags, DAQ_STRING_INTF_ID);
+        daqList_pushBack(tags, ai);
+
+        daqSearchFilter* filter;
+        daqSearchFilter_createRequiredTagsSearchFilter(&filter, tags);
+
+        // Get AI channels
+        daqList* channels = NULL;
+        daqDevice_getChannels(device, &channels, filter);
+
+        daqIterator* iterator = NULL;
+        daqList_createStartIterator(channels, &iterator);
+        while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
+        {
+            daqFunctionBlock* ch = NULL;
+            daqIterator_getCurrent(iterator, &ch);
+
+            daqList* chSignals = NULL;
+            daqFunctionBlock_getSignals(ch, &chSignals, NULL);
+
+            daqSizeT cnt = 0;
+            daqList_getCount(chSignals, &cnt);
+
+            if (cnt > 0) {
+                daqSignal* firstSignal = NULL;
+                daqList_getItemAt(chSignals, 0, &firstSignal);
+                daqList_pushBack(signals, firstSignal);
+
+                daqReleaseRef(firstSignal);
+            }
+
+            daqReleaseRef(chSignals);
+            daqReleaseRef(ch);
+        }
+
+        daqReleaseRef(iterator);
+        daqReleaseRef(channels);
+        daqReleaseRef(tags);
+        daqReleaseRef(ai);
+        daqReleaseRef(filter);
+    } 
+    else {
+        // Get all possible signals.
+        daqDevice_getSignalsRecursive(device, &signals, NULL);
+    }
+    return signals;
+}
+
 daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
 {
     daqErrCode err = DAQ_SUCCESS;
@@ -186,6 +280,7 @@ daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
             break;
         }
         daqMultiReaderBuilder_addSignal(builder, signal);
+        printSignalGlobalId(signal);
         daqReleaseRef(signal);
     }
     daqMultiReaderBuilder_build(builder, reader);
@@ -238,6 +333,8 @@ daqErrCode processDataRule(daqDataDescriptor* domainDataDescriptor, struct Domai
         daqReleaseRef(dataRule);
         return DAQ_ERR_INVALID_DATA;
     }
+
+    // TODO: Check that origin is 1970
 
     daqRatio* ratio = NULL;
     daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
