@@ -3,10 +3,33 @@
 #include <stdlib.h>
 #include <Windows.h>
 
-// Configure the simulator device to have 4 channels
-daqErrCode setNumberOfChannels(daqDevice* device, daqInt num);
+struct DomainMetadata
+{
+    daqSizeT sampleRate;
+    daqInt ruleStart;
+    daqInt ruleDelta;
+    daqInt referenceDomainOffset;
+};
 
-daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader) {
+daqInt getOffsetFromStatus(daqReaderStatus* status);
+
+/**
+* Extracts sample rate, start and delta from linear data rule and updates metadata fields.
+*/
+daqErrCode processDataRule(daqDataDescriptor* domainDataDescriptor, struct DomainMetadata* metadata);
+
+/**
+* Extract reference domain info offset from reference domain info object and updates the metadata field.
+*/
+daqErrCode processReferenceDomainInfo(daqDataDescriptor* domainDataDescriptor, struct DomainMetadata* metadata);
+
+/**
+* Returns True if the packet represents data descriptor change.
+*/
+daqBool isDataDescriptorChangeEvent(daqEventPacket* eventPacket);
+
+daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
+{
     daqErrCode err = DAQ_SUCCESS;
 
     daqMultiReaderBuilder* builder = NULL;
@@ -33,26 +56,15 @@ daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader) {
     return err;
 }
 
-daqErrCode handleEvent(daqMultiReaderStatus* status, daqSizeT* sampleRate) {
+daqErrCode handleEvent(daqMultiReaderStatus* status, struct DomainMetadata* metadata)
+{
     daqErrCode err = DAQ_SUCCESS;
 
     // NOTE: MultiReaderStatus cannot use the ReaderStatus interface for getting the event packet
     daqEventPacket* eventPacket = NULL;
     daqMultiReaderStatus_getMainDescriptor(status, &eventPacket);
-    
-    daqString* eventId = NULL;
-    daqEventPacket_getEventId(eventPacket, &eventId);
 
-    daqBool check = False;
-    daqString* checkStr = NULL;
-    daqString_createString(&checkStr, "DATA_DESCRIPTOR_CHANGED");
-
-    daqBaseObject_equals(eventId, checkStr, &check);
-
-    daqReleaseRef(checkStr);
-    daqReleaseRef(eventId);
-
-    if (check == False)
+    if (isDataDescriptorChangeEvent(eventPacket) == False)
     {
         daqReleaseRef(eventPacket);
         return DAQ_ERR_INVALID_DATA;
@@ -67,7 +79,8 @@ daqErrCode handleEvent(daqMultiReaderStatus* status, daqSizeT* sampleRate) {
     daqDataDescriptor* domainDescriptor = NULL;
     daqDict_get(parameters, domainDescriptorStr, (daqBaseObject**) &domainDescriptor);
 
-    getSampleRate(sampleRate, domainDescriptor);
+    processDataRule(domainDescriptor, metadata);
+    processReferenceDomainInfo(domainDescriptor, metadata);
 
     daqReleaseRef(domainDescriptorStr);
     daqReleaseRef(domainDescriptor);
@@ -89,6 +102,7 @@ void readDataSameRateSignals(daqList* signals)
     void** dataBuffers = malloc(signalCount * sizeof(void*));
     daqBool buffersAllocated = False;
 
+    struct DomainMetadata domain = { 1, 0, 1, 0 };
     for (daqSizeT readCount = 0; readCount < 20; ++readCount){
         daqSizeT availableCount = 0;
         daqReader_getAvailableCount(multireaderAsReader, &availableCount);
@@ -102,11 +116,10 @@ void readDataSameRateSignals(daqList* signals)
         daqReadStatus reportedStatus;
         daqReaderStatus_getReadStatus(statusAsReaderStatus, &reportedStatus);
         if (reportedStatus == daqReadStatusEvent) {
-            daqSizeT sampleRate;
-            handleEvent(status, &sampleRate);
+            handleEvent(status, &domain);
 
             // Buffer size for 100ms worth of samples
-            bufferSize = sampleRate / 10;
+            bufferSize = domain.sampleRate / 10;
 
             for (daqSizeT i = 0; i < signalCount; ++i) {
                 if (bufferSize == 0) {
@@ -120,8 +133,13 @@ void readDataSameRateSignals(daqList* signals)
             buffersAllocated = bufferSize != 0;
         }
         else if (reportedStatus == daqReadStatusOk && count > 0) {
-            printf("----- DATA -----\n");
+            daqInt readOffset = getOffsetFromStatus(statusAsReaderStatus);
+            daqInt readStartTick = domain.ruleStart + domain.referenceDomainOffset + readOffset;
+
+            printf("\n-- TIMESTAMP --- | -------- DATA (%lld) --------\n", readCount);
             for (daqSizeT sample = 0; sample < count; ++sample) {
+                daqInt sampleTick = readStartTick + sample * domain.ruleDelta;
+                printf("%lld | ", sampleTick);
                 for (daqSizeT i = 0; i < signalCount; ++i) {
                     double* buffer = (double*)dataBuffers[i];
                     if (buffer == NULL) {
@@ -157,8 +175,6 @@ int main(void) {
     daqDevice* device = NULL;
     addSimulator(&device, &instance);
 
-    //setNumberOfChannels(device, 4);
-
     daqList* signals;
     daqDevice_getSignalsRecursive(device, &signals, NULL);
 
@@ -171,23 +187,122 @@ int main(void) {
 	return 0;
 }
 
-// Configure the simulator device to have 4 channels
-daqErrCode setNumberOfChannels(daqDevice* device, daqInt num) {
-    daqString* numOfChannelsStr = NULL;
-    daqString_createString(&numOfChannelsStr, "NumberOfChannels");
+daqInt getOffsetFromStatus(daqReaderStatus* status)
+{
+    daqNumber* offsetNum = NULL;
+    daqReaderStatus_getOffset(status, &offsetNum);
+    daqInt offset = 0;
+    daqNumber_getIntValue(offsetNum, &offset);
 
-    daqInteger* number = NULL;
-    daqInteger_createInteger(&number, 4);
+    daqReleaseRef(offsetNum);
+    return offset;
+}
 
-    daqPropertyObject* propObj = NULL;
-    daqQueryInterface(device, DAQ_PROPERTY_OBJECT_INTF_ID, &propObj);
+daqErrCode getNumberFromDict(daqDict* dict, const char* key, daqNumber** out)
+{
+    daqErrCode err = DAQ_SUCCESS;
 
-    daqErrCode err = daqPropertyObject_setPropertyValue(propObj, numOfChannelsStr, number);
-    printf("Set number of channels exited with: %d", (int)err);
+    daqString* keyStr = NULL;
+    err = daqString_createString(&keyStr, key);
 
-    daqReleaseRef(propObj);
-    daqReleaseRef(number);
-    daqReleaseRef(numOfChannelsStr);
+    if (err)
+        return err;
+
+    daqBaseObject* obj = NULL;
+    err = daqDict_get(dict, keyStr, &obj);
+    daqReleaseRef(keyStr);
+
+    if (err)
+        return err;
+
+    err = daqQueryInterface(obj, DAQ_NUMBER_INTF_ID, out);
+    daqReleaseRef(obj);
+    return err;
+}
+
+daqErrCode processDataRule(daqDataDescriptor* domainDataDescriptor, struct DomainMetadata* metadata)
+{
+    daqDataRule* dataRule = NULL;
+    daqDataDescriptor_getRule(domainDataDescriptor, &dataRule);
+
+    if (!checkIsLinearRule(dataRule))
+    {
+        printf("Data rule of the signal is not linear, therefore we cannot calculate sample rate.");
+        daqReleaseRef(dataRule);
+        return DAQ_ERR_INVALID_DATA;
+    }
+
+    daqRatio* ratio = NULL;
+    daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
+
+    daqDict* parametersDataRule = NULL;
+    daqDataRule_getParameters(dataRule, &parametersDataRule);
+
+
+    daqNumber* delta = NULL;
+    getNumberFromDict(parametersDataRule, "delta", &delta);
+
+    daqNumber* start = NULL;
+    getNumberFromDict(parametersDataRule, "start", &start);
+
+    calculateSampleRate(&(metadata->sampleRate), ratio, delta);
+    daqNumber_getIntValue(delta, &(metadata->ruleDelta));
+    daqNumber_getIntValue(start, &(metadata->ruleStart));
+
+    daqReleaseRef(delta);
+    daqReleaseRef(start);
+    daqReleaseRef(parametersDataRule);
+    daqReleaseRef(ratio);
+    daqReleaseRef(dataRule);
+
+    return DAQ_SUCCESS;
+}
+
+daqErrCode processReferenceDomainInfo(daqDataDescriptor* domainDataDescriptor, struct DomainMetadata* metadata)
+{
+    daqErrCode err = DAQ_SUCCESS;
+
+    daqReferenceDomainInfo* domainInfo = NULL;
+    err = daqDataDescriptor_getReferenceDomainInfo(domainDataDescriptor, &domainInfo);
+
+    // Reference domain info is not mandatory
+    if (err || domainInfo == NULL) {
+        printf("Reference domain info unavailable.");
+        metadata->referenceDomainOffset = 0;
+        return DAQ_SUCCESS;
+    }
+
+    daqInteger* refDomainOffset = NULL;
+    err = daqReferenceDomainInfo_getReferenceDomainOffset(domainInfo, &refDomainOffset);
+
+    // Reference domain info is not mandatory
+    if (err || refDomainOffset == NULL) {
+        printf("Reference domain info unavailable.");
+        metadata->referenceDomainOffset = 0;
+        daqReleaseRef(domainInfo);
+        return DAQ_SUCCESS;
+    }
+
+    err = daqInteger_getValue(refDomainOffset, &(metadata->referenceDomainOffset));
+
+    daqReleaseRef(refDomainOffset);
+    daqReleaseRef(domainInfo);
 
     return err;
+}
+
+daqBool isDataDescriptorChangeEvent(daqEventPacket* eventPacket)
+{
+    daqString* eventId = NULL;
+    daqEventPacket_getEventId(eventPacket, &eventId);
+
+    daqString* checkStr = NULL;
+    daqString_createString(&checkStr, "DATA_DESCRIPTOR_CHANGED");
+
+    daqBool check = False;
+    daqBaseObject_equals(eventId, checkStr, &check);
+
+    daqReleaseRef(checkStr);
+    daqReleaseRef(eventId);
+    return check;
 }
