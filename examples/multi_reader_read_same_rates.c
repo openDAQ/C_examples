@@ -14,6 +14,17 @@ struct DomainMetadata
     daqInt referenceDomainOffset;
 };
 
+/*
+* Read data from a list of signals. The signals should have the same sample rate.
+* 
+* This function is the core of this example. It demonstrates how to use multi reader
+* to read samples from multiple aligned signals. The reading process consists of a
+* simple loop with a timed sleep to let samples accumulate. The multi reader user
+* only needs to allocate appropriate buffers, but there is no need to handle individual
+* packets.
+*/
+void readDataSameRateSignals(daqList* signals);
+
 /**
 * Create multi reader from a list of signals.
 */
@@ -49,6 +60,38 @@ daqInt getOffsetFromStatus(daqReaderStatus* status);
 */
 daqErrCode getNumberFromDict(daqDict* dict, const char* key, daqNumber** out);
 
+/**
+* Allocate buffers to hold n doubles. It is assumed that buffers has enough allocated memory to hold count
+* number of pointers.
+*/
+daqBool allocateBuffers(void** buffers, daqSizeT count, daqSizeT n);
+
+/**
+* Calls free on count number of pointer inside buffers if allocated is True.
+*/
+void freeIfAllocated(void** buffers, daqSizeT count, daqBool allocated);
+
+int main(void) {
+    // Setup simulated device generating samples on 8 channels.
+    daqInstance* simulatorInstance = NULL;
+    setupSimulator(&simulatorInstance);
+    daqInstance* instance = NULL;
+    daqDevice* device = NULL;
+    addSimulator(&device, &instance);
+
+    daqList* signals;
+    daqDevice_getSignalsRecursive(device, &signals, NULL);
+
+    // Start reading samples from the signals.
+    readDataSameRateSignals(signals);
+
+    daqReleaseRef(signals);
+    daqReleaseRef(device);
+    daqReleaseRef(instance);
+    daqReleaseRef(simulatorInstance);
+	return 0;
+}
+
 void readDataSameRateSignals(daqList* signals)
 {
     daqMultiReader* multireader = NULL;
@@ -58,15 +101,16 @@ void readDataSameRateSignals(daqList* signals)
     daqSizeT signalCount = 0;
     daqList_getCount(signals, &signalCount);
 
-    daqSizeT bufferSize = 0;
-    void** dataBuffers = malloc(signalCount * sizeof(void*));
+    void** dataBuffers = calloc(signalCount, sizeof(void*));
+
     daqBool buffersAllocated = False;
+    daqSizeT bufferSize = 0;
 
     struct DomainMetadata domain = { 1, 0, 1, 0 };
-    for (daqSizeT readCount = 0; readCount < 20; ++readCount){
+    for (daqSizeT readCount = 0; readCount < 20; ++readCount) {
         daqSizeT availableCount = 0;
         daqReader_getAvailableCount(multireaderAsReader, &availableCount);
-        
+
         daqSizeT count = min(bufferSize, availableCount);
 
         daqMultiReaderStatus* status = NULL;
@@ -81,30 +125,28 @@ void readDataSameRateSignals(daqList* signals)
             // Buffer size for 100ms worth of samples
             bufferSize = domain.sampleRate / 10;
 
-            for (daqSizeT i = 0; i < signalCount; ++i) {
-                if (bufferSize == 0) {
-                    continue;
-                }
-                if (buffersAllocated) {
-                    free(dataBuffers[i]);
-                }
-                dataBuffers[i] = malloc(bufferSize * sizeof(double));
-            }
-            buffersAllocated = bufferSize != 0;
+            freeIfAllocated(dataBuffers, signalCount, buffersAllocated);
+            buffersAllocated = allocateBuffers(dataBuffers, signalCount, bufferSize);
+            bufferSize = buffersAllocated ? bufferSize : 0;
         }
         else if (reportedStatus == daqReadStatusOk && count > 0) {
+            // Get offset of the first sample
             daqInt readOffset = getOffsetFromStatus(statusAsReaderStatus);
+
+            // Get tick of the first sample
             daqInt readStartTick = domain.ruleStart + domain.referenceDomainOffset + readOffset;
 
             printf("\n-- TIMESTAMP --- | -------- DATA (%lld) --------\n", readCount);
             for (daqSizeT sample = 0; sample < count; ++sample) {
+                // Calculate tick according to linear data rule.
                 daqInt sampleTick = readStartTick + sample * domain.ruleDelta;
+
                 printf("%lld | ", sampleTick);
                 for (daqSizeT i = 0; i < signalCount; ++i) {
-                    double* buffer = (double*)dataBuffers[i];
-                    if (buffer == NULL) {
+                    if (dataBuffers[i] == NULL) {
                         continue;
                     }
+                    double* buffer = (double*)dataBuffers[i];
                     printf("%lf; ", buffer[sample]);
                 }
                 printf("\n");
@@ -117,34 +159,11 @@ void readDataSameRateSignals(daqList* signals)
         Sleep(50);
     }
 
-    if (buffersAllocated) {
-        for (daqSizeT i = 0; i < signalCount; ++i) {
-            free(dataBuffers[i]);
-        }
-    }
+    freeIfAllocated(dataBuffers, signalCount, buffersAllocated);
     free(dataBuffers);
 
     daqReleaseRef(multireaderAsReader);
     daqReleaseRef(multireader);
-}
-
-int main(void) {
-    daqInstance* simulatorInstance = NULL;
-    setupSimulator(&simulatorInstance);
-    daqInstance* instance = NULL;
-    daqDevice* device = NULL;
-    addSimulator(&device, &instance);
-
-    daqList* signals;
-    daqDevice_getSignalsRecursive(device, &signals, NULL);
-
-    readDataSameRateSignals(signals);
-
-    daqReleaseRef(signals);
-    daqReleaseRef(device);
-    daqReleaseRef(instance);
-    daqReleaseRef(simulatorInstance);
-	return 0;
 }
 
 daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
@@ -326,4 +345,33 @@ daqErrCode getNumberFromDict(daqDict* dict, const char* key, daqNumber** out)
     err = daqQueryInterface(obj, DAQ_NUMBER_INTF_ID, out);
     daqReleaseRef(obj);
     return err;
+}
+
+daqBool allocateBuffers(void** buffers, daqSizeT count, daqSizeT n)
+{
+    if (n == 0)
+        return False;
+
+    for (daqSizeT i = 0; i < count; ++i) {
+        buffers[i] = malloc(n * sizeof(double));
+        if (!buffers[i]) {
+            for (daqSizeT j = 0; j < i; ++j) {
+                free(buffers[j]);
+                buffers[j] = NULL;
+            }
+            return False;
+        }
+    }
+    return True;
+}
+
+void freeIfAllocated(void** buffers, daqSizeT count, daqBool allocated)
+{
+    if (allocated == False)
+        return;
+    
+    for (daqSizeT i = 0; i < count; ++i) {
+        free(buffers[i]);
+        buffers[i] = NULL;
+    }
 }
