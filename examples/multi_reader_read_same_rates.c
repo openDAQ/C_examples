@@ -194,7 +194,7 @@ void readDataSameRateSignals(daqList* signals)
             daqInt readStartTick = domain.ruleStart + domain.referenceDomainOffset + readOffset;
 
             printf("\nRead successful (%lld).\nRead %lld samples. Printing samples 0, 1 and %lld.\n", readCount, count, count-1);
-            printf("-- TIMESTAMP --- | -------- DATA -----------\n");
+            printf("--------------- TIMESTAMP ------------------------- | -------- DATA -----------\n");
             for (daqSizeT sample = 0; sample < count; ++sample) {
                 // Only print the first and the last samples
                 if (sample == 2) {
