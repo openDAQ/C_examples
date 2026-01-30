@@ -21,9 +21,13 @@ enum ComponentType
     DaqInputPort
 };
 
+void printDaqObject(daqBaseObject* baseObject, enum ComponentType compType, uint8_t indent);
+
 enum ComponentType getComponentType(daqBaseObject* baseObject);
 
 void printDaqDevice(daqBaseObject* baseObject, uint8_t indent);
+
+void printDaqChannel(daqBaseObject* baseObject, uint8_t indent);
 
 void printDaqFunctionBlock(daqBaseObject* baseObject, uint8_t indent);
 
@@ -37,6 +41,47 @@ void printInputPort(daqBaseObject* baseObject, uint8_t indent);
 
 void printDaqSignal(daqBaseObject* baseObject, uint8_t indent);
 
+void printDaqObject(daqBaseObject* baseObject, enum ComponentType compType, uint8_t indent)
+{
+    switch (compType)
+    {
+    case DaqDevice:
+        printDaqDevice(baseObject, indent + 1);
+        break;
+
+    case DaqServer:
+        printDaqServer(baseObject, indent + 1);
+        break;
+
+    case DaqSyncComponent:
+        printDaqSyncComponent(baseObject, indent + 1);
+        break;
+
+    case DaqChannel:
+        printDaqChannel(baseObject, indent + 1);
+        break;
+
+    case DaqFunctionBlock:
+        printDaqFunctionBlock(baseObject, indent + 1);
+        break;
+
+    case DaqFolder:
+        printDaqFolder(baseObject, indent + 1);
+        break;
+
+    case DaqInputPort:
+        printInputPort(baseObject, indent + 1);
+        break;
+
+    case DaqSignal:
+        printDaqSignal(baseObject, indent + 1);
+        break;
+
+    default:
+        break;
+    }
+}
+
 enum ComponentType getComponentType(daqBaseObject* baseObject)
 {
     if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_DEVICE_INTF_ID))
@@ -47,6 +92,9 @@ enum ComponentType getComponentType(daqBaseObject* baseObject)
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SYNC_COMPONENT_INTF_ID))
         return DaqSyncComponent;
+
+    else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_CHANNEL_INTF_ID))
+        return DaqChannel;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_FUNCTION_BLOCK_INTF_ID))
         return DaqFunctionBlock;
@@ -82,39 +130,7 @@ void printObjectList(daqList* list, enum ComponentType compType, uint8_t indent)
     {
         daqList_getItemAt(list, i, &listMember);
 
-        switch (compType)
-        {
-        case DaqDevice:
-            printDaqDevice(listMember, indent+1);
-            break;
-        
-        case DaqServer:
-            printDaqServer(listMember, indent+1);
-            break;
-        
-        case DaqSyncComponent:
-            printDaqSyncComponent(listMember, indent+1);
-            break;
-
-        case DaqFunctionBlock:
-            printDaqFunctionBlock(listMember, indent+1);
-            break;
-
-        case DaqFolder:
-            printDaqFolder(listMember, indent+1);
-            break;
-
-        case DaqInputPort:
-            printInputPort(listMember, indent+1);
-            break;
-
-        case DaqSignal:
-            printDaqSignal(listMember, indent+1);
-            break;
-
-        default:
-            break;
-        }
+        printDaqObject(listMember, compType, indent);
 
         daqReleaseRef(listMember);
     }
@@ -133,6 +149,8 @@ void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
         printDaqFormattedString("Device: %s\n", localId);
     }
 
+    // IOFolder is a SPECIAL TYPE of FOLDER that only accepts
+    // IChannel and IIoFolderConfig components.
     daqFolder* ioFolder = NULL;
     daqDevice_getInputsOutputsFolder(device, &ioFolder);
     if (ioFolder != NULL)
@@ -175,6 +193,13 @@ void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
 
     daqReleaseRef(localId);
     daqReleaseRef(device);
+}
+
+void printDaqChannel(daqBaseObject* baseObject, uint8_t indent)
+{
+    // Channels are standard function blocks that have
+    // an additional option of providing a list of tags.
+    printDaqFunctionBlock(baseObject, indent);
 }
 
 void printDaqFunctionBlock(daqBaseObject* baseObject, uint8_t indent)
