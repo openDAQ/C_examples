@@ -33,7 +33,7 @@ daqErrCode addExistingDevice(daqInstance** instance, daqDevice** device, const c
 /**
 * Get signals to read.
 */
-daqList* getSignals(daqDevice* device, daqBool useAITag);
+daqList* getSignals(daqDevice* device, daqBool allSignals);
 
 /**
 * Create multi reader from a list of signals.
@@ -82,16 +82,21 @@ daqBool allocateBuffers(void** buffers, daqSizeT count, daqSizeT n);
 void freeIfAllocated(void** buffers, daqSizeT count, daqBool allocated);
 
 int main(void) {
-    //daqInstance* simulatorInstance = NULL;
+    daqInstance* simulatorInstance = NULL;
     daqInstance* instance = NULL;
     daqDevice* device = NULL;
 
     // Setup simulated device generating samples on 8 channels.
-    //setupSimulator(&simulatorInstance);
-    addSimulator(&device, &instance);
-    addExistingDevice(&instance, &device, "daq://Dewesoft_DB24049746");
+    setupSimulator(&simulatorInstance);
+    const char* simulator = "daq://openDAQ_sim01";
+    
+    const char* custom = "daq://Dewesoft_DB24049746";
 
-    daqList* signals = getSignals(device, True);
+    daqBool useSimulator = False;
+    const char* connectionString = useSimulator ? simulator : custom;
+    
+    addExistingDevice(&instance, &device, connectionString);
+    daqList* signals = getSignals(device, useSimulator);
 
     // Start reading samples from the signals.
     readDataSameRateSignals(signals);
@@ -99,7 +104,7 @@ int main(void) {
     daqReleaseRef(signals);
     daqReleaseRef(device);
     daqReleaseRef(instance);
-    //daqReleaseRef(simulatorInstance);
+    daqReleaseRef(simulatorInstance);
 	return 0;
 }
 
@@ -149,6 +154,15 @@ void readDataSameRateSignals(daqList* signals)
 
             printf("\n-- TIMESTAMP --- | -------- DATA (%lld) --------\n", readCount);
             for (daqSizeT sample = 0; sample < count; ++sample) {
+                // Only print the first and the last samples
+                if (sample == 2) {
+                    printf("...\n");
+                    continue;
+                }
+                else if (sample > 2 && sample < count - 1) {
+                    continue;
+                }
+
                 // Calculate tick according to linear data rule.
                 daqInt sampleTick = readStartTick + sample * domain.ruleDelta;
 
@@ -183,7 +197,7 @@ void printSignalGlobalId(daqSignal* signal)
     daqString* localId = NULL;
     daqComponent_getGlobalId((daqComponent*)signal, &localId);
 
-    printDaqFormattedString("%s\n", localId);
+    printDaqFormattedString(" - %s\n", localId);
 }
 
 daqErrCode addExistingDevice(daqInstance** instance, daqDevice** device, const char* connectionStr)
@@ -200,14 +214,13 @@ daqErrCode addExistingDevice(daqInstance** instance, daqDevice** device, const c
     return err;
 }
 
-daqList* getSignals(daqDevice* device, daqBool useAITag)
+daqList* getSignals(daqDevice* device, daqBool allSignals)
 {
     daqList* signals = NULL;
-    if (useAITag) {
+    if (!allSignals) {
         // Create empty
         daqList_createListWithElementType(&signals, DAQ_SIGNAL_INTF_ID);
 
-        // TODO: Access via AI tag
         daqString* ai = NULL;
         daqString_createString(&ai, "AI");
 
@@ -270,6 +283,8 @@ daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
     daqMultiReaderBuilder_setValueReadType(builder, daqSampleTypeFloat64);
     daqMultiReaderBuilder_setDomainReadType(builder, daqSampleTypeInt64);
 
+    printf("Signals to read:\n");
+
     daqSizeT signalCount = 0;
     daqList_getCount(signals, &signalCount);
     for (daqSizeT i = 0; i < signalCount; ++i) {
@@ -283,6 +298,8 @@ daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
         printSignalGlobalId(signal);
         daqReleaseRef(signal);
     }
+    printf("\n");
+
     daqMultiReaderBuilder_build(builder, reader);
     daqReleaseRef(builder);
 
