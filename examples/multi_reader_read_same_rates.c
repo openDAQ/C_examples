@@ -12,7 +12,23 @@ struct DomainMetadata
     daqInt ruleStart;
     daqInt ruleDelta;
     daqInt referenceDomainOffset;
+
+    daqString* origin;
+    daqString* unitSymbol;
+
+    daqInt resNum;
+    daqInt resDen;
 };
+
+/**
+* Creation utility function.
+*/
+struct DomainMetadata createDomainMetadata();
+
+/**
+* Destruction utility.
+*/
+void freeDomainMetadata(struct DomainMetadata* p);
 
 /*
 * Read data from a list of signals. The signals should have the same sample rate.
@@ -49,19 +65,26 @@ daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader);
 daqErrCode handleEvent(daqMultiReaderStatus* status, struct DomainMetadata* metadata);
 
 /**
-* Extracts sample rate, start and delta from linear data rule and updates metadata fields.
+* Extracts sample rate, start and delta from linear data rule, referenceDomainOffset from reference domain info
+* and updates metadata fields.
 */
-daqErrCode processDataRule(daqDataDescriptor* domainDataDescriptor, struct DomainMetadata* metadata);
+daqErrCode updateDomainMetadata(daqDataDescriptor* domainDataDescriptor, struct DomainMetadata* metadata);
 
 /**
-* Extract reference domain info offset from reference domain info object and updates the metadata field.
+* Get reference domain info offset from reference domain info object.
 */
-daqErrCode processReferenceDomainInfo(daqDataDescriptor* domainDataDescriptor, struct DomainMetadata* metadata);
+daqErrCode getReferenceDomainOffset(daqDataDescriptor* domainDataDescriptor, daqInt* offset);
 
 /**
 * Returns True if the packet represents data descriptor change.
 */
 daqBool isDataDescriptorChangeEvent(daqEventPacket* eventPacket);
+
+/**
+* Print absolute time stamp in format: 20483d 14h 49min 10.934s since 1970-01-01T00:00:00Z. The precision
+* of this format is 1ms, so two samples within a millisecond may have the same time stamp printed out.
+*/
+void printAbsoluteTimestamp(struct DomainMetadata* domain, daqInt tick);
 
 /**
 * Get offset to the first sample in the read buffer.
@@ -88,20 +111,26 @@ int main(void) {
     daqInstance* simulatorInstance = NULL;
     daqInstance* instance = NULL;
     daqDevice* device = NULL;
+    setupSimulator(&simulatorInstance);
+
+    daqList* signals = NULL;
 
     // This example creates a simulator device with 8 channels and connects to it.
-    // Note, however, that simulator creation may be omitted and connection string
-    // replaced with a connection string of an existing (real) device.
-    setupSimulator(&simulatorInstance);
-    const char* connectionString = "daq://openDAQ_sim01"; // "daq://Dewesoft_DB24049746";
-    addDeviceWrapper(&instance, &device, connectionString);
-    
-    daqList* signals = NULL;
+    // Connection string may be replaced with a connection string of an existing
+    // (real) device.
+    // 
     // All of the simulator's signals are appropriate for synchronized reading. For real
     // devices one may need to filter the signals. One of the options is to use the function
     // getAIChannelSignals.
+
+    const char* connectionString = "daq://openDAQ_sim01";
+    addDeviceWrapper(&instance, &device, connectionString);
     daqDevice_getSignalsRecursive(device, &signals, NULL);
-    //getAIChannelSignals(device, &signals);
+    
+    // Connect to an existing device
+    // const char* customString = "daq://Dewesoft_DB24049746";
+    // addDeviceWrapper(&instance, &device, customString);
+    // getAIChannelSignals(device, &signals);
 
     // TODO: check sampling rates.
 
@@ -129,7 +158,7 @@ void readDataSameRateSignals(daqList* signals)
     daqBool buffersAllocated = False;
     daqSizeT bufferSize = 0;
 
-    struct DomainMetadata domain = { 1, 0, 1, 0 };
+    struct DomainMetadata domain = createDomainMetadata();
     for (daqSizeT readCount = 0; readCount < 20; ++readCount) {
         daqSizeT availableCount = 0;
         daqReader_getAvailableCount(multireaderAsReader, &availableCount);
@@ -143,10 +172,15 @@ void readDataSameRateSignals(daqList* signals)
         daqReadStatus reportedStatus;
         daqReaderStatus_getReadStatus(statusAsReaderStatus, &reportedStatus);
         if (reportedStatus == daqReadStatusEvent) {
-            handleEvent(status, &domain);
+            daqErrCode err = handleEvent(status, &domain);
 
-            // Buffer size for 400ms worth of samples
-            bufferSize = (domain.sampleRate * 2) / 5;
+            if (err == DAQ_SUCCESS) {
+                // Buffer size for 400ms worth of samples
+                bufferSize = (domain.sampleRate * 2) / 5;
+            }
+            else {
+                bufferSize = 0; // Allocate nothing
+            }
 
             freeIfAllocated(dataBuffers, signalCount, buffersAllocated);
             buffersAllocated = allocateBuffers(dataBuffers, signalCount, bufferSize);
@@ -174,7 +208,8 @@ void readDataSameRateSignals(daqList* signals)
                 // Calculate tick according to linear data rule.
                 daqInt sampleTick = readStartTick + sample * domain.ruleDelta;
 
-                printf("%lld | ", sampleTick);
+                printAbsoluteTimestamp(&domain, sampleTick);
+                printf(" | ");
                 for (daqSizeT i = 0; i < signalCount; ++i) {
                     if (dataBuffers[i] == NULL) {
                         continue;
@@ -186,7 +221,6 @@ void readDataSameRateSignals(daqList* signals)
             }
         }
 
-
         daqReleaseRef(statusAsReaderStatus);
         daqReleaseRef(status);
         Sleep(200);
@@ -195,6 +229,7 @@ void readDataSameRateSignals(daqList* signals)
     freeIfAllocated(dataBuffers, signalCount, buffersAllocated);
     free(dataBuffers);
 
+    freeDomainMetadata(&domain);
     daqReleaseRef(multireaderAsReader);
     daqReleaseRef(multireader);
 }
@@ -329,8 +364,7 @@ daqErrCode handleEvent(daqMultiReaderStatus* status, struct DomainMetadata* meta
     daqDataDescriptor* domainDescriptor = NULL;
     daqDict_get(parameters, domainDescriptorStr, (daqBaseObject**)&domainDescriptor);
 
-    processDataRule(domainDescriptor, metadata);
-    processReferenceDomainInfo(domainDescriptor, metadata);
+    err = updateDomainMetadata(domainDescriptor, metadata);
 
     daqReleaseRef(domainDescriptorStr);
     daqReleaseRef(domainDescriptor);
@@ -339,10 +373,10 @@ daqErrCode handleEvent(daqMultiReaderStatus* status, struct DomainMetadata* meta
     return err;
 }
 
-daqErrCode processDataRule(daqDataDescriptor* domainDataDescriptor, struct DomainMetadata* metadata)
+daqErrCode updateDomainMetadata(daqDataDescriptor* descriptor, struct DomainMetadata* metadata)
 {
     daqDataRule* dataRule = NULL;
-    daqDataDescriptor_getRule(domainDataDescriptor, &dataRule);
+    daqDataDescriptor_getRule(descriptor, &dataRule);
 
     if (!checkIsLinearRule(dataRule))
     {
@@ -351,14 +385,38 @@ daqErrCode processDataRule(daqDataDescriptor* domainDataDescriptor, struct Domai
         return DAQ_ERR_INVALID_DATA;
     }
 
-    // TODO: Check that origin is 1970
+    // Origin and unit
+    daqDataDescriptor_getOrigin(descriptor, &(metadata->origin));
 
+    daqUnit* unit = NULL;
+    daqDataDescriptor_getUnit(descriptor, &unit);
+    daqUnit_getSymbol(unit, &(metadata->unitSymbol));
+    daqReleaseRef(unit);
+    printDaqFormattedString("Origin: %s\n", metadata->origin);
+    printDaqFormattedString("Unit: %s\n", metadata->unitSymbol);
+
+    // Check if unitSymbo == "s"
+    daqString* secondsSym = NULL;
+    daqString_createString(&secondsSym, "s");
+
+    daqBool check = False;
+    daqBaseObject_equals(metadata->unitSymbol, secondsSym, &check);
+    daqReleaseRef(secondsSym);
+    if (!check) {
+        printf("Unit symbol is not 's'!");
+        daqReleaseRef(dataRule);
+        return DAQ_ERR_INVALID_DATA;
+    }
+
+    // Sample rate, delta and start
     daqRatio* ratio = NULL;
-    daqDataDescriptor_getTickResolution(domainDataDescriptor, &ratio);
+    daqDataDescriptor_getTickResolution(descriptor, &ratio);
+
+    daqRatio_getNumerator(ratio, &metadata->resNum);
+    daqRatio_getDenominator(ratio, &metadata->resDen);
 
     daqDict* parametersDataRule = NULL;
     daqDataRule_getParameters(dataRule, &parametersDataRule);
-
 
     daqNumber* delta = NULL;
     getNumberFromDict(parametersDataRule, "delta", &delta);
@@ -370,16 +428,19 @@ daqErrCode processDataRule(daqDataDescriptor* domainDataDescriptor, struct Domai
     daqNumber_getIntValue(delta, &(metadata->ruleDelta));
     daqNumber_getIntValue(start, &(metadata->ruleStart));
 
-    daqReleaseRef(delta);
     daqReleaseRef(start);
+    daqReleaseRef(delta);
     daqReleaseRef(parametersDataRule);
     daqReleaseRef(ratio);
     daqReleaseRef(dataRule);
 
+    // Reference domain info is not mandatory
+    getReferenceDomainOffset(descriptor, &(metadata->referenceDomainOffset));
+
     return DAQ_SUCCESS;
 }
 
-daqErrCode processReferenceDomainInfo(daqDataDescriptor* domainDataDescriptor, struct DomainMetadata* metadata)
+daqErrCode getReferenceDomainOffset(daqDataDescriptor* domainDataDescriptor, daqInt* offset)
 {
     daqErrCode err = DAQ_SUCCESS;
 
@@ -388,8 +449,7 @@ daqErrCode processReferenceDomainInfo(daqDataDescriptor* domainDataDescriptor, s
 
     // Reference domain info is not mandatory
     if (err || domainInfo == NULL) {
-        printf("Reference domain info unavailable.");
-        metadata->referenceDomainOffset = 0;
+        *offset = 0;
         return DAQ_SUCCESS;
     }
 
@@ -398,13 +458,12 @@ daqErrCode processReferenceDomainInfo(daqDataDescriptor* domainDataDescriptor, s
 
     // Reference domain info is not mandatory
     if (err || refDomainOffset == NULL) {
-        printf("Reference domain info unavailable.");
-        metadata->referenceDomainOffset = 0;
+        *offset = 0;
         daqReleaseRef(domainInfo);
         return DAQ_SUCCESS;
     }
 
-    err = daqInteger_getValue(refDomainOffset, &(metadata->referenceDomainOffset));
+    err = daqInteger_getValue(refDomainOffset, offset);
 
     daqReleaseRef(refDomainOffset);
     daqReleaseRef(domainInfo);
@@ -426,6 +485,28 @@ daqBool isDataDescriptorChangeEvent(daqEventPacket* eventPacket)
     daqReleaseRef(checkStr);
     daqReleaseRef(eventId);
     return check;
+}
+
+void printAbsoluteTimestamp(struct DomainMetadata* domain, daqInt tick)
+{
+    daqInt secondsSinceEpoch = (tick * domain->resNum) / domain->resDen;
+
+    daqInt seconds = secondsSinceEpoch;
+    daqInt days = secondsSinceEpoch / (60 * 60 * 24);
+    seconds -= days * (60 * 60 * 24);
+
+    daqInt hours = seconds / (60 * 60);
+    seconds -= hours * (60 * 60);
+
+    daqInt minutes = seconds / 60;
+    seconds -= minutes * 60;
+
+    daqInt leftoverTicks = tick - (secondsSinceEpoch * domain->resDen) / domain->resNum;
+    daqInt milliseconds = (1000 * leftoverTicks * domain->resNum) / domain->resDen;
+
+    char* origin = NULL;
+    daqString_getCharPtr(domain->origin, &origin);
+    printf("%lldd %lldh %lldmin %lld.%llds since %s", days, hours, minutes, seconds, milliseconds, origin);
 }
 
 daqInt getOffsetFromStatus(daqReaderStatus* status)
@@ -487,5 +568,22 @@ void freeIfAllocated(void** buffers, daqSizeT count, daqBool allocated)
     for (daqSizeT i = 0; i < count; ++i) {
         free(buffers[i]);
         buffers[i] = NULL;
+    }
+}
+
+struct DomainMetadata createDomainMetadata()
+{
+    struct DomainMetadata d = { 1, 0, 1, 0, NULL, NULL };
+    return d;
+}
+void freeDomainMetadata(struct DomainMetadata* p)
+{
+    if (p->origin != NULL) {
+        daqReleaseRef(p->origin);
+        p->origin = NULL;
+    }
+    if (p->unitSymbol != NULL) {
+        daqReleaseRef(p->unitSymbol);
+        p->unitSymbol = NULL;
     }
 }
