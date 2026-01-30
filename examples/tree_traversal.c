@@ -197,8 +197,8 @@ void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
 
 void printDaqChannel(daqBaseObject* baseObject, uint8_t indent)
 {
-    // Channels are standard function blocks that have
-    // an additional option of providing a list of tags.
+    // Channels represent physical sensors in openDAQ.
+    // Their internal structure is the same as that of the function block.
     printDaqFunctionBlock(baseObject, indent);
 }
 
