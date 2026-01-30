@@ -28,12 +28,15 @@ void readDataSameRateSignals(daqList* signals);
 /**
 * Add existing device.
 */
-daqErrCode addExistingDevice(daqInstance** instance, daqDevice** device, const char* connectionStr);
+daqErrCode addDeviceWrapper(daqInstance** instance, daqDevice** device, const char* connectionStr);
 
 /**
-* Get signals to read.
+* Get the first signals of channels with tag "AI" from device.
+* 
+* Actual devices may have a lot of signals that are unsuitable for synchronized reading. One way
+* of collecting appropriate signals is to filter channels by tag "AI" and take their first signal.
 */
-daqList* getSignals(daqDevice* device, daqBool allSignals);
+void getAIChannelSignals(daqDevice* device, daqList** signals);
 
 /**
 * Create multi reader from a list of signals.
@@ -86,17 +89,21 @@ int main(void) {
     daqInstance* instance = NULL;
     daqDevice* device = NULL;
 
-    // Setup simulated device generating samples on 8 channels.
+    // This example creates a simulator device with 8 channels and connects to it.
+    // Note, however, that simulator creation may be omitted and connection string
+    // replaced with a connection string of an existing (real) device.
     setupSimulator(&simulatorInstance);
-    const char* simulator = "daq://openDAQ_sim01";
+    const char* connectionString = "daq://openDAQ_sim01"; // "daq://Dewesoft_DB24049746";
+    addDeviceWrapper(&instance, &device, connectionString);
     
-    const char* custom = "daq://Dewesoft_DB24049746";
+    daqList* signals = NULL;
+    // All of the simulator's signals are appropriate for synchronized reading. For real
+    // devices one may need to filter the signals. One of the options is to use the function
+    // getAIChannelSignals.
+    daqDevice_getSignalsRecursive(device, &signals, NULL);
+    //getAIChannelSignals(device, &signals);
 
-    daqBool useSimulator = False;
-    const char* connectionString = useSimulator ? simulator : custom;
-    
-    addExistingDevice(&instance, &device, connectionString);
-    daqList* signals = getSignals(device, useSimulator);
+    // TODO: check sampling rates.
 
     // Start reading samples from the signals.
     readDataSameRateSignals(signals);
@@ -138,8 +145,8 @@ void readDataSameRateSignals(daqList* signals)
         if (reportedStatus == daqReadStatusEvent) {
             handleEvent(status, &domain);
 
-            // Buffer size for 100ms worth of samples
-            bufferSize = domain.sampleRate / 10;
+            // Buffer size for 400ms worth of samples
+            bufferSize = (domain.sampleRate * 2) / 5;
 
             freeIfAllocated(dataBuffers, signalCount, buffersAllocated);
             buffersAllocated = allocateBuffers(dataBuffers, signalCount, bufferSize);
@@ -152,7 +159,8 @@ void readDataSameRateSignals(daqList* signals)
             // Get tick of the first sample
             daqInt readStartTick = domain.ruleStart + domain.referenceDomainOffset + readOffset;
 
-            printf("\n-- TIMESTAMP --- | -------- DATA (%lld) --------\n", readCount);
+            printf("\nRead successful (%lld).\nRead %lld samples. Printing samples 0, 1 and %lld.\n", readCount, count, count-1);
+            printf("-- TIMESTAMP --- | -------- DATA -----------\n");
             for (daqSizeT sample = 0; sample < count; ++sample) {
                 // Only print the first and the last samples
                 if (sample == 2) {
@@ -181,7 +189,7 @@ void readDataSameRateSignals(daqList* signals)
 
         daqReleaseRef(statusAsReaderStatus);
         daqReleaseRef(status);
-        Sleep(50);
+        Sleep(200);
     }
 
     freeIfAllocated(dataBuffers, signalCount, buffersAllocated);
@@ -200,7 +208,7 @@ void printSignalGlobalId(daqSignal* signal)
     printDaqFormattedString(" - %s\n", localId);
 }
 
-daqErrCode addExistingDevice(daqInstance** instance, daqDevice** device, const char* connectionStr)
+daqErrCode addDeviceWrapper(daqInstance** instance, daqDevice** device, const char* connectionStr)
 {
     createInstance(instance, MODULE_PATH);
 
@@ -214,63 +222,55 @@ daqErrCode addExistingDevice(daqInstance** instance, daqDevice** device, const c
     return err;
 }
 
-daqList* getSignals(daqDevice* device, daqBool allSignals)
+void getAIChannelSignals(daqDevice* device, daqList** signals)
 {
-    daqList* signals = NULL;
-    if (!allSignals) {
-        // Create empty
-        daqList_createListWithElementType(&signals, DAQ_SIGNAL_INTF_ID);
+    // Create empty
+    daqList_createListWithElementType(signals, DAQ_SIGNAL_INTF_ID);
 
-        daqString* ai = NULL;
-        daqString_createString(&ai, "AI");
+    daqString* ai = NULL;
+    daqString_createString(&ai, "AI");
 
-        daqList* tags = NULL;
-        daqList_createListWithElementType(&tags, DAQ_STRING_INTF_ID);
-        daqList_pushBack(tags, ai);
+    daqList* tags = NULL;
+    daqList_createListWithElementType(&tags, DAQ_STRING_INTF_ID);
+    daqList_pushBack(tags, ai);
 
-        daqSearchFilter* filter;
-        daqSearchFilter_createRequiredTagsSearchFilter(&filter, tags);
+    daqSearchFilter* filter;
+    daqSearchFilter_createRequiredTagsSearchFilter(&filter, tags);
 
-        // Get AI channels
-        daqList* channels = NULL;
-        daqDevice_getChannels(device, &channels, filter);
+    // Get AI channels
+    daqList* channels = NULL;
+    daqDevice_getChannels(device, &channels, filter);
 
-        daqIterator* iterator = NULL;
-        daqList_createStartIterator(channels, &iterator);
-        while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
-        {
-            daqFunctionBlock* ch = NULL;
-            daqIterator_getCurrent(iterator, &ch);
+    daqIterator* iterator = NULL;
+    daqList_createStartIterator(channels, &iterator);
+    while (daqIterator_moveNext(iterator) == DAQ_SUCCESS)
+    {
+        daqFunctionBlock* ch = NULL;
+        daqIterator_getCurrent(iterator, &ch);
 
-            daqList* chSignals = NULL;
-            daqFunctionBlock_getSignals(ch, &chSignals, NULL);
+        daqList* chSignals = NULL;
+        daqFunctionBlock_getSignals(ch, &chSignals, NULL);
 
-            daqSizeT cnt = 0;
-            daqList_getCount(chSignals, &cnt);
+        daqSizeT cnt = 0;
+        daqList_getCount(chSignals, &cnt);
 
-            if (cnt > 0) {
-                daqSignal* firstSignal = NULL;
-                daqList_getItemAt(chSignals, 0, &firstSignal);
-                daqList_pushBack(signals, firstSignal);
+        if (cnt > 0) {
+            daqSignal* firstSignal = NULL;
+            daqList_getItemAt(chSignals, 0, &firstSignal);
+            daqList_pushBack(*signals, firstSignal);
 
-                daqReleaseRef(firstSignal);
-            }
-
-            daqReleaseRef(chSignals);
-            daqReleaseRef(ch);
+            daqReleaseRef(firstSignal);
         }
 
-        daqReleaseRef(iterator);
-        daqReleaseRef(channels);
-        daqReleaseRef(tags);
-        daqReleaseRef(ai);
-        daqReleaseRef(filter);
-    } 
-    else {
-        // Get all possible signals.
-        daqDevice_getSignalsRecursive(device, &signals, NULL);
+        daqReleaseRef(chSignals);
+        daqReleaseRef(ch);
     }
-    return signals;
+
+    daqReleaseRef(iterator);
+    daqReleaseRef(channels);
+    daqReleaseRef(tags);
+    daqReleaseRef(ai);
+    daqReleaseRef(filter);
 }
 
 daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
