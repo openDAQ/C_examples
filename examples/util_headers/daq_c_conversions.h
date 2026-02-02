@@ -335,7 +335,7 @@ daqStruct* coordinatesStructOpenDAQConversion(struct Coordinates native, daqType
 enum ComponentStatusTypeEnum openDAQEnumConversion(daqEnumeration* daq)
 {
     enum ComponentStatusTypeEnum native = Error;
-    uint8_t temp;
+    daqInt temp;
     daqEnumeration_getIntValue(daq, &temp);
 
     // Sanity check

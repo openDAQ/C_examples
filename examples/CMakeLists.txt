@@ -16,7 +16,8 @@ set(EXAMPLE_SOURCES
     metadata_c_conversion.c
     conversions_demo.c
     getter_wrapper.c
-    setter_wrapper.c)
+    setter_wrapper.c
+    simple_properties_display_handling.c)
 
 foreach(src ${EXAMPLE_SOURCES})
     get_filename_component(exec_name ${src} NAME_WLE)

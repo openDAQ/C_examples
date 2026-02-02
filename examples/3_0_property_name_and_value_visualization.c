@@ -233,15 +233,14 @@ void floatProp(daqProperty* property)
 
     printf("- Value: %f\n", valueNative);
 
-        daqFloat valueDefault = 0;
+    valueNative = 0;
     if (defaultValueObj != NULL)
     {
-        daqFloatObject* defaultValue = NULL;
-        daqQueryInterface(defaultValueObj, DAQ_FLOAT_OBJECT_INTF_ID, &defaultValue);
+        daqQueryInterface(defaultValueObj, DAQ_FLOAT_OBJECT_INTF_ID, &value);
         daqReleaseRef(defaultValueObj);
-        daqFloatObject_getValue(defaultValue, &valueDefault);
-        printf("- Default Value: %f\n", valueDefault);
-        daqReleaseRef(defaultValue);
+        daqFloatObject_getValue(value, &valueNative);
+        printf("- Default Value: %f\n", valueNative);
+        daqReleaseRef(value);
     }
 
     daqList* listOfRecommendedValues = NULL;
@@ -250,15 +249,15 @@ void floatProp(daqProperty* property)
     // Display min, max, default and suggested values
     if(minValueNum != NULL)
     {
-         valueDefault = 0;
-        daqNumber_getFloatValue(minValueNum, &valueDefault);
-        printf("- Minimum Value: %f\n", valueDefault);
+         valueNative = 0;
+        daqNumber_getFloatValue(minValueNum, &valueNative);
+        printf("- Minimum Value: %f\n", valueNative);
         daqReleaseRef(minValueNum);
         if (maxValueNum != NULL)
         {
-            valueDefault = 0;
-            daqNumber_getFloatValue(maxValueNum, &valueDefault);
-            printf("- Maximum Value: %f\n", valueDefault);
+            valueNative = 0;
+            daqNumber_getFloatValue(maxValueNum, &valueNative);
+            printf("- Maximum Value: %f\n", valueNative);
             daqReleaseRef(maxValueNum);
         }
     }
@@ -314,7 +313,6 @@ void intProp(daqProperty* property)
             daqReleaseRef(maxValueNum);
         }
     }
-
     if(listOfSuggestedValues!=NULL)
         daqReleaseRef(listOfSuggestedValues);
 }
