@@ -24,9 +24,11 @@ enum PropertyType
     EnumerationProperty
 };
 
+void displayPropertyTypes(daqPropertyObject* propertyObject);
 void functionProp(daqProperty* property);
 void sparseSelectionProp(daqProperty* property);
 void selectionProp(daqProperty* property);
+void objectProp(daqProperty* property);
 void boolProp(daqProperty* property);
 void floatProp(daqProperty* property);
 void intProp(daqProperty* property);
@@ -48,7 +50,6 @@ int propertyValueTypeCheck(daqProperty* property, daqCoreType coreType)
     return 0;
 }
 
-// Missing handling for IntProp, SelectionProp, SparseSelectionProp, ReferenceProp, FunctionProp
 // Note on universal attributes (default value, read-only, visible, ...):
 // - They will be seen on all visualizations of properties
 // - 
@@ -116,6 +117,11 @@ void determinePropertyTypeAndPrint(daqProperty* property)
             functionProp(property);
             break;
         }
+        case daqCtObject:
+        {
+            objectProp(property);
+            break;
+        }
         case daqCtStruct:
         {
             structProp(property);
@@ -157,9 +163,6 @@ void functionProp(daqProperty* property)
 {
     daqCallableInfo* callInfo = NULL;
     daqProperty_getCallableInfo(property, &callInfo);
-
-    
-
 }
 
 // SparseSelectionProperty
@@ -183,65 +186,80 @@ void prop(daqProperty* property)
 // BoolProperty
 void boolProp(daqProperty* property)
 {
-    // Retrive metadata, check what type the value is...
-    if (propertyValueTypeCheck(property, daqCtBool))
-    {
-        // We have to check the default value and the current value that the property is set to
-    }
+    daqBaseObject* temp = NULL;
+    daqBoolean* defaultValue = NULL;
+    daqProperty_getDefaultValue(property, &temp);
+    daqQueryInterface(temp, DAQ_BOOLEAN_INTF_ID, &defaultValue);
+    daqReleaseRef(temp);
 
-    daqBaseObject* defaultVisibleObj = NULL;
-    daqProperty_getDefaultValue(property, &defaultVisibleObj);
+    daqBoolean* value = NULL;
+    daqProperty_getValue(property, &temp);
+    daqQueryInterface(temp, DAQ_BOOLEAN_INTF_ID, &value);
+    daqReleaseRef(temp);
 
-    daqBool* defaultVisible = NULL;
-    daqQueryInterface(property, DAQ_BOOLEAN_INTF_ID, &defaultVisible);
+    daqBool nativeValue = False;
+    daqBoolean_getValue(value, &nativeValue);
+    daqReleaseRef(value);
+    daqBool nativeDefaultValue = False;
+    daqBoolean_getValue(defaultValue, &nativeDefaultValue);
+    daqReleaseRef(defaultValue);
 
-
+    printf("- Value: %s\n", nativeValue == True ? "True" : "False");
+    printf("- Default Value: %s\n", nativeDefaultValue == True ? "True" : "False");
 }
 
 // FloatProperty
 void floatProp(daqProperty* property)
 {
-    // Retrive metadata, check what type the value is...
-    if (propertyValueTypeCheck(property, daqCtFloat))
+    // Min value, max value, default value, suggested values, visible
+    daqNumber* minValueNum = NULL;
+    daqProperty_getMinValue(property, &minValueNum);
+
+    daqNumber* maxValueNum = NULL;
+    daqProperty_getMaxValue(property, &maxValueNum);
+
+    daqBaseObject* defaultValueObj = NULL;
+    daqProperty_getDefaultValue(property, &defaultValueObj);
+
+    daqBaseObject* valueObj = NULL;
+    daqProperty_getValue(property, &valueObj);
+    daqFloatObject* value = NULL;
+    daqQueryInterface(valueObj, DAQ_FLOAT_OBJECT_INTF_ID, &value);
+    daqReleaseRef(valueObj);
+
+    daqFloat valueNative = 0;
+    daqFloatObject_getValue(value, &valueNative);
+    daqReleaseRef(value);
+
+    printf("- Value: %f\n", valueNative);
+
+        daqFloat valueDefault = 0;
+    if (defaultValueObj != NULL)
     {
-        // Min value, max value, default value, suggested values, visible
-        daqNumber* minValueNum = NULL;
-        daqProperty_getMinValue(property, &minValueNum);
+        daqFloatObject* defaultValue = NULL;
+        daqQueryInterface(defaultValueObj, DAQ_FLOAT_OBJECT_INTF_ID, &defaultValue);
+        daqReleaseRef(defaultValueObj);
+        daqFloatObject_getValue(defaultValue, &valueDefault);
+        printf("- Default Value: %f\n", valueDefault);
+        daqReleaseRef(defaultValue);
+    }
 
-        daqNumber* maxValueNum = NULL;
-        daqProperty_getMaxValue(property, &maxValueNum);
+    daqList* listOfRecommendedValues = NULL;
+    daqProperty_getSuggestedValues(property, &listOfRecommendedValues);
 
-        daqBaseObject* defaultValueObj = NULL;
-        daqProperty_getDefaultValue(property, &defaultValueObj);
-
-        if (defaultValueObj != NULL)
+    // Display min, max, default and suggested values
+    if(minValueNum != NULL)
+    {
+         valueDefault = 0;
+        daqNumber_getFloatValue(minValueNum, &valueDefault);
+        printf("- Minimum Value: %f\n", valueDefault);
+        daqReleaseRef(minValueNum);
+        if (maxValueNum != NULL)
         {
-            daqFloatObject* defaultValue = NULL;
-            daqQueryInterface(defaultValueObj, DAQ_FLOAT_OBJECT_INTF_ID, &defaultValue);
-            daqReleaseRef(defaultValueObj);
-            daqFloat value = 0;
-            daqFloatObject_getValue(defaultValue, &value);
-            printf("- Default Value: %f\n", value);
-            daqReleaseRef(defaultValue);
-        }
-
-        daqList* listOfRecommendedValues = NULL;
-        daqProperty_getSuggestedValues(property, &listOfRecommendedValues);
-
-        // Display min, max, default and suggested values
-        if(minValueNum != NULL)
-        {
-            daqFloat value = 0;
-            daqNumber_getFloatValue(minValueNum, &value);
-            printf("- Minimum Value: %f\n", value);
-            daqReleaseRef(minValueNum);
-            if (maxValueNum != NULL)
-            {
-                value = 0;
-                daqNumber_getFloatValue(maxValueNum, &value);
-                printf("- Maximum Value: %f\n", value);
-                daqReleaseRef(maxValueNum);
-            }
+            valueDefault = 0;
+            daqNumber_getFloatValue(maxValueNum, &valueDefault);
+            printf("- Maximum Value: %f\n", valueDefault);
+            daqReleaseRef(maxValueNum);
         }
     }
 }
@@ -253,10 +271,20 @@ void intProp(daqProperty* property)
     daqProperty_getMinValue(property, &minValueNum);
 
     daqNumber* maxValueNum = NULL;
-    daqProperty_getMaxValue(property, maxValueNum);
+    daqProperty_getMaxValue(property, &maxValueNum);
 
     daqBaseObject* defaultValueObj = NULL;
     daqProperty_getDefaultValue(property, &defaultValueObj);
+
+    daqBaseObject* valueObj = NULL;
+    daqProperty_getValue(property, &valueObj);
+    daqInteger* value = NULL;
+    daqQueryInterface(valueObj, DAQ_INTEGER_INTF_ID, &value);
+    daqInt valueNative = openDAQIntConversion(value);
+    daqReleaseRef(value);
+    daqReleaseRef(valueObj);
+
+    printf("- Value: %lld\n", valueNative);
 
     if (defaultValueObj != NULL)
     {
@@ -265,7 +293,7 @@ void intProp(daqProperty* property)
         daqInt defaultValue = 0;
         daqInteger_getValue(defaultValueOb, &defaultValue);
         daqReleaseRef(defaultValueOb);
-
+        daqReleaseRef(defaultValueObj);
         printf("- Default value: %lld\n", defaultValue);
     }
     daqList* listOfSuggestedValues = NULL;
@@ -294,33 +322,36 @@ void intProp(daqProperty* property)
 // StringProperty
 void stringProp(daqProperty* property)
 {
-    // Retrive metadata, check what type the value is...
-    if(propertyValueTypeCheck(property, daqCtString))
-    {
-        // Default value, suggested values, visible
-    }
-    daqBaseObject* defaultStringObj = NULL;
-    daqProperty_getDefaultValue(property, &defaultStringObj);
-    daqString* defaultString = NULL;
-    daqQueryInterface(defaultStringObj, DAQ_STRING_INTF_ID, &defaultString);
-    printDaqFormattedString("\n- String default value: %s\n", defaultString);
+    daqBaseObject* valueObj = NULL;
+    daqProperty_getValue(property, &valueObj);
+    
+    daqString* value = NULL;
+    daqQueryInterface(valueObj, DAQ_STRING_INTF_ID, &value);
+    printDaqFormattedString("- Value: %s\n", value);
+    daqReleaseRef(value);
+    daqReleaseRef(valueObj);
+
+    daqProperty_getDefaultValue(property, &valueObj);
+    daqQueryInterface(valueObj, DAQ_STRING_INTF_ID, &value);
+    printDaqFormattedString("- Default value: %s\n", value);
     daqList* suggestedStrings = NULL;
     daqProperty_getSuggestedValues(property, &suggestedStrings);
-    // Display
+    daqReleaseRef(value);
+    daqReleaseRef(valueObj);
+
     daqSizeT count = 0;
     if (suggestedStrings)
         daqList_getCount(suggestedStrings, &count);
     daqBaseObject* currentObj = NULL;
-    daqString* currentStr = NULL;
 
     for (daqSizeT i = 0; i< count; i++)
     {
         daqList_getItemAt(suggestedStrings, i, &currentObj);
-        daqString* temp = daqQueryInterfacePtr(currentObj, DAQ_STRING_INTF_ID);
+        value = daqQueryInterfacePtr(currentObj, DAQ_STRING_INTF_ID);
 
-        printf("\n%s\n", openDAQStringConversion(temp));
+        printf("\n%s\n", openDAQStringConversion(value));
 
-        daqReleaseRef(temp);
+        daqReleaseRef(value);
         daqReleaseRef(currentObj);
     }
 }
@@ -333,18 +364,21 @@ void ratioProp(daqProperty* property)
     daqProperty_getDefaultValue(property, &defaultRatioObj);
     daqRatio* defaultRatio = NULL;
     daqQueryInterface(defaultRatioObj, DAQ_RATIO_INTF_ID, &defaultRatio);
+    daqReleaseRef(defaultRatioObj);
 
-    // Min and max are included here
-    daqNumber* minValue = NULL;
-    daqNumber* maxValue = NULL;
-    daqProperty_getMinValue(property, &minValue);
-    daqProperty_getMaxValue(property, &maxValue);
+    // Default value Display
+    if (defaultRatio == NULL)
+        return;
 
-    // When displaying min/max, there needs to be an emptiness check
+    daqInt denominator = 0;
+    daqInt numerator = 0;
+    daqRatio_getDenominator(defaultRatio, &denominator);
+    daqRatio_getNumerator(defaultRatio, &numerator);
 
-    daqBool visible = False;
-    daqProperty_getVisible(property, &visible);
-    // Not sure about suggested values....
+    printf("- Default denominator: %lld\n", denominator);
+    printf("- Default numerator: %lld\n", numerator);
+
+    daqReleaseRef(defaultRatio);
 }
 
 // ListProperty
@@ -373,9 +407,6 @@ void dictProp(daqProperty* property)
 // ObjectProperty
 void objectProp(daqProperty* property)
 {
-    daqBool visible = False;
-    daqProperty_getVisible(property, &visible);
-
     daqBaseObject* defaultObjectObj = NULL;
     daqProperty_getDefaultValue(property, &defaultObjectObj);
 
@@ -386,22 +417,55 @@ void objectProp(daqProperty* property)
     daqPropertyObject* defaultPropObj = NULL;
     daqQueryInterface(defaultObjectObj, DAQ_PROPERTY_OBJECT_INTF_ID, &defaultPropObj);
 
-    // Check if empty and then rerun the objectProp on the defaultPropObj
+    // Display both (default Value and actual value, even if they are the same)
+    if (valueObj != NULL)
+    {
+        daqPropertyObject* value = NULL;
+        daqQueryInterface(valueObj, DAQ_PROPERTY_OBJECT_INTF_ID, &value);
+        printf("\n--- Object property Value ---\n");
+        displayPropertyTypes(value);
+        daqReleaseRef(value);
+        if (defaultPropObj != NULL)
+        {
+            daqQueryInterface(defaultPropObj, DAQ_PROPERTY_OBJECT_INTF_ID, &value);
+            printf("\n--- Object property DEFAULT Value ----\n");
+            displayPropertyTypes(value);
+            daqReleaseRef(value);
+        }
+        printf("\n---\n");
+    }
 }
 
 // StructureProperty
 void structProp(daqProperty* property)
 {
-    if(propertyValueTypeCheck(property, daqCtStruct))
-    {}
     // Value is Struct Core Type
     daqBaseObject* defValueObj = NULL;
     daqProperty_getDefaultValue(property, &defValueObj);
 
     daqStruct* defValue = NULL;
-    if (defValueObj)
-        daqQueryInterface(defValueObj, DAQ_STRUCT_INTF_ID, &defValue);
+    daqQueryInterface(defValueObj, DAQ_STRUCT_INTF_ID, &defValue);
 
+    daqBaseObject* valueObj = NULL;
+    daqProperty_getValue(property, &valueObj);
+
+    daqStruct* value = NULL;
+    daqQueryInterface(valueObj, DAQ_STRUCT_INTF_ID, &value);
+
+    daqList* valueNames = NULL;
+    daqStruct_getFieldNames(value, &valueNames);
+    // daqString* name = NULL;
+    daqSizeT count = 0;
+    daqBaseObject* temp = NULL;
+    daqList_getCount(valueNames, &count);
+    for (daqSizeT i = 0; i< count;i++)
+    {
+        daqList_getItemAt(valueNames, i, &temp);
+
+    }
+    daqReleaseRef(valueNames);
+    daqReleaseRef(value);
+    daqReleaseRef(defValueObj);
 }
 
 // EnumerationProperty
@@ -442,7 +506,7 @@ void displayPropertyTypes(daqPropertyObject* propertyObject)
             daqProperty_getValueType(prop, &propCoreType);
             daqString* propName = NULL;
             daqProperty_getName(prop, &propName);
-            printDaqFormattedString("\n\nProperty name: %s", propName);
+            printDaqFormattedString("\nProperty name: %s", propName);
             daqReleaseRef(propName);
 
             if (propCoreType == daqCtObject)
