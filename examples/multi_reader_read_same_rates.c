@@ -1,5 +1,6 @@
 #include <copendaq.h>
 #include <daq_utils.h>
+#include <daq_time_utils.h>
 #include <stdlib.h>
 #include <Windows.h>
 #include <time.h>
@@ -82,10 +83,9 @@ daqErrCode getReferenceDomainOffset(daqDataDescriptor* domainDataDescriptor, daq
 daqBool isDataDescriptorChangeEvent(daqEventPacket* eventPacket);
 
 /**
-* Print absolute time stamp in format: 20483d 14h 49min 10.934s since 1970-01-01T00:00:00Z. The precision
-* of this format is 1ms, so two samples within a millisecond may have the same time stamp printed out.
+* Get absolute time stamp in format: 2026-02-02T08:08:35.185Z. The precision of this format is 1ms, so
+* two samples within a millisecond may have the same time stamp printed out.
 */
-void printAbsoluteTimestamp(struct DomainMetadata* domain, daqInt tick);
 daqErrCode getAbsoluteTimestamp(struct DomainMetadata* domain, daqInt tick, char* out, size_t out_s);
 
 /**
@@ -133,8 +133,6 @@ int main(void) {
     // const char* customString = "daq://Dewesoft_DB24049746";
     // addDeviceWrapper(&instance, &device, customString);
     // getAIChannelSignals(device, &signals);
-
-    // TODO: check sampling rates.
 
     // Start reading samples from the signals.
     readDataSameRateSignals(signals);
@@ -196,7 +194,7 @@ void readDataSameRateSignals(daqList* signals)
             daqInt readStartTick = domain.ruleStart + domain.referenceDomainOffset + readOffset;
 
             printf("\nRead successful (%lld).\nRead %lld samples. Printing samples 0, 1 and %lld.\n", readCount, count, count-1);
-            printf("--------------- TIMESTAMP ------------------------- | -------- DATA -----------\n");
+            printf("------ TIMESTAMP ------- | -------- DATA -----------\n");
             for (daqSizeT sample = 0; sample < count; ++sample) {
                 // Only print the first and the last samples
                 if (sample == 2) {
@@ -210,12 +208,11 @@ void readDataSameRateSignals(daqList* signals)
                 // Calculate tick according to linear data rule.
                 daqInt sampleTick = readStartTick + sample * domain.ruleDelta;
 
-                printAbsoluteTimestamp(&domain, sampleTick);
-                printf("\n");
+                // Print formatted timestamp
                 char timeBuff[64];
                 getAbsoluteTimestamp(&domain, sampleTick, timeBuff, sizeof(timeBuff));
-                printf("%s", timeBuff);
-                printf(" | ");
+                printf("%s | ", timeBuff);
+
                 for (daqSizeT i = 0; i < signalCount; ++i) {
                     if (dataBuffers[i] == NULL) {
                         continue;
@@ -398,8 +395,6 @@ daqErrCode updateDomainMetadata(daqDataDescriptor* descriptor, struct DomainMeta
     daqDataDescriptor_getUnit(descriptor, &unit);
     daqUnit_getSymbol(unit, &(metadata->unitSymbol));
     daqReleaseRef(unit);
-    printDaqFormattedString("Origin: %s\n", metadata->origin);
-    printDaqFormattedString("Unit: %s\n", metadata->unitSymbol);
 
     // Check if unitSymbo == "s"
     daqString* secondsSym = NULL;
@@ -493,28 +488,6 @@ daqBool isDataDescriptorChangeEvent(daqEventPacket* eventPacket)
     return check;
 }
 
-void printAbsoluteTimestamp(struct DomainMetadata* domain, daqInt tick)
-{
-    daqInt secondsSinceEpoch = (tick * domain->resNum) / domain->resDen;
-
-    daqInt seconds = secondsSinceEpoch;
-    daqInt days = secondsSinceEpoch / (60 * 60 * 24);
-    seconds -= days * (60 * 60 * 24);
-
-    daqInt hours = seconds / (60 * 60);
-    seconds -= hours * (60 * 60);
-
-    daqInt minutes = seconds / 60;
-    seconds -= minutes * 60;
-
-    daqInt leftoverTicks = tick - ((secondsSinceEpoch * domain->resDen) / domain->resNum);
-    daqInt milliseconds = (1000 * leftoverTicks * domain->resNum) / domain->resDen;
-
-    char* origin = NULL;
-    daqString_getCharPtr(domain->origin, &origin);
-    printf("%lldd %lldh %lldmin %lld.%03llds since %s", days, hours, minutes, seconds, milliseconds, origin);
-}
-
 daqErrCode getAbsoluteTimestamp(struct DomainMetadata* domain, daqInt tick, char* out, size_t out_s)
 {
     if (tick < 0)
@@ -524,18 +497,10 @@ daqErrCode getAbsoluteTimestamp(struct DomainMetadata* domain, daqInt tick, char
     daqInt leftoverTicks = tick - ((secondsSinceEpoch * domain->resDen) / domain->resNum);
     daqInt milliseconds = (1000 * leftoverTicks * domain->resNum) / domain->resDen;
 
-    struct tm time_utc;
-#if defined(_MSC_VER)
-    gmtime_s(&time_utc, &secondsSinceEpoch);
-#else
-    gmtime_r(&secondsSinceEpoch, &time_utc);
-#endif
+    char* origin = NULL;
+    daqString_getCharPtr(domain->origin, &origin);
 
-    char tmp[32];
-    strftime(tmp, sizeof(tmp), "%Y-%m-%dT%H:%M:%S", &time_utc);
-    snprintf(out, out_s, "%s.%03lldZ", tmp, milliseconds);
-
-    return DAQ_SUCCESS;
+    return daq_getAbsoluteTimestampMs(origin, secondsSinceEpoch, milliseconds, out, out_s);
 }
 
 daqInt getOffsetFromStatus(daqReaderStatus* status)
