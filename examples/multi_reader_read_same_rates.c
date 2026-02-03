@@ -57,6 +57,11 @@ daqErrCode addDeviceWrapper(daqInstance** instance, daqDevice** device, const ch
 void getAIChannelSignals(daqDevice* device, daqList** signals);
 
 /**
+* Check if all signals have the same sampling rate.
+*/
+daqErrCode checkSamplingRates(daqList* signals, daqSizeT* out_rate);
+
+/**
 * Create multi reader from a list of signals.
 */
 daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader);
@@ -134,8 +139,13 @@ int main(void) {
     // addDeviceWrapper(&instance, &device, customString);
     // getAIChannelSignals(device, &signals);
 
+    daqSizeT sampleRate = 0;
+    daqErrCode err = checkSamplingRates(signals, &sampleRate);
+
     // Start reading samples from the signals.
-    readDataSameRateSignals(signals);
+    if (err == DAQ_SUCCESS)
+        printf("Signals have matching sample rate of %lld Hz.\n", sampleRate);
+        readDataSameRateSignals(signals);
 
     daqReleaseRef(signals);
     daqReleaseRef(device);
@@ -309,6 +319,70 @@ void getAIChannelSignals(daqDevice* device, daqList** signals)
     daqReleaseRef(tags);
     daqReleaseRef(ai);
     daqReleaseRef(filter);
+}
+
+daqErrCode checkSamplingRates(daqList* signals, daqSizeT* out_rate)
+{
+    daqErrCode err = DAQ_SUCCESS;
+
+    daqBool sampleRateUninitialized = True;
+    daqSizeT sampleRate = 0;
+
+    daqSizeT signalCount = 0;
+    daqList_getCount(signals, &signalCount);
+    for (daqSizeT i = 0; i < signalCount; ++i) {
+        daqSignal* signal = NULL;
+        daqList_getItemAt(signals, i, &signal);
+        if (signal == NULL) {
+            err = DAQ_ERR_GENERALERROR;
+            break;
+        }
+
+        daqSignal* domainSignal = NULL;
+        daqSignal_getDomainSignal(signal, &domainSignal);
+        if (domainSignal == NULL) {
+            err = DAQ_ERR_GENERALERROR;
+            daqReleaseRef(signal);
+            break;
+        }
+
+        daqDataDescriptor* descriptor = NULL;
+        daqSignal_getDescriptor(domainSignal, &descriptor);
+
+        if (descriptor == NULL) {
+            err = DAQ_ERR_GENERALERROR;
+            daqReleaseRef(domainSignal);
+            daqReleaseRef(signal);
+            break;
+        }
+
+        daqSizeT rate = 0;
+        daqErrCode status = getSampleRate(&rate, descriptor);
+
+        if (status != DAQ_SUCCESS) {
+            err = DAQ_ERR_GENERALERROR;
+            daqReleaseRef(descriptor);
+            daqReleaseRef(domainSignal);
+            daqReleaseRef(signal);
+            break;
+        }
+        if (sampleRateUninitialized) {
+            sampleRate = rate;
+            sampleRateUninitialized = False;
+        }
+
+        if (sampleRate != rate) {
+            err = DAQ_ERR_GENERALERROR;
+        }
+        
+        daqReleaseRef(descriptor);
+        daqReleaseRef(domainSignal);
+        daqReleaseRef(signal);
+        if (err != DAQ_SUCCESS)
+            break;
+    }
+    *out_rate = sampleRate;
+    return err;
 }
 
 daqErrCode createMultiReader(daqList* signals, daqMultiReader** reader)
