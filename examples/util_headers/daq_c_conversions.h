@@ -129,7 +129,48 @@ void addCoordinateStructToTypeManager(daqContext* context)
  * The following two funtions represent the conversion between the openDAQ native
  * daqInt type and its coresponding C integer type.
  */
-daqInt openDAQIntConversion(daqInteger* daq)
+daqInt daq_fromDaqInteger(daqInteger* daq);
+daqInteger* daq_toDaqInteger(daqInt native);
+
+// String conversion
+/*
+ * Conversion from and to openDAQ String (daqString) core type
+ * from C language (const char*).
+ */
+char* daq_fromDaqString(daqString* daq);
+daqString* daq_toDaqString(const char* native);
+
+// Bool conversion
+/*
+ * Conversion from and to openDAQ Boolean (daqString) core type from C language (uint8_t).
+ */
+uint8_t daq_fromDaqBoolean(daqBoolean* daq);
+daqBoolean* daq_toDaqBoolean(uint8_t native);
+
+// Float conversion
+/*
+ *Conversion from and to openDAQ String (daqFloat) core type from C language (double).
+ */
+daqFloat daq_fromDaqObject(daqFloatObject* daq);
+daqFloatObject* daq_toDaqFloatObject(daqFloat native);
+
+// Complex number conversion
+/*
+ * Conversion from and to openDAQ Complex (daqComplex) core type
+ * from C language (struct ComplexNumber).
+ */
+struct ComplexNumber daq_fromDaqComplex(daqComplexNumber* daq);
+daqComplexNumber* daq_toDaqComplex(struct ComplexNumber* native);
+
+// Range conversion
+/*
+ * Conversion from and to openDAQ String (daqRange) core type
+ * from C language (struct Range).
+ */
+struct Range daq_fromDaqRange(daqRange* daq);
+daqRange* daq_toDaqRange(struct Range native);
+
+daqInt daq_fromDaqInteger(daqInteger* daq)
 {
     daqInt native = 0;
     daqInteger_getValue(daq, &native);
@@ -171,17 +212,14 @@ daqBoolean* booleanOpenDAQConversion(uint8_t native)
     return daq;
 }
 
-uint8_t openDAQBooleanConversion(daqBoolean* daq)
+daqFloat daq_fromDaqObject(daqFloatObject* daq)
 {
-    uint8_t native = 0;
-    daqBoolean_getValue(daq, &native);
+    daqFloat native = 0;
+    daqFloatObject_getValue(daq, &native);
     return native;
 }
 
-/*
- *Conversion from and to openDAQ String (daqFloat) core type from C language (double).
- */
-daqFloatObject* floatOpenDAQConversion(double native)
+daqFloatObject* daq_toDaqFloatObject(daqFloat native)
 {
     daqFloatObject* daq = 0;
     daqFloatObject_createFloatObject(&daq, native);
