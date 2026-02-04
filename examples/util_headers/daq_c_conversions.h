@@ -49,8 +49,8 @@ daqBoolean* daq_toDaqBoolean(uint8_t native);
 /*
  *Conversion from and to openDAQ String (daqFloat) core type from C language (double).
  */
-double daq_fromDaqObject(daqFloatObject* daq);
-daqFloatObject* daq_toDaqFloatObject(double native);
+daqFloat daq_fromDaqObject(daqFloatObject* daq);
+daqFloatObject* daq_toDaqFloatObject(daqFloat native);
 
 // Complex number conversion
 /*
@@ -110,14 +110,14 @@ daqBoolean* daq_toDaqBoolean(uint8_t native)
     return daq;
 }
 
-double daq_fromDaqObject(daqFloatObject* daq)
+daqFloat daq_fromDaqObject(daqFloatObject* daq)
 {
-    double native = 0;
+    daqFloat native = 0;
     daqFloatObject_getValue(daq, &native);
     return native;
 }
 
-daqFloatObject* daq_toDaqFloatObject(double native)
+daqFloatObject* daq_toDaqFloatObject(daqFloat native)
 {
     daqFloatObject* daq = 0;
     daqFloatObject_createFloatObject(&daq, native);

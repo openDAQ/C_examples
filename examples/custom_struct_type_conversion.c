@@ -20,9 +20,16 @@ void addCoordinateStructToTypeManager(daqContext* context)
     daqList* names = NULL;
     daqList_createList(&names);
 
-    daqList_pushBack(names, (daqBaseObject*) daq_toDaqString("x"));
-    daqList_pushBack(names, (daqBaseObject*) daq_toDaqString("y"));
-    daqList_pushBack(names, (daqBaseObject*) daq_toDaqString("z"));
+    daqString* temp = daq_toDaqString("x");
+
+    daqList_pushBack(names, (daqBaseObject*)temp);
+    daqReleaseRef(temp);
+    temp = daq_toDaqString("y");
+    daqList_pushBack(names, (daqBaseObject*) temp);
+    daqReleaseRef(temp);
+    temp = daq_toDaqString("z");
+    daqList_pushBack(names, (daqBaseObject*)temp);
+    daqReleaseRef(temp);
 
     daqSimpleType* simpleType = NULL;
     daqSimpleType_createSimpleType(&simpleType, daqCtInt);
@@ -43,9 +50,15 @@ void addCoordinateStructToTypeManager(daqContext* context)
 
     daqList_createList(&names);
 
-    daqList_pushBack(names, (daqBaseObject*) daq_toDaqString("Error"));
-    daqList_pushBack(names, (daqBaseObject*) daq_toDaqString("Ok"));
-    daqList_pushBack(names, (daqBaseObject*) daq_toDaqString("Warning"));
+    temp = daq_toDaqString("Error");
+    daqList_pushBack(names, (daqBaseObject*) temp);
+    daqReleaseRef(temp);
+    temp = daq_toDaqString("Ok");
+    daqList_pushBack(names, (daqBaseObject*) temp);
+    daqReleaseRef(temp);
+    temp = daq_toDaqString("Warning");
+    daqList_pushBack(names, (daqBaseObject*) temp);
+    daqReleaseRef(temp);
 
     daqEnumerationType* enumType = NULL;
     daqEnumerationType_createEnumerationType(&enumType, daq_toDaqString("DAQ_ComponentStatusTypeEnum"), names, 0);
@@ -82,18 +95,31 @@ struct Coordinates daq_fromDaqCoordinates(daqStruct* daq)
     struct Coordinates native = { 0,0,0 };
 
     daqBaseObject* tempObj = NULL;
+    daqBaseObject* tempMid = NULL;
 
-    daqStruct_get(daq, daq_toDaqString("x"), tempObj);
-    native.x = daq_fromDaqInteger((daqInteger*) daqQueryInterfacePtr(tempObj, DAQ_INTEGER_INTF_ID));
+    daqString* temp = daq_toDaqString("x");
+    daqStruct_get(daq, temp, tempObj);
+    tempMid = daqQueryInterfacePtr(tempObj, DAQ_INTEGER_INTF_ID);
+    native.x = daq_fromDaqInteger((daqInteger*) tempMid);
+    daqReleaseRef(tempMid);
     daqReleaseRef(tempObj);
+    daqReleaseRef(temp);
 
-    daqStruct_get(daq, daq_toDaqString("y"), tempObj);
-    native.y = daq_fromDaqInteger((daqInteger*) daqQueryInterfacePtr(tempObj, DAQ_INTEGER_INTF_ID));
+    temp = daq_toDaqString("y");
+    daqStruct_get(daq, temp, tempObj);
+    tempMid = daqQueryInterfacePtr(tempObj, DAQ_INTEGER_INTF_ID);
+    native.y = daq_fromDaqInteger((daqInteger*) tempMid);
+    daqReleaseRef(tempMid);
     daqReleaseRef(tempObj);
+    daqReleaseRef(temp);
 
-    daqStruct_get(daq, daq_toDaqString("z"), tempObj);
-    native.z = daq_fromDaqInteger((daqInteger*) daqQueryInterfacePtr(tempObj, DAQ_INTEGER_INTF_ID));
+    temp = daq_toDaqString("z");
+    daqStruct_get(daq, temp, tempObj);
+    tempMid = daqQueryInterfacePtr(tempObj, DAQ_INTEGER_INTF_ID);
+    native.z = daq_fromDaqInteger((daqInteger*) tempMid);
+    daqReleaseRef(tempMid);
     daqReleaseRef(tempObj);
+    daqReleaseRef(temp);
 
     return native;
 }
@@ -103,6 +129,8 @@ daqStruct* daq_toDaqCoordinates(struct Coordinates native, daqTypeManager* typeM
     daqStructBuilder* builder = NULL;
     daqStructBuilder_createStructBuilder(&builder, daq_toDaqString("DAQ_Coordinates"), typeManager);
 
+    daqString* temp = NULL;
+    daqInteger* tempInt = NULL;
     if (0)
     {
         // We can set values in the struct either via directly assigning them to the
@@ -111,20 +139,39 @@ daqStruct* daq_toDaqCoordinates(struct Coordinates native, daqTypeManager* typeM
         daqList* values = NULL;
         daqList_createList(&values);
 
-        daqList_pushBack(values, (daqBaseObject*) daq_toDaqInteger(native.x));
-        daqList_pushBack(values, (daqBaseObject*) daq_toDaqInteger(native.y));
-        daqList_pushBack(values, (daqBaseObject*) daq_toDaqInteger(native.z));
+        tempInt = daq_toDaqInteger(native.x);
+        daqList_pushBack(values, (daqBaseObject*) tempInt);
+        daqReleaseRef(tempInt);
+        tempInt = daq_toDaqInteger(native.y);
+        daqList_pushBack(values, (daqBaseObject*) tempInt);
+        daqReleaseRef(tempInt);
+        tempInt = daq_toDaqInteger(native.z);
+        daqList_pushBack(values, (daqBaseObject*) tempInt);
+        daqReleaseRef(tempInt);
 
         daqStructBuilder_setFieldValues(builder, values);
         daqReleaseRef(values);
     }
     else
     {
-        daqStructBuilder_set(builder, daq_toDaqString("x"), (daqBaseObject*) daq_toDaqInteger(native.x));
 
-        daqStructBuilder_set(builder, daq_toDaqString("y"), (daqBaseObject*) daq_toDaqInteger(native.y));
+        temp = daq_toDaqString("x");
+        tempInt = daq_toDaqInteger(native.x);
+        daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
+        daqReleaseRef(temp);
+        daqReleaseRef(tempInt);
 
-        daqStructBuilder_set(builder, daq_toDaqString("z"), (daqBaseObject*) daq_toDaqInteger(native.z));
+        temp = daq_toDaqString("y");
+        tempInt = daq_toDaqInteger(native.y);
+        daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
+        daqReleaseRef(temp);
+        daqReleaseRef(tempInt);
+
+        temp = daq_toDaqString("z");
+        tempInt = daq_toDaqInteger(native.z);
+        daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
+        daqReleaseRef(temp);
+        daqReleaseRef(tempInt);
     }
     daqStruct* daq = NULL;
     daqStructBuilder_build(builder, &daq);
@@ -158,11 +205,13 @@ enum ComponentStatusTypeEnum daq_fromDaqCompStatusTypeEnum(daqEnumeration* daq)
 daqEnumeration* daq_toCompStatusTypeEnum(enum ComponentStatusTypeEnum native, daqTypeManager* typeManager)
 {
     daqEnumeration* daq = NULL;
-    daqInteger* temp = daq_toDaqInteger(native);
+    daqInteger* tempInt = daq_toDaqInteger(native);
+    daqString* temp = daq_toDaqString("ComponentStatusType");
 
-    daqEnumeration_createEnumerationWithIntValue(&daq, daq_toDaqString("ComponentStatusType"), temp, typeManager);
+    daqEnumeration_createEnumerationWithIntValue(&daq, temp, tempInt, typeManager);
 
     daqReleaseRef(temp);
+    daqReleaseRef(tempInt);
     return daq;
 }
 
@@ -175,8 +224,16 @@ int main()
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
+    daqContext* context = NULL;
+    daqComponent_getContext((daqComponent*) instance, &context);
+    addCoordinateStructToTypeManager(context);
+    daqReleaseRef(context);
 
-
+    daqStructBuilder* builder = NULL;
+    
+    // Set a new property Object that is the new type and write its value and read it
+    // Might need to set up a custom simulator that will have daq_coordinates as a field
+    
     daqReleaseRef(simulator);
     daqReleaseRef(instance);
     daqReleaseRef(simulatorInstance);
