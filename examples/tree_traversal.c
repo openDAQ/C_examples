@@ -46,35 +46,35 @@ void printDaqObject(daqBaseObject* baseObject, enum ComponentType compType, uint
     switch (compType)
     {
     case DaqDevice:
-        printDaqDevice(baseObject, indent + 1);
+        printDaqDevice(baseObject, indent);
         break;
 
     case DaqServer:
-        printDaqServer(baseObject, indent + 1);
+        printDaqServer(baseObject, indent);
         break;
 
     case DaqSyncComponent:
-        printDaqSyncComponent(baseObject, indent + 1);
+        printDaqSyncComponent(baseObject, indent);
         break;
 
     case DaqChannel:
-        printDaqChannel(baseObject, indent + 1);
+        printDaqChannel(baseObject, indent);
         break;
 
     case DaqFunctionBlock:
-        printDaqFunctionBlock(baseObject, indent + 1);
+        printDaqFunctionBlock(baseObject, indent);
         break;
 
     case DaqFolder:
-        printDaqFolder(baseObject, indent + 1);
+        printDaqFolder(baseObject, indent);
         break;
 
     case DaqInputPort:
-        printInputPort(baseObject, indent + 1);
+        printInputPort(baseObject, indent);
         break;
 
     case DaqSignal:
-        printDaqSignal(baseObject, indent + 1);
+        printDaqSignal(baseObject, indent);
         break;
 
     default:
