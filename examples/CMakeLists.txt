@@ -12,12 +12,7 @@ set(EXAMPLE_SOURCES
     print_data_descriptor_and_calculater_sample_rate.c
     create_and_read_sample_rate_buffers.c
     custom_struct_type_conversion.c
-    tree_traversal.c
     3_0_property_name_and_value_visualization.c
-    metadata_c_conversion.c
-    conversions_demo.c
-    getter_wrapper.c
-    setter_wrapper.c
     simple_properties_display_handling.c)
 
 foreach(src ${EXAMPLE_SOURCES})
