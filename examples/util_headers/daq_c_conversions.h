@@ -135,7 +135,8 @@ daqInteger* daq_toDaqInteger(daqInt native);
 // String conversion
 /*
  * Conversion from and to openDAQ String (daqString) core type
- * from C language (const char*).
+ * from C language (const char*). The function that converts to native C return a non-owning pointer.
+ * Precautions should be taken, when using the received pointer.
  */
 char* daq_fromDaqString(daqString* daq);
 daqString* daq_toDaqString(const char* native);
