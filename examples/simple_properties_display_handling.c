@@ -126,7 +126,7 @@ void intProp(daqProperty* property)
     daqProperty_getValue(property, &temp);
     daqInteger* value = NULL;
     daqQueryInterface(temp, DAQ_INTEGER_INTF_ID, &value);
-    daqInt valueNative = openDAQIntConversion(value);
+    daqInt valueNative = daq_fromDaqInteger(value);
     daqReleaseRef(value);
     daqReleaseRef(temp);
 
@@ -136,7 +136,7 @@ void intProp(daqProperty* property)
     if (temp != NULL)
     {
         daqQueryInterface(temp, DAQ_INTEGER_INTF_ID, &value);
-        valueNative = openDAQIntConversion(value);
+        valueNative = daq_fromDaqInteger(value);
         daqReleaseRef(value);
         daqReleaseRef(temp);
         printf("- Default Value: %lld\n", valueNative);
@@ -171,7 +171,7 @@ void intProp(daqProperty* property)
         {
             daqList_getItemAt(suggestedValues, i, &temp);
             value = daqQueryInterfacePtr(temp, DAQ_INTEGER_INTF_ID);
-            valueNative = openDAQIntConversion(value);
+            valueNative = daq_fromDaqInteger(value);
             daqReleaseRef(value);
             daqReleaseRef(temp);
             printf("  -- %lld\n", valueNative);
@@ -234,7 +234,7 @@ void floatProp(daqProperty* property)
         {
             daqList_getItemAt(suggestedValues, i, &temp);
             value = daqQueryInterfacePtr(temp, DAQ_FLOAT_OBJECT_INTF_ID);
-            valueNative = openDAQFloatConversion(value);
+            valueNative = daq_fromDaqFloat(value);
             daqReleaseRef(value);
             daqReleaseRef(temp);
 
@@ -473,7 +473,7 @@ void prop(daqProperty* property)
             if (tempProp != NULL)
             {
                 daqString* name = NULL;
-                daqProperty_getName(prop, &name);
+                daqProperty_getName(tempProp, &name);
                 printDaqFormattedString("\nReferenced property: %s\n", name);
                 daqReleaseRef(name);
                 determinePropertyTypeAndPrint(tempProp);
@@ -490,7 +490,7 @@ void prop(daqProperty* property)
 void printSelectedValue(daqBaseObject* container, daqCoreType itemType, daqInteger* keyValue)
 {
     daqInt key = 0;
-    daqInteger_getValue(keyValue, key);
+    daqInteger_getValue(keyValue, &key);
 
     daqBaseObject* temp = NULL;
 

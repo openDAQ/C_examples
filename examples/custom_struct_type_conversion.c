@@ -11,6 +11,14 @@ struct Coordinates
     int64_t z;
 };
 
+// Standard enum
+enum ComponentStatusTypeEnum
+{
+    Error = 0,
+    Ok,
+    Warning
+};
+
 // Adds Coodinates struct and ComponentStatusTypeEnum to types in Type Manager
 void addCoordinateStructToTypeManager(daqContext* context)
 {
