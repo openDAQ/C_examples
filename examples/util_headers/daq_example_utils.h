@@ -47,7 +47,9 @@ void addCoordinateStructToTypeManager(daqContext* context)
     daqReleaseRef(simpleType);
 
     daqStructType* newType = NULL;
-    daqStructType_createStructTypeNoDefaults(&newType, daq_toDaqString("DAQ_Coordinates"), names, types);
+    daqString* typeName = daq_toDaqString("DAQ_Coordinates");
+    daqStructType_createStructTypeNoDefaults(&newType, typeName, names, types);
+    daqReleaseRef(typeName);
 
     daqTypeManager_addType(typeManager, (daqType*) newType);
     daqReleaseRef(newType);
