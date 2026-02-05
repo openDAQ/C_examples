@@ -48,24 +48,6 @@ void addCoordinateStructToTypeManager(daqContext* context)
     daqReleaseRef(newType);
     daqReleaseRef(names);
 
-    daqList_createList(&names);
-
-    temp = daq_toDaqString("Error");
-    daqList_pushBack(names, (daqBaseObject*) temp);
-    daqReleaseRef(temp);
-    temp = daq_toDaqString("Ok");
-    daqList_pushBack(names, (daqBaseObject*) temp);
-    daqReleaseRef(temp);
-    temp = daq_toDaqString("Warning");
-    daqList_pushBack(names, (daqBaseObject*) temp);
-    daqReleaseRef(temp);
-
-    daqEnumerationType* enumType = NULL;
-    daqEnumerationType_createEnumerationType(&enumType, daq_toDaqString("DAQ_ComponentStatusTypeEnum"), names, 0);
-
-    daqTypeManager_addType(typeManager, (daqType*) enumType);
-    daqReleaseRef(enumType);
-
     daqBool check = False;
     daqTypeManager_hasType(typeManager, daq_toDaqString("DAQ_Coordinates"), &check);
 
