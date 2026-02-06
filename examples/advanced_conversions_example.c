@@ -144,10 +144,12 @@ int main()
     daqProperty* currentPosition = NULL;
     daqStruct* tempStruct = NULL;
     struct Coordinates nativeCoordinates = {4, 4, 4};
-    daqTypeManager* typeMan = NULL;
+
     daqContext* context = NULL;
     daqComponent_getContext((daqComponent*)simulator, &context);
+    daqTypeManager* typeMan = NULL;
     daqContext_getTypeManager(context, &typeMan);
+
     tempStr = daq_toDaqString("DAQ_CurrentPosition");
     daqPropertyObject_getProperty((daqPropertyObject*) simulator,tempStr, &currentPosition);
     daqReleaseRef(tempStr);
