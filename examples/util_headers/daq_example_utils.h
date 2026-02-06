@@ -11,9 +11,9 @@ struct Coordinates
 // Standard enum
 enum ComponentStatusTypeEnum
 {
-    Error = 0,
-    Ok,
-    Warning
+    Ok = 0,
+    Warning,
+    Error
 };
 
 // Adds Coodinates struct and ComponentStatusTypeEnum to types in Type Manager
@@ -58,11 +58,51 @@ void addCoordinateStructToTypeManager(daqContext* context)
     daqReleaseRef(typeManager);
 }
 
-void advancedSimulatorAddition(daqDevice** device, daqInstance** instance)
+void addCustomStructAndEnumProp(daqDevice* device)
 {
-    addSimulator(device, instance);
-
+    daqTypeManager* typeMan = NULL;
     daqContext* context = NULL;
-    daqComponent_getContext((daqComponent*) *instance, &context);
+    daqComponent_getContext((daqComponent*)device, &context);
+    daqContext_getTypeManager(context, &typeMan);
+    daqStructBuilder* builder = NULL;
+    daqString* nameTemp = daq_toDaqString("DAQ_Coordinates");
+    daqStructBuilder_createStructBuilder(&builder, nameTemp, typeMan);
+    daqReleaseRef(nameTemp);
+    daqInteger* tempInt = NULL;
+    daqString* temp = NULL;
+
+    temp = daq_toDaqString("x");
+    tempInt = daq_toDaqInteger(2);
+    daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
+    daqReleaseRef(temp);
+    daqReleaseRef(tempInt);
+
+    temp = daq_toDaqString("y");
+    tempInt = daq_toDaqInteger(3);
+    daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
+    daqReleaseRef(temp);
+    daqReleaseRef(tempInt);
+
+    temp = daq_toDaqString("z");
+    tempInt = daq_toDaqInteger(4);
+    daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
+    daqReleaseRef(temp);
+    daqReleaseRef(tempInt);
+
+    daqStruct* coordinatesStruct = NULL;
+    daqStructBuilder_build(builder, &coordinatesStruct);
+
+    nameTemp = daq_toDaqString("DAQ_CurrentPosition");
+    daqPropertyBuilder* structBuilder = NULL;
+    daqPropertyBuilder_createStructPropertyBuilder(&structBuilder, nameTemp,coordinatesStruct);
+    daqProperty* structProp = NULL;
+    daqPropertyBuilder_build(structBuilder, &structProp);
+    daqPropertyObject_addProperty((daqPropertyObject*)device, structProp);
+}
+
+void addCustomTypes(daqInstance* instance)
+{
+    daqContext* context = NULL;
+    daqComponent_getContext(instance, &context);
     addCoordinateStructToTypeManager(context);
 }
