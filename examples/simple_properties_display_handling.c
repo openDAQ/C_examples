@@ -2,7 +2,7 @@
  * Example that show how to properly display all relevant attributes and 
  * metadata in properties.
  */
-#include <daq_c_conversions.h>
+#include <daq_property_utils.h>
 
 void determinePropertyTypeAndPrint(daqProperty* property);
 void printPropertyObject(daqPropertyObject* propertyObject);
@@ -116,7 +116,7 @@ void printMetadata(daqProperty* property)
     daqProperty_getVisible(property, &visible);
     daqProperty_getReadOnly(property, &readOnly);
 
-    printf("\n- Visible: %s\n", visible == True ? "True" : "False");
+    printf("- Visible: %s\n", visible == True ? "True" : "False");
     printf("- Read only: %s\n", readOnly == True ? "True" : "False");
 }
 
@@ -130,7 +130,7 @@ void intProp(daqProperty* property)
     daqReleaseRef(value);
     daqReleaseRef(temp);
 
-    printf("- Value %lld\n", valueNative);
+    printf("- Value: %lld\n", valueNative);
 
     daqProperty_getDefaultValue(property, &temp);
     if (temp != NULL)
