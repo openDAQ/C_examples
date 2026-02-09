@@ -10,7 +10,8 @@ set(EXAMPLE_SOURCES
     stream_reader_read_in_loop.c
     read_with_formatted_timestamps.c
     print_data_descriptor_and_calculater_sample_rate.c
-    create_and_read_sample_rate_buffers.c)
+    create_and_read_sample_rate_buffers.c
+    multi_reader_read_same_rates.c)
 
 
 foreach(src ${EXAMPLE_SOURCES})

@@ -124,13 +124,32 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqReleaseRef(serialNumberDefaultValue);
     daqReleaseRef(serialNumberPropertyName);
 
+    daqProperty* numberOfChannelsProperty = NULL;
+
+    daqBoolean* numberOfChannelsVisible = NULL;
+    daqBoolean_createBoolean(&numberOfChannelsVisible, True);
+
+    daqString* numberOfChannelsPropertyName = NULL;
+    daqString_createString(&numberOfChannelsPropertyName, "NumberOfChannels");
+
+    daqInteger* numberOfChannelsDefaultValue = NULL;
+    daqInteger_createInteger(&numberOfChannelsDefaultValue, 8);
+
+    daqProperty_createIntProperty(&numberOfChannelsProperty, numberOfChannelsPropertyName, numberOfChannelsDefaultValue, numberOfChannelsVisible);
+
+    daqReleaseRef(numberOfChannelsVisible);
+    daqReleaseRef(numberOfChannelsDefaultValue);
+    daqReleaseRef(numberOfChannelsPropertyName);
+
     daqPropertyObject_addProperty(config, nameProperty);
     daqPropertyObject_addProperty(config, localIdProperty);
     daqPropertyObject_addProperty(config, serialNumberProperty);
+    daqPropertyObject_addProperty(config, numberOfChannelsProperty);
 
     daqReleaseRef(nameProperty);
     daqReleaseRef(localIdProperty);
     daqReleaseRef(serialNumberProperty);
+    daqReleaseRef(numberOfChannelsProperty);
 
     daqInstanceBuilder* instanceBuilder = NULL;
 
