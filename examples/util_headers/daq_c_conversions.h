@@ -14,6 +14,13 @@ struct Range
     double max;
 };
 
+// Core struct type
+struct Ratio
+{
+    int64_t denominator;
+    int64_t numerator;
+};
+
 // Int conversion
 /*
  * The following two funtions represent the conversion between the openDAQ native
@@ -55,11 +62,19 @@ daqComplexNumber* daq_toDaqComplex(struct ComplexNumber* native);
 
 // Range conversion
 /*
- * Conversion from and to openDAQ String (daqRange) core type
+ * Conversion from and to openDAQ Struct (daqRange) core type
  * from C language (struct Range).
  */
 struct Range daq_fromDaqRange(daqRange* daq);
 daqRange* daq_toDaqRange(struct Range native);
+
+// Ratio conversion
+/*
+ * Conversion from and to openDAQ Ratio Struct (daqRatio)
+ * from C language (struct Ratio).
+ */
+struct Ratio daq_fromDaqRatio(daqRatio* daq);
+daqRatio* daq_toDaqRatio(struct Ratio native);
 
 daqInt daq_fromDaqInteger(daqInteger* daq)
 {
@@ -173,4 +188,22 @@ daqRange* daq_toDaqRange(struct Range native)
     daqReleaseRef(lowValue);
     daqReleaseRef(highValue);
     return daq;
+}
+
+struct Ratio daq_fromDaqRatio(daqRatio* daq)
+{
+    struct Ratio native = { 0,0 };
+    int64_t temp = 0;
+    daqRatio_getDenominator(daq, &temp);
+    native.denominator = temp;
+    daqRatio_getNumerator(daq, &temp);
+    native.numerator = temp;
+    return native;
+}
+
+daqRatio* daq_toDaqRatio(struct Ratio native)
+{
+    daqRatio** daq = NULL;
+    daqRatio_createRatio(daq, native.numerator, native.denominator);
+    return *daq;
 }
