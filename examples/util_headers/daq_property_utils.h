@@ -29,7 +29,7 @@ void printDaqPropertyCallableInfo(daqCallableInfo* callableInfo);
 void printDapPropertyName(daqProperty* property);
 void printDaqPropertyVisible(daqProperty* property);
 void printDaqPropertyReadOnly(daqProperty* property);
-void printNumber(daqNumber* number, enum daqExample_propertyType type);
+void printDaqNumber(daqNumber* number, enum daqExample_propertyType type);
 void printDaqDict(daqBaseObject* value, daqCoreType keyType, daqCoreType itemType);
 void printDaqList(daqBaseObject* value, daqCoreType itemType);
 void printDaqRatio(struct daqExample_Ratio native);
@@ -346,12 +346,12 @@ void printPropertyMetadata(daqProperty* property)
         if (min != NULL)
         {
             printf("- Min value:");
-            printNumber(min, propertyType);
+            printDaqNumber(min, propertyType);
         }
         if (max != NULL)
         {
             printf("- Max value:");
-            printNumber(max, propertyType);
+            printDaqNumber(max, propertyType);
         }
     }
 
@@ -502,7 +502,7 @@ void printDaqPropertyReadOnly(daqProperty* property)
     printf("- Read only: %s\n", readOnly == True ? "True" : "False");
 }
 
-void printNumber(daqNumber* number, enum daqExample_propertyType type)
+void printDaqNumber(daqNumber* number, enum daqExample_propertyType type)
 {
     if (type == daqExample_propertyType_integer)
     {

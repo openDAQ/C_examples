@@ -6,9 +6,9 @@
 #include <daq_example_utils.h>
 
 
-struct Coordinates;
+struct daqExample_Coordinates;
 
-enum ComponentStatusTypeEnum;
+enum daqExample_ComponentStatusTypeEnum;
 
 // Struct conversion
 /*
@@ -18,9 +18,9 @@ enum ComponentStatusTypeEnum;
  * from C to openDAQ a pointer to the TypeManager is needed because
  * of the way openDAQ structs are implemented.
  */
-struct Coordinates daq_fromDaqCoordinates(daqStruct* daq)
+struct daqExample_Coordinates daqExample_fromDaqCoordinates(daqStruct* daq)
 {
-    struct Coordinates native = { 0,0,0 };
+    struct daqExample_Coordinates native = { 0,0,0 };
 
     daqBaseObject* tempObj = NULL;
     daqBaseObject* tempMid = NULL;
@@ -52,7 +52,7 @@ struct Coordinates daq_fromDaqCoordinates(daqStruct* daq)
     return native;
 }
 
-daqStruct* daq_toDaqCoordinates(struct Coordinates native, daqTypeManager* typeManager)
+daqStruct* daqExample_toDaqCoordinates(struct daqExample_Coordinates native, daqTypeManager* typeManager)
 {
     daqStructBuilder* builder = NULL;
     daqStructBuilder_createStructBuilder(&builder, daqExample_toDaqString("DAQ_Coordinates"), typeManager);
@@ -94,20 +94,18 @@ daqStruct* daq_toDaqCoordinates(struct Coordinates native, daqTypeManager* typeM
  * from C to openDAQ a pointer to the TypeManager is needed because
  * of the way openDAQ enumeration is implemented.
  */
-enum ComponentStatusTypeEnum daq_fromDaqCompStatusTypeEnum(daqEnumeration* daq)
+enum daqExample_ComponentStatusTypeEnum daqExample_fromDaqCompStatusTypeEnum(daqEnumeration* daq)
 {
-    enum ComponentStatusTypeEnum native = Error;
+    enum daqExample_ComponentStatusTypeEnum native = daqExample_ComponentStatusType_Error;
     int64_t temp = -1;
     daqEnumeration_getIntValue(daq, &temp);
 
-    // Sanity check
-    if (temp < 2 && temp >= 0)
-        native = temp;
+    native = temp;
 
     return native;
 }
 
-daqEnumeration* daq_toCompStatusTypeEnum(enum ComponentStatusTypeEnum native, daqTypeManager* typeManager)
+daqEnumeration* daqExample_toCompStatusTypeEnum(enum daqExample_ComponentStatusTypeEnum native, daqTypeManager* typeManager)
 {
     daqEnumeration* daq = NULL;
     daqInteger* tempInt = daqExample_toDaqInteger(native);
@@ -124,60 +122,42 @@ int main()
 {
     daqInstance* simulatorInstance = NULL;
     setupSimulator(&simulatorInstance);
-    addCustomTypes(simulatorInstance);
-    addCustomStructAndEnumProp(simulatorInstance);
+    daqExmaple_addCustomTypes(simulatorInstance);
+    daqExample_addCustomStructAndEnumProp((daqDevice*)simulatorInstance);
 
     daqInstance* instance = NULL;
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
-
-    daqComponentStatusContainer* statusContainer = NULL;
-    daqComponent_getStatusContainer((daqComponent*)simulator, &statusContainer);
-    daqString* tempStr = daqExample_toDaqString("ConnectionStatus");
-    daqEnumeration* temp = NULL;
-    daqComponentStatusContainer_getStatus(statusContainer, tempStr, &temp);
-    daqReleaseRef(tempStr);
-
-    enum ComponentStatusTypeEnum status = daq_fromDaqCompStatusTypeEnum(temp);
-    printf("Status is: %d\n", status);
-    daqReleaseRef(temp);
     
-    daqProperty* currentPosition = NULL;
-    daqStruct* tempStruct = NULL;
-    struct Coordinates nativeCoordinates = {4, 4, 4};
-
     daqContext* context = NULL;
     daqComponent_getContext((daqComponent*)simulator, &context);
     daqTypeManager* typeMan = NULL;
     daqContext_getTypeManager(context, &typeMan);
 
-    tempStr = daqExample_toDaqString("DAQ_CurrentPosition");
-    daqPropertyObject_getProperty((daqPropertyObject*) simulator,tempStr, &currentPosition);
-    daqReleaseRef(tempStr);
-    daqBaseObject* tempObj = NULL;
-    daqProperty_getValue(currentPosition, &tempObj);
-    daqReleaseRef(currentPosition);
-    if (tempObj != NULL)
-    {
-        daqQueryInterface(tempObj, DAQ_STRUCT_INTF_ID, &tempStruct);
-        daqReleaseRef(tempObj);
-        nativeCoordinates = daq_fromDaqCoordinates(tempStruct);
+    enum daqExample_ComponentStatusTypeEnum enumStatusType = daqExample_ComponentStatusType_Error;
+    daqEnumeration* daqEnum = daqExample_toCompStatusTypeEnum(enumStatusType, typeMan);
+    enum daqExample_ComponentStatusTypeEnum enumStatusType2 = daqExample_fromDaqCompStatusTypeEnum(daqEnum);
+    
+    uint8_t check = enumStatusType == enumStatusType2;
 
-        printf("x: %lld,\ny: %lld,\nz: %lld\n", nativeCoordinates.x, nativeCoordinates.y, nativeCoordinates.z);
+    if (check)
+        printf("Structs are the same after transforming them to and from openDAQ.\n");
+    else
+        printf("Structs are different!\n");
 
-        daqStruct* tempStruct2 = daq_toDaqCoordinates(nativeCoordinates, typeMan);
-        uint8_t check = False;
-        daqBaseObject_equals(tempStruct, tempStruct2, &check);
+    struct daqExample_Coordinates nativeCoordinates = {4, 4, 4};
+    daqStruct* tempStruct = daqExample_toDaqCoordinates(nativeCoordinates, typeMan);
+    struct daqExample_Coordinates nativeCoordinates2 = daqExample_fromDaqCoordinates(tempStruct);
+    
+    check = nativeCoordinates.x == nativeCoordinates2.x && nativeCoordinates.y == nativeCoordinates2.y && nativeCoordinates.z == nativeCoordinates2.z;
 
-        if (check)
-            printf("OpenDAQ structs are the same after being translated to C and back.");
-        else
-            printf("Structs are different!");
+    if (check)
+        printf("Enums are the same after transforming them to and from openDAQ.\n");
+    else
+        printf("Enums are different!\n");
 
-        daqReleaseRef(typeMan);
-        daqReleaseRef(tempStruct);
-        daqReleaseRef(tempStruct2);
-    }
+    daqReleaseRef(typeMan);
+    daqReleaseRef(tempStruct);
 
     daqReleaseRef(simulator);
     daqReleaseRef(instance);

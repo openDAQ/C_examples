@@ -203,7 +203,7 @@ struct daqExample_Ratio daqExample_fromDaqRatio(daqRatio* daq)
 
 daqRatio* daqExample_toDaqRatio(struct daqExample_Ratio native)
 {
-    daqRatio** daq = NULL;
-    daqRatio_createRatio(daq, native.numerator, native.denominator);
-    return *daq;
+    daqRatio* daq = NULL;
+    daqRatio_createRatio(&daq, native.numerator, native.denominator);
+    return daq;
 }
