@@ -58,6 +58,11 @@ static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tic
  */
 static inline int checkIsLinearRule(daqDataRule* dataRule);
 
+/*
+ * Function checks if the daqString object contains an empty string ("")
+ */
+static inline uint8_t isDaqStringEmpty(daqString* string);
+
 void daqSleepMs(int milliseconds)
 {
 #ifdef _WIN32
@@ -377,4 +382,11 @@ static inline int checkIsLinearRule(daqDataRule* dataRule)
     daqDataRule_getType(dataRule, &dataRuleType);
 
     return dataRuleType == daqDataRuleTypeLinear;
+}
+
+static inline uint8_t isDaqStringEmpty(daqString* string)
+{
+    daqConstCharPtr stringConstChar;
+    daqString_getCharPtr(string, &stringConstChar);
+    return (strcmp(stringConstChar, "") == 0);
 }

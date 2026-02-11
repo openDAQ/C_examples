@@ -1,38 +1,38 @@
 #include <daq_c_conversions.h>
 
-enum DAQ_PropType
+enum daqExample_propertyType
 {
-    selection,
-    sparseSelection,
-    integer,
-    floatObject,
-    string,
-    propBoolean,
-    ratio,
-    enumeration,
-    structObject,
-    function,
-    list,
-    dictionary,
-    objectObject,
-    complexNo,
-    oh_no
+    daqExample_propertyType_selection,
+    daqExample_propertyType_sparseSelection,
+    daqExample_propertyType_integer,
+    daqExample_propertyType_floatObject,
+    daqExample_propertyType_string,
+    daqExample_propertyType_boolean,
+    daqExample_propertyType_ratio,
+    daqExample_propertyType_enumeration,
+    daqExample_propertyType_structObject,
+    daqExample_propertyType_function,
+    daqExample_propertyType_list,
+    daqExample_propertyType_dictionary,
+    daqExample_propertyType_object,
+    daqExample_porpertyType_complexNumber,
+    daqExample_propertyType_oh_no
 };
 
 void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType suggestedValuesItemType);
 char* daqCoreTypeToString(daqCoreType type);
-enum DAQ_PropType daq_getPropType(daqProperty* property);
+enum daqExample_propertyType daq_getPropType(daqProperty* property);
 void printPropertyValue(daqBaseObject* value, daqProperty* property);
 void printPropertyMetadata(daqProperty* property);
-void printUnit(daqUnit* unit);
-void printCallableInfo(daqCallableInfo* callableInfo);
-void printName(daqProperty* property);
-void printVisible(daqProperty* property);
-void printReadOnly(daqProperty* property);
-void printNumber(daqNumber* number, enum DAQ_PropType type);
+void printDaqUnit(daqUnit* unit);
+void printDaqPropertyCallableInfo(daqCallableInfo* callableInfo);
+void printDapPropertyName(daqProperty* property);
+void printDaqPropertyVisible(daqProperty* property);
+void printDaqPropertyReadOnly(daqProperty* property);
+void printNumber(daqNumber* number, enum daqExample_propertyType type);
 void printDaqDict(daqBaseObject* value, daqCoreType keyType, daqCoreType itemType);
 void printDaqList(daqBaseObject* value, daqCoreType itemType);
-void printRatio(struct Ratio native);
+void printDaqRatio(struct daqExample_Ratio native);
 
 void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType suggestedValuesItemType)
 {
@@ -42,7 +42,7 @@ void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType sugge
     {
         daqInteger* value = NULL;
         daqQueryInterface(selectedValueObj, DAQ_INTEGER_INTF_ID, &value);
-        printf("%lld\n", daq_fromDaqInteger(value));
+        printf("%lld\n", daqExample_fromDaqInteger(value));
         daqReleaseRef(value);
         return;
     }
@@ -50,7 +50,7 @@ void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType sugge
     {
         daqFloatObject* value = NULL;
         daqQueryInterface(selectedValueObj, DAQ_FLOAT_OBJECT_INTF_ID, &value);
-        printf("%f\n", daq_fromDaqFloat(value));
+        printf("%f\n", daqExample_fromDaqFloat(value));
         daqReleaseRef(value);
         return;
     }
@@ -58,7 +58,7 @@ void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType sugge
     {
         daqBoolean* value = NULL;
         daqQueryInterface(selectedValueObj, DAQ_BOOLEAN_INTF_ID, &value);
-        printf("%u\n", daq_fromDaqBoolean(value));
+        printf("%s\n", daqExample_fromDaqBoolean(value) == True ? "True" : "False");
         daqReleaseRef(value);
         return;
     }
@@ -74,7 +74,7 @@ void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType sugge
     {
         daqRatio* value = NULL;
         daqQueryInterface(selectedValueObj, DAQ_RATIO_INTF_ID, &value);
-        printRatio(daq_fromDaqRatio(value));
+        printDaqRatio(daqExample_fromDaqRatio(value));
         daqReleaseRef(value);
         return;
     }
@@ -140,7 +140,7 @@ char* daqCoreTypeToString(daqCoreType type)
     }
 }
 
-enum DAQ_PropType daq_getPropType(daqProperty* property)
+enum daqExample_propertyType daq_getPropType(daqProperty* property)
 {
     daqCoreType type = daqCtUndefined;
     daqProperty_getValueType(property, &type);
@@ -157,77 +157,77 @@ enum DAQ_PropType daq_getPropType(daqProperty* property)
             if (DAQ_SUPPORTS_INTERFACE(temp, DAQ_DICT_INTF_ID))
             {
                 daqReleaseRef(temp);
-                return sparseSelection;
+                return daqExample_propertyType_sparseSelection;
             }
             else if (DAQ_SUPPORTS_INTERFACE(temp, DAQ_LIST_INTF_ID))
             {
                 daqReleaseRef(temp);
-                return selection;
+                return daqExample_propertyType_selection;
             }
             daqReleaseRef(temp);
         }
-        return integer;
+        return daqExample_propertyType_integer;
     }
 
     case daqCtString:
-        return string;
+        return daqExample_propertyType_string;
 
     case daqCtBool:
-        return propBoolean;
+        return daqExample_propertyType_boolean;
 
     case daqCtFloat:
-        return floatObject;
+        return daqExample_propertyType_floatObject;
 
     case daqCtProc:
     case daqCtFunc:
-        return function;
+        return daqExample_propertyType_function;
 
     case daqCtObject:
-        return objectObject;
+        return daqExample_propertyType_object;
 
     case daqCtStruct:
-        return structObject;
+        return daqExample_propertyType_structObject;
 
     case daqCtRatio:
-        return ratio;
+        return daqExample_propertyType_ratio;
 
     case daqCtComplexNumber:
-        return complexNo;
+        return daqExample_porpertyType_complexNumber;
 
     case daqCtList:
-        return list;
+        return daqExample_propertyType_list;
 
     case daqCtDict:
-        return dictionary;
+        return daqExample_propertyType_dictionary;
 
     default:
-        return oh_no;
+        return daqExample_propertyType_oh_no;
     }
 }
 
 void printPropertyValue(daqBaseObject* value, daqProperty* property)
 {
-    enum DAQ_PropType propType = daq_getPropType(property);
+    enum daqExample_propertyType propType = daq_getPropType(property);
 
     switch (propType)
     {
-    case integer:
-    case string:
-    case propBoolean:
-    case floatObject:
-    case ratio:
+    case daqExample_propertyType_integer:
+    case daqExample_propertyType_string:
+    case daqExample_propertyType_boolean:
+    case daqExample_propertyType_floatObject:
+    case daqExample_propertyType_ratio:
     {
         daqCoreType valueType;
         daqProperty_getValueType(property, &valueType);
         printSimpleCoreTypeValue(value, valueType);
         break;
     }
-    case function:
+    case daqExample_propertyType_function:
     {
         printf("Function\n");
         break;
     }
-    case selection:
+    case daqExample_propertyType_selection:
     {
         daqInteger* val = NULL;
         daqQueryInterface(value, DAQ_INTEGER_INTF_ID, &val);
@@ -238,7 +238,7 @@ void printPropertyValue(daqBaseObject* value, daqProperty* property)
         daqQueryInterface(temp, DAQ_LIST_INTF_ID, &selectionValues);
         daqReleaseRef(temp);
 
-        daqList_getItemAt(selectionValues, daq_fromDaqInteger(val), &temp);
+        daqList_getItemAt(selectionValues, daqExample_fromDaqInteger(val), &temp);
         daqReleaseRef(val);
         daqReleaseRef(selectionValues);
 
@@ -248,7 +248,7 @@ void printPropertyValue(daqBaseObject* value, daqProperty* property)
         daqReleaseRef(temp);
         break;
     }
-    case sparseSelection:
+    case daqExample_propertyType_sparseSelection:
     {
         daqBaseObject* temp = NULL;
         daqDict* selectionValues = NULL;
@@ -266,7 +266,7 @@ void printPropertyValue(daqBaseObject* value, daqProperty* property)
         daqReleaseRef(temp);
         break;
     }
-    case dictionary:
+    case daqExample_propertyType_dictionary:
     {
         daqCoreType itemType = daqCtUndefined;
         daqCoreType keyType = daqCtUndefined;
@@ -275,14 +275,14 @@ void printPropertyValue(daqBaseObject* value, daqProperty* property)
         printDaqDict(value, keyType, itemType);
         break;
     }
-    case list:
+    case daqExample_propertyType_list:
     {
         daqCoreType itemType = daqCtUndefined;
         daqProperty_getItemType(property, &itemType);
         printDaqList(value, itemType);
         break;
     }
-    case objectObject:
+    case daqExample_propertyType_object:
         printf("Object\n");
         break;
     default:
@@ -295,10 +295,10 @@ void printPropertyValue(daqBaseObject* value, daqProperty* property)
 
 void printPropertyMetadata(daqProperty* property)
 {
-    enum DAQ_PropType type = daq_getPropType(property);
+    enum daqExample_propertyType propertyType = daq_getPropType(property);
 
     // Strings
-    printName(property);
+    printDapPropertyName(property);
 
     daqString* description = NULL;
     daqProperty_getDescription(property, &description);
@@ -309,8 +309,8 @@ void printPropertyMetadata(daqProperty* property)
     }
 
     // Booleans
-    printVisible(property);
-    printReadOnly(property);
+    printDaqPropertyVisible(property);
+    printDaqPropertyReadOnly(property);
 
     // Value Type
     daqCoreType coreType = daqCtUndefined;
@@ -325,19 +325,19 @@ void printPropertyMetadata(daqProperty* property)
     if (defaultValue != NULL)
         daqReleaseRef(defaultValue);
 
-    if (type == dictionary)
+    if (propertyType == daqExample_propertyType_dictionary)
     {
         daqProperty_getKeyType(property, &coreType);
         printf("- Key type: %s\n", daqCoreTypeToString(coreType));
     }
 
-    if (type == dictionary || type == list)
+    if (propertyType == daqExample_propertyType_dictionary || propertyType == daqExample_propertyType_list)
     {
         daqProperty_getItemType(property, &coreType);
         printf("- Item type: %s\n", daqCoreTypeToString(coreType));
     }
 
-    if (type == integer || type == floatObject)
+    if (propertyType == daqExample_propertyType_integer || propertyType == daqExample_propertyType_floatObject)
     {
         daqNumber* min = NULL;
         daqNumber* max = NULL;
@@ -346,16 +346,16 @@ void printPropertyMetadata(daqProperty* property)
         if (min != NULL)
         {
             printf("- Min value:");
-            printNumber(min, type);
+            printNumber(min, propertyType);
         }
         if (max != NULL)
         {
             printf("- Max value:");
-            printNumber(max, type);
+            printNumber(max, propertyType);
         }
     }
 
-    if (type == selection)
+    if (propertyType == daqExample_propertyType_selection)
     {
         daqBaseObject* temp = NULL;
         daqProperty_getSelectionValues(property, &temp);
@@ -365,7 +365,7 @@ void printPropertyMetadata(daqProperty* property)
         daqReleaseRef(temp);
     }
 
-    if (type == sparseSelection)
+    if (propertyType == daqExample_propertyType_sparseSelection)
     {
         daqBaseObject* temp = NULL;
         daqProperty_getSelectionValues(property, &temp);
@@ -375,7 +375,7 @@ void printPropertyMetadata(daqProperty* property)
         daqReleaseRef(temp);
     }
 
-    if (type == integer || type == string || type == floatObject)
+    if (propertyType == daqExample_propertyType_integer || propertyType == daqExample_propertyType_string || propertyType == daqExample_propertyType_floatObject)
     {
         daqList* temp = NULL;
         daqProperty_getSuggestedValues(property, &temp);
@@ -388,60 +388,60 @@ void printPropertyMetadata(daqProperty* property)
         }
     }
 
-    if (type == integer || type == floatObject)
+    if (propertyType == daqExample_propertyType_integer || propertyType == daqExample_propertyType_floatObject)
     {
         daqUnit* unit = NULL;
         daqProperty_getUnit(property, &unit);
         if (unit != NULL)
         {
-            printUnit(unit);
+            printDaqUnit(unit);
             daqReleaseRef(unit);
         }
     }
 
-    if (type == function)
+    if (propertyType == daqExample_propertyType_function)
     {
         daqCallableInfo* callableInfo = NULL;
         daqProperty_getCallableInfo(property, &callableInfo);
-        printCallableInfo(callableInfo);
+        printDaqPropertyCallableInfo(callableInfo);
         daqReleaseRef(callableInfo);
     }
 }
 
-void printUnit(daqUnit* unit)
+void printDaqUnit(daqUnit* unit)
 {
     printf("- Unit:\n");
     int64_t id = 0;
     daqUnit_getId(unit, &id);
-    if (id >-1)
+    if (id > -1)
     {
         printf("  -- Id: %lld\n", id);
     }
 
     daqString* value = NULL;
     daqUnit_getName(unit, &value);
-    if (value != NULL)
+    if (value != NULL && !isDaqStringEmpty(value))
     {
         printDaqFormattedString("  -- Unit name: %s\n", value);
         daqReleaseRef(value);
     }
 
     daqUnit_getQuantity(unit, &value);
-    if (value != NULL)
+    if (value != NULL && !isDaqStringEmpty(value))
     {
         printDaqFormattedString("  -- Quantity: %s\n", value);
         daqReleaseRef(value);
     }
 
     daqUnit_getSymbol(unit, &value);
-    if (value != NULL)
+    if (value != NULL && !isDaqStringEmpty(value))
     {
         printDaqFormattedString("  -- Symbol: %s\n", value);
         daqReleaseRef(value);
     }
 }
 
-void printCallableInfo(daqCallableInfo* callableInfo)
+void printDaqPropertyCallableInfo(daqCallableInfo* callableInfo)
 {
     daqList* arguments = NULL;
     daqCallableInfo_getArguments(callableInfo, &arguments);
@@ -462,14 +462,25 @@ void printCallableInfo(daqCallableInfo* callableInfo)
         daqReleaseRef(temp);
 
         daqArgumentInfo_getName(value, &name);
-        printDaqFormattedString("  -- Argument name: %s\n", name);
-        daqReleaseRef(value);
+        printDaqFormattedString("  -- Argument: %s\n", name);
         daqReleaseRef(name);
+
+        daqCoreType argumentType = daqCtUndefined;
+        daqArgumentInfo_getType(value, &argumentType);
+        printf("  -- Type: %s\n", daqCoreTypeToString(argumentType));
+        
+        daqReleaseRef(value);
     }
+
     daqReleaseRef(arguments);
+
+    daqCoreType returnType = daqCtUndefined;
+    daqCallableInfo_getReturnType(callableInfo, &returnType);
+    if (returnType != daqCtUndefined)
+        printf("  -- Return type: %s\n", daqCoreTypeToString(returnType));
 }
 
-void printName(daqProperty* property)
+void printDapPropertyName(daqProperty* property)
 {
     daqString* name = NULL;
     daqProperty_getName(property, &name);
@@ -477,29 +488,29 @@ void printName(daqProperty* property)
     daqReleaseRef(name);
 }
 
-void printVisible(daqProperty* property)
+void printDaqPropertyVisible(daqProperty* property)
 {
     uint8_t visible = False;
     daqProperty_getVisible(property, &visible);
     printf("- Visible: %s\n", visible == True ? "True" : "False");
 }
 
-void printReadOnly(daqProperty* property)
+void printDaqPropertyReadOnly(daqProperty* property)
 {
     uint8_t readOnly = False;
     daqProperty_getReadOnly(property, &readOnly);
     printf("- Read only: %s\n", readOnly == True ? "True" : "False");
 }
 
-void printNumber(daqNumber* number, enum DAQ_PropType type)
+void printNumber(daqNumber* number, enum daqExample_propertyType type)
 {
-    if (type == integer)
+    if (type == daqExample_propertyType_integer)
     {
         int64_t value = 0;
         daqNumber_getIntValue(number, &value);
         printf("%lld\n", value);
     }
-    else if(type == floatObject)
+    else if(type == daqExample_propertyType_floatObject)
     {
         double value = 0.0;
         daqNumber_getFloatValue(number, &value);
@@ -562,7 +573,7 @@ void printDaqList(daqBaseObject* value, daqCoreType itemType)
     daqReleaseRef(valueList);
 }
 
-void printRatio(struct Ratio native)
+void printDaqRatio(struct daqExample_Ratio native)
 {
     printf("Ratio:\n");
     printf("  - Denominator: %lld\n", native.denominator);

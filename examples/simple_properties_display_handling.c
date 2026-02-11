@@ -4,48 +4,54 @@
  */
 #include <daq_property_utils.h>
 
-void recursive(daqPropertyObject* property)
+void recursive(daqPropertyObject* propertyObject)
 {
     daqList* visibleProperties = NULL;
-    daqPropertyObject_getVisibleProperties(property, &visibleProperties);
+    daqPropertyObject_getVisibleProperties(propertyObject, &visibleProperties);
 
     daqSizeT count = 0;
     daqList_getCount(visibleProperties, &count);
 
-    daqBaseObject* temp = NULL;
-    daqProperty* value = NULL;
-    daqCoreType check = daqCtUndefined;
-
-    for(daqSizeT i = 0; i< count; i++)
+    for (daqSizeT i = 0; i < count; i++)
     {
-        daqList_getItemAt(visibleProperties, i, &temp);
-        daqQueryInterface(temp, DAQ_PROPERTY_INTF_ID, &value);
-        daqReleaseRef(temp);
-        daqProperty_getValueType(value, &check);
-        daqProperty_getValue(value, &temp);
-        if (check == daqCtObject)
+        daqBaseObject* listItem = NULL;
+        daqProperty* property = NULL;
+
+        daqList_getItemAt(visibleProperties, i, &listItem);
+        daqQueryInterface(listItem, DAQ_PROPERTY_INTF_ID, &property);
+        daqReleaseRef(listItem);
+
+        daqCoreType valueType = daqCtUndefined;
+        daqProperty_getValueType(property, &valueType);
+
+        daqBaseObject* propertyValue;
+        daqProperty_getValue(property, &propertyValue);
+
+        if (valueType == daqCtObject)
         {
             daqString* name = NULL;
-            daqProperty_getName(value, &name);
+            daqProperty_getName(property, &name);
             printDaqFormattedString("- Property name: %s -\n", name);
             daqReleaseRef(name);
-            daqPropertyObject* propObj = NULL;
-            daqQueryInterface(temp, DAQ_PROPERTY_OBJECT_INTF_ID, &propObj);
-            daqReleaseRef(temp);
-            recursive(propObj);
-            daqReleaseRef(propObj);
+
+            daqPropertyObject* childPropertyObject = NULL;
+            daqQueryInterface(propertyValue, DAQ_PROPERTY_OBJECT_INTF_ID, &childPropertyObject);
+            recursive(childPropertyObject);
             printf("---\n\n");
+            daqReleaseRef(childPropertyObject);
         }
         else
         {
-            printPropertyMetadata(value);
+            printPropertyMetadata(property);
             printf("- Value: ");
-            printPropertyValue(temp, value);
-            daqReleaseRef(temp);
+            printPropertyValue(propertyValue, property);
             printf("\n");
         }
-        daqReleaseRef(value);
+
+        daqReleaseRef(propertyValue);
+        daqReleaseRef(property);
     }
+
     daqReleaseRef(visibleProperties);
 }
 

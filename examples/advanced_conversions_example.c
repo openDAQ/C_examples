@@ -23,27 +23,27 @@ struct Coordinates daq_fromDaqCoordinates(daqStruct* daq)
     daqBaseObject* tempObj = NULL;
     daqBaseObject* tempMid = NULL;
 
-    daqString* temp = daq_toDaqString("x");
+    daqString* temp = daqExample_toDaqString("x");
     daqStruct_get(daq, temp, &tempObj);
     daqQueryInterface(tempObj, DAQ_INTEGER_INTF_ID, &tempMid);
-    native.x = daq_fromDaqInteger((daqInteger*) tempMid);
+    native.x = daqExample_fromDaqInteger((daqInteger*) tempMid);
     daqReleaseRef(tempMid);
     daqReleaseRef(tempObj);
     daqReleaseRef(temp);
 
-    temp = daq_toDaqString("y");
+    temp = daqExample_toDaqString("y");
     daqStruct_get(daq, temp, &tempObj);
     daqQueryInterface(tempObj, DAQ_INTEGER_INTF_ID, &tempMid);
-    native.y = daq_fromDaqInteger((daqInteger*) tempMid);
+    native.y = daqExample_fromDaqInteger((daqInteger*) tempMid);
     daqReleaseRef(tempMid);
     daqReleaseRef(tempObj);
     daqReleaseRef(temp);
 
-    temp = daq_toDaqString("z");
+    temp = daqExample_toDaqString("z");
     daqStruct_get(daq, temp, &
         tempObj);
     daqQueryInterface(tempObj, DAQ_INTEGER_INTF_ID, &tempMid);
-    native.z = daq_fromDaqInteger((daqInteger*) tempMid);
+    native.z = daqExample_fromDaqInteger((daqInteger*) tempMid);
     daqReleaseRef(tempMid);
     daqReleaseRef(tempObj);
     daqReleaseRef(temp);
@@ -54,25 +54,25 @@ struct Coordinates daq_fromDaqCoordinates(daqStruct* daq)
 daqStruct* daq_toDaqCoordinates(struct Coordinates native, daqTypeManager* typeManager)
 {
     daqStructBuilder* builder = NULL;
-    daqStructBuilder_createStructBuilder(&builder, daq_toDaqString("DAQ_Coordinates"), typeManager);
+    daqStructBuilder_createStructBuilder(&builder, daqExample_toDaqString("DAQ_Coordinates"), typeManager);
 
     daqString* temp = NULL;
     daqInteger* tempInt = NULL;
 
-    temp = daq_toDaqString("x");
-    tempInt = daq_toDaqInteger(native.x);
+    temp = daqExample_toDaqString("x");
+    tempInt = daqExample_toDaqInteger(native.x);
     daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
     daqReleaseRef(temp);
     daqReleaseRef(tempInt);
 
-    temp = daq_toDaqString("y");
-    tempInt = daq_toDaqInteger(native.y);
+    temp = daqExample_toDaqString("y");
+    tempInt = daqExample_toDaqInteger(native.y);
     daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
     daqReleaseRef(temp);
     daqReleaseRef(tempInt);
 
-    temp = daq_toDaqString("z");
-    tempInt = daq_toDaqInteger(native.z);
+    temp = daqExample_toDaqString("z");
+    tempInt = daqExample_toDaqInteger(native.z);
     daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
     daqReleaseRef(temp);
     daqReleaseRef(tempInt);
@@ -109,8 +109,8 @@ enum ComponentStatusTypeEnum daq_fromDaqCompStatusTypeEnum(daqEnumeration* daq)
 daqEnumeration* daq_toCompStatusTypeEnum(enum ComponentStatusTypeEnum native, daqTypeManager* typeManager)
 {
     daqEnumeration* daq = NULL;
-    daqInteger* tempInt = daq_toDaqInteger(native);
-    daqString* temp = daq_toDaqString("ComponentStatusType");
+    daqInteger* tempInt = daqExample_toDaqInteger(native);
+    daqString* temp = daqExample_toDaqString("ComponentStatusType");
 
     daqEnumeration_createEnumerationWithIntValue(&daq, temp, tempInt, typeManager);
 
@@ -132,7 +132,7 @@ int main()
 
     daqComponentStatusContainer* statusContainer = NULL;
     daqComponent_getStatusContainer((daqComponent*)simulator, &statusContainer);
-    daqString* tempStr = daq_toDaqString("ConnectionStatus");
+    daqString* tempStr = daqExample_toDaqString("ConnectionStatus");
     daqEnumeration* temp = NULL;
     daqComponentStatusContainer_getStatus(statusContainer, tempStr, &temp);
     daqReleaseRef(tempStr);
@@ -150,7 +150,7 @@ int main()
     daqTypeManager* typeMan = NULL;
     daqContext_getTypeManager(context, &typeMan);
 
-    tempStr = daq_toDaqString("DAQ_CurrentPosition");
+    tempStr = daqExample_toDaqString("DAQ_CurrentPosition");
     daqPropertyObject_getProperty((daqPropertyObject*) simulator,tempStr, &currentPosition);
     daqReleaseRef(tempStr);
     daqBaseObject* tempObj = NULL;
