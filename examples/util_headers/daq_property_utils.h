@@ -436,7 +436,30 @@ void printUnit(daqUnit* unit)
 
 void printCallableInfo(daqCallableInfo* callableInfo)
 {
-    // Argument Info
+    daqList* arguments = NULL;
+    daqCallableInfo_getArguments(callableInfo, &arguments);
+
+    printf("- Callable info:\n");
+
+    daqSizeT count = 0;
+    daqList_getCount(arguments, &count);
+
+    daqBaseObject* temp = NULL;
+    daqArgumentInfo* value = NULL;
+    daqString* name = NULL;
+    for (daqSizeT i = 0; i< count; i++)
+    {
+        // Arguments are a list of Argument Info Objects
+        daqList_getItemAt(arguments, i, &temp);
+        daqQueryInterface(temp, DAQ_ARGUMENT_INFO_INTF_ID, &value);
+        daqReleaseRef(temp);
+
+        daqArgumentInfo_getName(value, &name);
+        printDaqFormattedString(" -- Argument name: %s\n", name);
+        daqReleaseRef(value);
+        daqReleaseRef(name);
+    }
+    daqReleaseRef(arguments);
 }
 
 void printName(daqProperty* property)
@@ -479,12 +502,57 @@ void printNumber(daqNumber* number, enum DAQ_PropType type)
 
 void printDaqDict(daqBaseObject* value, daqCoreType keyType, daqCoreType itemType)
 {
+    daqDict* valueDict = NULL;
+    daqQueryInterface(value, DAQ_DICT_INTF_ID, &valueDict);
 
+    daqBaseObject* key = NULL;
+    daqBaseObject* val = NULL;
+
+    daqSizeT count = 0;
+    daqDict_getCount(valueDict, &count);
+    
+    daqList* keys = NULL;
+    daqDict_getKeyList(valueDict, &keys);
+
+    printf("- Dictionary:\n");
+
+    for(daqSizeT i = 0; i<count; i++)
+    {
+        daqList_getItemAt(keys, i, &key);
+        daqDict_get(valueDict, key, &val);
+
+        printf(" -- Key: ");
+        printSimpleCoreTypeValue(key, keyType);
+        printf(" -- Value: ");
+        printSimpleCoreTypeValue(val, itemType);
+        daqReleaseRef(key);
+        daqReleaseRef(val);
+    }
+    daqReleaseRef(keys);
+    daqReleaseRef(valueDict);
 }
 
 void printDaqList(daqBaseObject* value, daqCoreType itemType)
 {
+    daqList* valueList = NULL;
+    daqQueryInterface(value, DAQ_LIST_INTF_ID, &valueList);
 
+    daqBaseObject* val = NULL;
+
+    daqSizeT count = 0;
+    daqList_getCount(valueList, &count);
+
+    printf("- List:\n");
+    
+    for(daqSizeT i = 0; i< count; i++)
+    {
+        daqList_getItemAt(valueList, i, &val);
+
+        printf("  -- Value: ");
+        printSimpleCoreTypeValue(val, itemType);
+        daqReleaseRef(val);
+    }
+    daqReleaseRef(valueList);
 }
 
 void printRatio(struct Ratio native)
