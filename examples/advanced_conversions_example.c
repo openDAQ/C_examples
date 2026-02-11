@@ -1,5 +1,7 @@
 /*
- *
+ * Example that shows how to create conversion functions for custom defined in openDAQ.
+ * Functions demonstrate conversions to and from openDAQ structure to its 
+ * equivalent in native C.
  */
 #include <daq_example_utils.h>
 
@@ -40,8 +42,7 @@ struct Coordinates daq_fromDaqCoordinates(daqStruct* daq)
     daqReleaseRef(temp);
 
     temp = daqExample_toDaqString("z");
-    daqStruct_get(daq, temp, &
-        tempObj);
+    daqStruct_get(daq, temp, &tempObj);
     daqQueryInterface(tempObj, DAQ_INTEGER_INTF_ID, &tempMid);
     native.z = daqExample_fromDaqInteger((daqInteger*) tempMid);
     daqReleaseRef(tempMid);

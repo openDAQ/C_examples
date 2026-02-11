@@ -13,8 +13,7 @@ set(EXAMPLE_SOURCES
     create_and_read_sample_rate_buffers.c
     simple_properties_display_handling.c
     basic_conversions_example.c
-    advanced_conversions_example.c
-    metadata_read_example.c)
+    advanced_conversions_example.c)
 
 foreach(src ${EXAMPLE_SOURCES})
     get_filename_component(exec_name ${src} NAME_WLE)

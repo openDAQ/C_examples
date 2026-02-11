@@ -7,17 +7,17 @@ int main()
 {
     // Integer example
     int64_t i = 10;
-    daqInteger* daqInt = daqExample_toDaqInteger(i);
-    int64_t i2 = daqExample_fromDaqInteger(daqInt);
+    daqInteger* daqIn = daqExample_toDaqInteger(i);
+    int64_t i2 = daqExample_fromDaqInteger(daqIn);
     printf("Integer is equal: %s\n", i == i2 ? "True": "False");
-    daqReleaseRef(daqInt);
+    daqReleaseRef(daqIn);
 
     // Float example
     double j = 1.0;
-    daqFloatObject* daqFloat = daqExample_toDaqFloat(j);
-    double j2 = daqExample_fromDaqFloat(daqFloat);
+    daqFloatObject* daqFl = daqExample_toDaqFloat(j);
+    double j2 = daqExample_fromDaqFloat(daqFl);
     printf("Float is equal: %s\n", j == j2 ? "True" : "False");
-    daqReleaseRef(daqFloat);
+    daqReleaseRef(daqFl);
 
     // String example
     char* k = "check";
