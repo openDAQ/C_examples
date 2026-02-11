@@ -7,7 +7,7 @@ enum DAQ_PropType
     integer,
     floatObject,
     string,
-    boolean,
+    propBoolean,
     ratio,
     enumeration,
     structObject,
@@ -52,6 +52,7 @@ void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType sugge
         daqQueryInterface(selectedValueObj, DAQ_FLOAT_OBJECT_INTF_ID, &value);
         printf("%f\n", daq_fromDaqFloat(value));
         daqReleaseRef(value);
+        return;
     }
     case daqCtBool:
     {
@@ -59,6 +60,7 @@ void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType sugge
         daqQueryInterface(selectedValueObj, DAQ_BOOLEAN_INTF_ID, &value);
         printf("%u\n", daq_fromDaqBoolean(value));
         daqReleaseRef(value);
+        return;
     }
     case daqCtString:
     {
@@ -66,6 +68,7 @@ void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType sugge
         daqQueryInterface(selectedValueObj, DAQ_STRING_INTF_ID, &value);
         printDaqFormattedString("%s\n", value);
         daqReleaseRef(value);
+        return;
     }
     case daqCtRatio:
     {
@@ -73,6 +76,7 @@ void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType sugge
         daqQueryInterface(selectedValueObj, DAQ_RATIO_INTF_ID, &value);
         printRatio(daq_fromDaqRatio(value));
         daqReleaseRef(value);
+        return;
     }
     case daqCtEnumeration:
         printf("Enumeration\n");
@@ -94,6 +98,7 @@ void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType sugge
         daqConstCharPtr* value = NULL;
         daqBaseObject_toString(selectedValueObj, value);
         printf("%s\n", *value);
+        return;
     }
     }
 }
@@ -168,7 +173,7 @@ enum DAQ_PropType daq_getPropType(daqProperty* property)
         return string;
 
     case daqCtBool:
-        return boolean;
+        return propBoolean;
 
     case daqCtFloat:
         return floatObject;
@@ -208,6 +213,7 @@ void printPropertyValue(daqBaseObject* value, daqProperty* property)
     {
     case integer:
     case string:
+    case propBoolean:
     case floatObject:
     case ratio:
     {
@@ -309,14 +315,15 @@ void printPropertyMetadata(daqProperty* property)
     // Value Type
     daqCoreType coreType = daqCtUndefined;
     daqProperty_getValueType(property, &coreType);
-    printf("Value type: %s\n", daqCoreTypeToString(coreType));
+    printf("- Value type: %s\n", daqCoreTypeToString(coreType));
 
     // Default Value
     daqBaseObject* defaultValue = NULL;
     daqProperty_getDefaultValue(property, &defaultValue);
-    printf("Default value: ");
+    printf("- Default value: ");
     printPropertyValue(defaultValue, property);
-    daqReleaseRef(defaultValue);
+    if (defaultValue != NULL)
+        daqReleaseRef(defaultValue);
 
     if (type == dictionary)
     {
@@ -370,13 +377,13 @@ void printPropertyMetadata(daqProperty* property)
 
     if (type == integer || type == string || type == floatObject)
     {
-        daqBaseObject* temp = NULL;
+        daqList* temp = NULL;
         daqProperty_getSuggestedValues(property, &temp);
         if (temp != NULL)
         {
             daqProperty_getValueType(property, &coreType);
             printf("- Suggested values:\n");
-            printDaqList(temp, coreType);
+            printDaqList((daqBaseObject*)temp, coreType);
             daqReleaseRef(temp);
         }
     }
@@ -455,7 +462,7 @@ void printCallableInfo(daqCallableInfo* callableInfo)
         daqReleaseRef(temp);
 
         daqArgumentInfo_getName(value, &name);
-        printDaqFormattedString(" -- Argument name: %s\n", name);
+        printDaqFormattedString("  -- Argument name: %s\n", name);
         daqReleaseRef(value);
         daqReleaseRef(name);
     }
@@ -521,9 +528,9 @@ void printDaqDict(daqBaseObject* value, daqCoreType keyType, daqCoreType itemTyp
         daqList_getItemAt(keys, i, &key);
         daqDict_get(valueDict, key, &val);
 
-        printf(" -- Key: ");
+        printf("  -- Key: ");
         printSimpleCoreTypeValue(key, keyType);
-        printf(" -- Value: ");
+        printf("  -- Value: ");
         printSimpleCoreTypeValue(val, itemType);
         daqReleaseRef(key);
         daqReleaseRef(val);
