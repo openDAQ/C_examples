@@ -11,13 +11,10 @@ set(EXAMPLE_SOURCES
     read_with_formatted_timestamps.c
     print_data_descriptor_and_calculater_sample_rate.c
     create_and_read_sample_rate_buffers.c
-    custom_struct_type_conversion.c
     simple_properties_display_handling.c
     basic_conversions_example.c
     advanced_conversions_example.c
-    metadata_read_example.c
-    value_read_example.c
-    value_change_example.c)
+    metadata_read_example.c)
 
 foreach(src ${EXAMPLE_SOURCES})
     get_filename_component(exec_name ${src} NAME_WLE)
