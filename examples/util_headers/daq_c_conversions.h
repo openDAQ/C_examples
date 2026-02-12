@@ -134,12 +134,11 @@ daqFloatObject* daqExample_toDaqFloat(daqFloat native)
 
 struct daqExample_ComplexNumber daqExample_fromDaqComplex(daqComplexNumber* daq)
 {
-    struct daqExample_ComplexNumber native = { 0, 0 };
-    double tempDouble = 0;
-    daqComplexNumber_getReal(daq, &tempDouble);
-    native.real = tempDouble;
-    daqComplexNumber_getImaginary(daq, &tempDouble);
-    native.imaginary = tempDouble;
+    double real;
+    double complex;
+    daqComplexNumber_getReal(daq, &real);
+    daqComplexNumber_getImaginary(daq, &complex);
+    struct daqExample_ComplexNumber native = { real, complex };
     return native;
 }
 
@@ -152,18 +151,18 @@ daqComplexNumber* daqExample_toDaqComplex(struct daqExample_ComplexNumber* nativ
 
 struct daqExample_Range daqExample_fromDaqRange(daqRange* daq)
 {
-    struct daqExample_Range native = { 0, 0 };
-    daqNumber* temp;
-    daqRange_getLowValue(daq, &temp);
-    double intermmidiate = 0;
-    daqNumber_getFloatValue(temp, &intermmidiate);
-    native.min = intermmidiate;
-    daqReleaseRef(temp);
+    daqNumber* number = NULL;
+    double min = 0;
+    double max = 0; 
 
-    daqRange_getHighValue(daq, &temp);
-    daqNumber_getFloatValue(temp, &intermmidiate);
-    native.max = intermmidiate;
-    daqReleaseRef(temp);
+    daqRange_getLowValue(daq, &number);
+    daqNumber_getFloatValue(number, &min);
+    daqReleaseRef(number);
+
+    daqRange_getHighValue(daq, &number);
+    daqNumber_getFloatValue(number, &max);
+    struct daqExample_Range native = { min, max };
+    daqReleaseRef(number);
     return native;
 }
 
@@ -192,12 +191,11 @@ daqRange* daqExample_toDaqRange(struct daqExample_Range native)
 
 struct daqExample_Ratio daqExample_fromDaqRatio(daqRatio* daq)
 {
-    struct daqExample_Ratio native = { 0,0 };
-    int64_t temp = 0;
-    daqRatio_getDenominator(daq, &temp);
-    native.denominator = temp;
-    daqRatio_getNumerator(daq, &temp);
-    native.numerator = temp;
+    int64_t denominator = 0;
+    int64_t numerator = 0;
+    daqRatio_getDenominator(daq, &denominator);
+    daqRatio_getNumerator(daq, &numerator);
+    struct daqExample_Ratio native = { denominator, numerator };
     return native;
 }
 

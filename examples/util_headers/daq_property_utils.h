@@ -1,6 +1,6 @@
 #include <daq_c_conversions.h>
 
-enum daqExample_propertyType
+enum daqExample_PropertyType
 {
     daqExample_propertyType_selection,
     daqExample_propertyType_sparseSelection,
@@ -16,20 +16,20 @@ enum daqExample_propertyType
     daqExample_propertyType_dictionary,
     daqExample_propertyType_object,
     daqExample_porpertyType_complexNumber,
-    daqExample_propertyType_oh_no
+    daqExample_propertyType_unknown
 };
 
 void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType suggestedValuesItemType);
 char* daqCoreTypeToString(daqCoreType type);
-enum daqExample_propertyType daq_getPropType(daqProperty* property);
+enum daqExample_PropertyType daq_getPropType(daqProperty* property);
 void printPropertyValue(daqBaseObject* value, daqProperty* property);
 void printPropertyMetadata(daqProperty* property);
 void printDaqUnit(daqUnit* unit);
 void printDaqPropertyCallableInfo(daqCallableInfo* callableInfo);
-void printDapPropertyName(daqProperty* property);
+void printDaqPropertyName(daqProperty* property);
 void printDaqPropertyVisible(daqProperty* property);
 void printDaqPropertyReadOnly(daqProperty* property);
-void printDaqNumber(daqNumber* number, enum daqExample_propertyType type);
+void printDaqNumber(daqNumber* number, enum daqExample_PropertyType type);
 void printDaqDict(daqBaseObject* value, daqCoreType keyType, daqCoreType itemType);
 void printDaqList(daqBaseObject* value, daqCoreType itemType);
 void printDaqRatio(struct daqExample_Ratio native);
@@ -140,7 +140,7 @@ char* daqCoreTypeToString(daqCoreType type)
     }
 }
 
-enum daqExample_propertyType daq_getPropType(daqProperty* property)
+enum daqExample_PropertyType daq_getPropType(daqProperty* property)
 {
     daqCoreType type = daqCtUndefined;
     daqProperty_getValueType(property, &type);
@@ -201,13 +201,13 @@ enum daqExample_propertyType daq_getPropType(daqProperty* property)
         return daqExample_propertyType_dictionary;
 
     default:
-        return daqExample_propertyType_oh_no;
+        return daqExample_propertyType_unknown;
     }
 }
 
 void printPropertyValue(daqBaseObject* value, daqProperty* property)
 {
-    enum daqExample_propertyType propType = daq_getPropType(property);
+    enum daqExample_PropertyType propType = daq_getPropType(property);
 
     switch (propType)
     {
@@ -295,10 +295,10 @@ void printPropertyValue(daqBaseObject* value, daqProperty* property)
 
 void printPropertyMetadata(daqProperty* property)
 {
-    enum daqExample_propertyType propertyType = daq_getPropType(property);
+    enum daqExample_PropertyType propertyType = daq_getPropType(property);
 
     // Strings
-    printDapPropertyName(property);
+    printDaqPropertyName(property);
 
     daqString* description = NULL;
     daqProperty_getDescription(property, &description);
@@ -480,7 +480,7 @@ void printDaqPropertyCallableInfo(daqCallableInfo* callableInfo)
         printf("  -- Return type: %s\n", daqCoreTypeToString(returnType));
 }
 
-void printDapPropertyName(daqProperty* property)
+void printDaqPropertyName(daqProperty* property)
 {
     daqString* name = NULL;
     daqProperty_getName(property, &name);
@@ -502,7 +502,7 @@ void printDaqPropertyReadOnly(daqProperty* property)
     printf("- Read only: %s\n", readOnly == True ? "True" : "False");
 }
 
-void printDaqNumber(daqNumber* number, enum daqExample_propertyType type)
+void printDaqNumber(daqNumber* number, enum daqExample_PropertyType type)
 {
     if (type == daqExample_propertyType_integer)
     {
@@ -573,9 +573,9 @@ void printDaqList(daqBaseObject* value, daqCoreType itemType)
     daqReleaseRef(valueList);
 }
 
-void printDaqRatio(struct daqExample_Ratio native)
+void printDaqRatio(struct daqExample_Ratio ratio)
 {
     printf("Ratio:\n");
-    printf("  - Denominator: %lld\n", native.denominator);
-    printf("  - Numerator: %lld\n", native.numerator);
+    printf("  - Denominator: %lld\n", ratio.denominator);
+    printf("  - Numerator: %lld\n", ratio.numerator);
 }

@@ -1,5 +1,6 @@
 /*
- * Example that displays Conversions between native C types and their openDAQ equvalents.
+ * Example that demonstrates conversions between native C types 
+ * and their openDAQ equvalents.
  */
 #include <daq_c_conversions.h>
 

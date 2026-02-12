@@ -4,7 +4,7 @@
  */
 #include <daq_property_utils.h>
 
-void recursive(daqPropertyObject* propertyObject)
+void printPropertyTree(daqPropertyObject* propertyObject)
 {
     daqList* visibleProperties = NULL;
     daqPropertyObject_getVisibleProperties(propertyObject, &visibleProperties);
@@ -26,23 +26,20 @@ void recursive(daqPropertyObject* propertyObject)
 
         daqBaseObject* propertyValue;
         daqProperty_getValue(property, &propertyValue);
+        
+        printPropertyMetadata(property);
 
         if (valueType == daqCtObject)
         {
-            daqString* name = NULL;
-            daqProperty_getName(property, &name);
-            printDaqFormattedString("- Property name: %s -\n", name);
-            daqReleaseRef(name);
-
+            printf("---\n");
             daqPropertyObject* childPropertyObject = NULL;
             daqQueryInterface(propertyValue, DAQ_PROPERTY_OBJECT_INTF_ID, &childPropertyObject);
-            recursive(childPropertyObject);
+            printPropertyTree(childPropertyObject);
             printf("---\n\n");
             daqReleaseRef(childPropertyObject);
         }
         else
         {
-            printPropertyMetadata(property);
             printf("- Value: ");
             printPropertyValue(propertyValue, property);
             printf("\n");
@@ -64,7 +61,7 @@ int main()
     daqDevice* simulator = NULL;
     addSimulator(&simulator, &instance);
 
-    recursive((daqPropertyObject*) simulator);
+    printPropertyTree((daqPropertyObject*) simulator);
 
     daqReleaseRef(simulator);
     daqReleaseRef(instance);

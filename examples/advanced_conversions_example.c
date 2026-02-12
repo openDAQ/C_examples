@@ -123,7 +123,6 @@ int main()
     daqInstance* simulatorInstance = NULL;
     setupSimulator(&simulatorInstance);
     daqExmaple_addCustomTypes(simulatorInstance);
-    daqExample_addCustomStructAndEnumProp((daqDevice*)simulatorInstance);
 
     daqInstance* instance = NULL;
     daqDevice* simulator = NULL;

@@ -1,3 +1,6 @@
+/*
+ * Disclamer: 
+ */
 #include <daq_c_conversions.h>
 
  // Custom struct type
@@ -25,16 +28,17 @@ void daqExample_addCoordinateStructToTypeManager(daqContext* context)
     daqList* names = NULL;
     daqList_createList(&names);
 
-    daqString* temp = daqExample_toDaqString("x");
+    daqString* name = daqExample_toDaqString("x");
+    daqList_pushBack(names, (daqBaseObject*) name);
+    daqReleaseRef(name);
 
-    daqList_pushBack(names, (daqBaseObject*)temp);
-    daqReleaseRef(temp);
-    temp = daqExample_toDaqString("y");
-    daqList_pushBack(names, (daqBaseObject*) temp);
-    daqReleaseRef(temp);
-    temp = daqExample_toDaqString("z");
-    daqList_pushBack(names, (daqBaseObject*)temp);
-    daqReleaseRef(temp);
+    name = daqExample_toDaqString("y");
+    daqList_pushBack(names, (daqBaseObject*) name);
+    daqReleaseRef(name);
+
+    name = daqExample_toDaqString("z");
+    daqList_pushBack(names, (daqBaseObject*) name);
+    daqReleaseRef(name);
 
     daqSimpleType* simpleType = NULL;
     daqSimpleType_createSimpleType(&simpleType, daqCtInt);
@@ -64,40 +68,46 @@ void daqExample_addCustomStructAndEnumProp(daqDevice* device)
     daqContext* context = NULL;
     daqComponent_getContext((daqComponent*)device, &context);
     daqContext_getTypeManager(context, &typeMan);
+
     daqStructBuilder* builder = NULL;
-    daqString* nameTemp = daqExample_toDaqString("DAQ_Coordinates");
-    daqStructBuilder_createStructBuilder(&builder, nameTemp, typeMan);
-    daqReleaseRef(nameTemp);
-    daqInteger* tempInt = NULL;
-    daqString* temp = NULL;
+    daqString* name = daqExample_toDaqString("DAQ_Coordinates");
+    daqStructBuilder_createStructBuilder(&builder, name, typeMan);
+    daqReleaseRef(name);
 
-    temp = daqExample_toDaqString("x");
-    tempInt = daqExample_toDaqInteger(2);
-    daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
-    daqReleaseRef(temp);
-    daqReleaseRef(tempInt);
+    daqInteger* value = NULL;
+    daqString* fieldName = NULL;
 
-    temp = daqExample_toDaqString("y");
-    tempInt = daqExample_toDaqInteger(3);
-    daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
-    daqReleaseRef(temp);
-    daqReleaseRef(tempInt);
+    fieldName = daqExample_toDaqString("x");
+    value = daqExample_toDaqInteger(2);
+    daqStructBuilder_set(builder, fieldName, (daqBaseObject*) value);
+    daqReleaseRef(fieldName);
+    daqReleaseRef(value);
 
-    temp = daqExample_toDaqString("z");
-    tempInt = daqExample_toDaqInteger(4);
-    daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
-    daqReleaseRef(temp);
-    daqReleaseRef(tempInt);
+    fieldName = daqExample_toDaqString("y");
+    value = daqExample_toDaqInteger(3);
+    daqStructBuilder_set(builder, fieldName, (daqBaseObject*) value);
+    daqReleaseRef(fieldName);
+    daqReleaseRef(value);
+
+    fieldName = daqExample_toDaqString("z");
+    value = daqExample_toDaqInteger(4);
+    daqStructBuilder_set(builder, fieldName, (daqBaseObject*) value);
+    daqReleaseRef(fieldName);
+    daqReleaseRef(value);
 
     daqStruct* coordinatesStruct = NULL;
     daqStructBuilder_build(builder, &coordinatesStruct);
 
-    nameTemp = daqExample_toDaqString("DAQ_CurrentPosition");
+    name = daqExample_toDaqString("DAQ_CurrentPosition");
     daqPropertyBuilder* structBuilder = NULL;
-    daqPropertyBuilder_createStructPropertyBuilder(&structBuilder, nameTemp,coordinatesStruct);
+    daqPropertyBuilder_createStructPropertyBuilder(&structBuilder, name, coordinatesStruct);
     daqProperty* structProp = NULL;
     daqPropertyBuilder_build(structBuilder, &structProp);
     daqPropertyObject_addProperty((daqPropertyObject*)device, structProp);
+
+    daqReleaseRef(structProp);
+    daqReleaseRef(structBuilder);
+    daqReleaseRef(builder);
 }
 
 void daqExmaple_addCustomTypes(daqInstance* instance)
