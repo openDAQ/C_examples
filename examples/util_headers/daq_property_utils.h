@@ -22,7 +22,7 @@ enum daqExample_PropertyType
 void printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType suggestedValuesItemType);
 char* daqCoreTypeToString(daqCoreType type);
 enum daqExample_PropertyType daq_getPropType(daqProperty* property);
-void printPropertyValue(daqProperty* property, daqBool defaultValue);
+void printPropertyValueOrDefault(daqProperty* property, daqBool defaultValue);
 void printPropertyMetadata(daqProperty* property);
 void printDaqNumber(daqNumber* number, enum daqExample_PropertyType type);
 void printDaqDict(daqBaseObject* value, daqCoreType keyType, daqCoreType itemType);
@@ -216,7 +216,7 @@ enum daqExample_PropertyType daq_getPropType(daqProperty* property)
     }
 }
 
-void printPropertyValue(daqProperty* property, daqBool defaultValue)
+void printPropertyValueOrDefault(daqProperty* property, daqBool defaultValue)
 {
     daqBaseObject* value = NULL;
 
@@ -577,14 +577,14 @@ void printDaqPropertyDescription(daqProperty* property)
 
 void printDaqPropertyVisible(daqProperty* property)
 {
-    uint8_t visible = False;
+    daqBool visible = False;
     daqProperty_getVisible(property, &visible);
     printf("- Visible: %s\n", visible == True ? "True" : "False");
 }
 
 void printDaqPropertyReadOnly(daqProperty* property)
 {
-    uint8_t readOnly = False;
+    daqBool readOnly = False;
     daqProperty_getReadOnly(property, &readOnly);
     printf("- Read only: %s\n", readOnly == True ? "True" : "False");
 }
@@ -599,7 +599,7 @@ void printDaqPropertyValueType(daqProperty* property)
 void printDaqPropertyDefaultValue(daqProperty* property)
 {
     printf("- Default value:");
-    printPropertyValue(property, True);
+    printPropertyValueOrDefault(property, True);
 }
 
 void printDaqPropertyKeyType(daqProperty* property)
@@ -626,11 +626,13 @@ void printDaqPropertyMinMaxValue(daqProperty* property, enum daqExample_Property
     {
         printf("- Min value:");
         printDaqNumber(min, propertyType);
+        daqReleaseRef(min);
     }
     if (max != NULL)
     {
         printf("- Max value:");
         printDaqNumber(max, propertyType);
+        daqReleaseRef(max);
     }
 }
 
@@ -684,28 +686,28 @@ void printDaqPropertyUnit(daqProperty* property)
     daqUnit_getId(unit, &id);
     if (id > -1)
     {
-        printf("  -- Id: %lld\n", id);
+        printf("  -- Id: '%lld'\n", id);
     }
 
     daqString* value = NULL;
     daqUnit_getName(unit, &value);
-    if (value != NULL && !isDaqStringEmpty(value))
+    if (value != NULL)
     {
-        printDaqFormattedString("  -- Unit name: %s\n", value);
+        printDaqFormattedString("  -- Unit name: '%s'\n", value);
         daqReleaseRef(value);
     }
 
     daqUnit_getQuantity(unit, &value);
-    if (value != NULL && !isDaqStringEmpty(value))
+    if (value != NULL)
     {
-        printDaqFormattedString("  -- Quantity: %s\n", value);
+        printDaqFormattedString("  -- Quantity: '%s'\n", value);
         daqReleaseRef(value);
     }
 
     daqUnit_getSymbol(unit, &value);
-    if (value != NULL && !isDaqStringEmpty(value))
+    if (value != NULL)
     {
-        printDaqFormattedString("  -- Symbol: %s\n", value);
+        printDaqFormattedString("  -- Symbol: '%s'\n", value);
         daqReleaseRef(value);
     }
     daqReleaseRef(unit);

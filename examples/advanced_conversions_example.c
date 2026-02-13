@@ -5,11 +5,6 @@
  */
 #include <daq_example_utils.h>
 
-
-struct daqExample_Coordinates;
-
-enum daqExample_ComponentStatusTypeEnum;
-
 // Struct conversion
 /*
  * Conversion from and to daqStruct objects to C style structs.
@@ -22,32 +17,32 @@ struct daqExample_Coordinates daqExample_fromDaqCoordinates(daqStruct* daq)
 {
     struct daqExample_Coordinates native = { 0,0,0 };
 
-    daqBaseObject* tempObj = NULL;
-    daqBaseObject* tempMid = NULL;
+    daqBaseObject* value = NULL;
+    daqBaseObject* integerValue = NULL;
 
-    daqString* temp = daqExample_toDaqString("x");
-    daqStruct_get(daq, temp, &tempObj);
-    daqQueryInterface(tempObj, DAQ_INTEGER_INTF_ID, &tempMid);
-    native.x = daqExample_fromDaqInteger((daqInteger*) tempMid);
-    daqReleaseRef(tempMid);
-    daqReleaseRef(tempObj);
-    daqReleaseRef(temp);
+    daqString* fieldName = daqExample_toDaqString("x");
+    daqStruct_get(daq, fieldName, &value);
+    daqQueryInterface(value, DAQ_INTEGER_INTF_ID, &integerValue);
+    native.x = daqExample_fromDaqInteger((daqInteger*) integerValue);
+    daqReleaseRef(integerValue);
+    daqReleaseRef(value);
+    daqReleaseRef(fieldName);
 
-    temp = daqExample_toDaqString("y");
-    daqStruct_get(daq, temp, &tempObj);
-    daqQueryInterface(tempObj, DAQ_INTEGER_INTF_ID, &tempMid);
-    native.y = daqExample_fromDaqInteger((daqInteger*) tempMid);
-    daqReleaseRef(tempMid);
-    daqReleaseRef(tempObj);
-    daqReleaseRef(temp);
+    fieldName = daqExample_toDaqString("y");
+    daqStruct_get(daq, fieldName, &value);
+    daqQueryInterface(value, DAQ_INTEGER_INTF_ID, &integerValue);
+    native.y = daqExample_fromDaqInteger((daqInteger*) integerValue);
+    daqReleaseRef(integerValue);
+    daqReleaseRef(value);
+    daqReleaseRef(fieldName);
 
-    temp = daqExample_toDaqString("z");
-    daqStruct_get(daq, temp, &tempObj);
-    daqQueryInterface(tempObj, DAQ_INTEGER_INTF_ID, &tempMid);
-    native.z = daqExample_fromDaqInteger((daqInteger*) tempMid);
-    daqReleaseRef(tempMid);
-    daqReleaseRef(tempObj);
-    daqReleaseRef(temp);
+    fieldName = daqExample_toDaqString("z");
+    daqStruct_get(daq, fieldName, &value);
+    daqQueryInterface(value, DAQ_INTEGER_INTF_ID, &integerValue);
+    native.z = daqExample_fromDaqInteger((daqInteger*) integerValue);
+    daqReleaseRef(integerValue);
+    daqReleaseRef(value);
+    daqReleaseRef(fieldName);
 
     return native;
 }
@@ -57,26 +52,26 @@ daqStruct* daqExample_toDaqCoordinates(struct daqExample_Coordinates native, daq
     daqStructBuilder* builder = NULL;
     daqStructBuilder_createStructBuilder(&builder, daqExample_toDaqString("DAQ_Coordinates"), typeManager);
 
-    daqString* temp = NULL;
-    daqInteger* tempInt = NULL;
+    daqString* fieldName = NULL;
+    daqInteger* fieldValue = NULL;
 
-    temp = daqExample_toDaqString("x");
-    tempInt = daqExample_toDaqInteger(native.x);
-    daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
-    daqReleaseRef(temp);
-    daqReleaseRef(tempInt);
+    fieldName = daqExample_toDaqString("x");
+    fieldValue = daqExample_toDaqInteger(native.x);
+    daqStructBuilder_set(builder, fieldName, (daqBaseObject*) fieldValue);
+    daqReleaseRef(fieldName);
+    daqReleaseRef(fieldValue);
 
-    temp = daqExample_toDaqString("y");
-    tempInt = daqExample_toDaqInteger(native.y);
-    daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
-    daqReleaseRef(temp);
-    daqReleaseRef(tempInt);
+    fieldName = daqExample_toDaqString("y");
+    fieldValue = daqExample_toDaqInteger(native.y);
+    daqStructBuilder_set(builder, fieldName, (daqBaseObject*) fieldValue);
+    daqReleaseRef(fieldName);
+    daqReleaseRef(fieldValue);
 
-    temp = daqExample_toDaqString("z");
-    tempInt = daqExample_toDaqInteger(native.z);
-    daqStructBuilder_set(builder, temp, (daqBaseObject*) tempInt);
-    daqReleaseRef(temp);
-    daqReleaseRef(tempInt);
+    fieldName = daqExample_toDaqString("z");
+    fieldValue = daqExample_toDaqInteger(native.z);
+    daqStructBuilder_set(builder, fieldName, (daqBaseObject*) fieldValue);
+    daqReleaseRef(fieldName);
+    daqReleaseRef(fieldValue);
 
     daqStruct* daq = NULL;
     daqStructBuilder_build(builder, &daq);
@@ -130,32 +125,30 @@ int main()
     
     daqContext* context = NULL;
     daqComponent_getContext((daqComponent*)simulator, &context);
-    daqTypeManager* typeMan = NULL;
-    daqContext_getTypeManager(context, &typeMan);
+    daqTypeManager* typeManager = NULL;
+    daqContext_getTypeManager(context, &typeManager);
 
     enum daqExample_ComponentStatusTypeEnum enumStatusType = daqExample_ComponentStatusType_Error;
-    daqEnumeration* daqEnum = daqExample_toCompStatusTypeEnum(enumStatusType, typeMan);
+    daqEnumeration* daqEnum = daqExample_toCompStatusTypeEnum(enumStatusType, typeManager);
     enum daqExample_ComponentStatusTypeEnum enumStatusType2 = daqExample_fromDaqCompStatusTypeEnum(daqEnum);
-    
-    uint8_t check = enumStatusType == enumStatusType2;
 
-    if (check)
+    if (enumStatusType == enumStatusType2)
         printf("Structs are the same after transforming them to and from openDAQ.\n");
     else
         printf("Structs are different!\n");
 
     struct daqExample_Coordinates nativeCoordinates = {4, 4, 4};
-    daqStruct* tempStruct = daqExample_toDaqCoordinates(nativeCoordinates, typeMan);
+    daqStruct* tempStruct = daqExample_toDaqCoordinates(nativeCoordinates, typeManager);
     struct daqExample_Coordinates nativeCoordinates2 = daqExample_fromDaqCoordinates(tempStruct);
-    
-    check = nativeCoordinates.x == nativeCoordinates2.x && nativeCoordinates.y == nativeCoordinates2.y && nativeCoordinates.z == nativeCoordinates2.z;
 
-    if (check)
+    if (nativeCoordinates.x == nativeCoordinates2.x &&
+        nativeCoordinates.y == nativeCoordinates2.y && 
+        nativeCoordinates.z == nativeCoordinates2.z)
         printf("Enums are the same after transforming them to and from openDAQ.\n");
     else
         printf("Enums are different!\n");
 
-    daqReleaseRef(typeMan);
+    daqReleaseRef(typeManager);
     daqReleaseRef(tempStruct);
 
     daqReleaseRef(simulator);

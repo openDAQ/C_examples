@@ -64,14 +64,14 @@ void daqExample_addCoordinateStructToTypeManager(daqContext* context)
 
 void daqExample_addCustomStructAndEnumProp(daqDevice* device)
 {
-    daqTypeManager* typeMan = NULL;
+    daqTypeManager* typeManager = NULL;
     daqContext* context = NULL;
     daqComponent_getContext((daqComponent*)device, &context);
-    daqContext_getTypeManager(context, &typeMan);
+    daqContext_getTypeManager(context, &typeManager);
 
     daqStructBuilder* builder = NULL;
     daqString* name = daqExample_toDaqString("DAQ_Coordinates");
-    daqStructBuilder_createStructBuilder(&builder, name, typeMan);
+    daqStructBuilder_createStructBuilder(&builder, name, typeManager);
     daqReleaseRef(name);
 
     daqInteger* value = NULL;
