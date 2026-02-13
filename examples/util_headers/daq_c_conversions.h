@@ -1,21 +1,21 @@
 #include <daq_utils.h>
 
 // Core struct type
-struct daqExample_ComplexNumber
+struct exdaq_ComplexNumber
 {
     double real;
     double imaginary;
 };
 
 // Core struct type
-struct daqExample_Range
+struct exdaq_Range
 {
     double min;
     double max;
 };
 
 // Core struct type
-struct daqExample_Ratio
+struct exdaq_Ratio
 {
     int64_t denominator;
     int64_t numerator;
@@ -26,8 +26,8 @@ struct daqExample_Ratio
  * The following two funtions represent the conversion between the openDAQ native
  * daqInt type and its coresponding C integer type.
  */
-daqInt daqExample_fromDaqInteger(daqInteger* daq);
-daqInteger* daqExample_toDaqInteger(daqInt native);
+daqInt exdaq_fromDaqInteger(daqInteger* daq);
+daqInteger* exdaq_toDaqInteger(daqInt native);
 
 // String conversion
 /*
@@ -35,121 +35,121 @@ daqInteger* daqExample_toDaqInteger(daqInt native);
  * from C language (const char*). The function that converts to native C return a non-owning pointer.
  * Precautions should be taken, when using the received pointer.
  */
-char* daqExample_fromDaqString(daqString* daq);
-daqString* daqExample_toDaqString(const char* native);
+char* exdaq_fromDaqString(daqString* daq);
+daqString* exdaq_toDaqString(const char* native);
 
 // Bool conversion
 /*
  * Conversion from and to openDAQ Boolean (daqString) core type from C language (uint8_t).
  */
-uint8_t daqExample_fromDaqBoolean(daqBoolean* daq);
-daqBoolean* daqExample_toDaqBoolean(uint8_t native);
+uint8_t exdaq_fromDaqBoolean(daqBoolean* daq);
+daqBoolean* exdaq_toDaqBoolean(uint8_t native);
 
 // Float conversion
 /*
  *Conversion from and to openDAQ String (daqFloat) core type from C language (double).
  */
-daqFloat daqExample_fromDaqFloat(daqFloatObject* daq);
-daqFloatObject* daqExample_toDaqFloat(daqFloat native);
+daqFloat exdaq_fromDaqFloat(daqFloatObject* daq);
+daqFloatObject* exdaq_toDaqFloat(daqFloat native);
 
 // Complex number conversion
 /*
  * Conversion from and to openDAQ Complex (daqComplex) core type
  * from C language (struct ComplexNumber).
  */
-struct daqExample_ComplexNumber daqExample_fromDaqComplex(daqComplexNumber* daq);
-daqComplexNumber* daqExample_toDaqComplex(struct daqExample_ComplexNumber* native);
+struct exdaq_ComplexNumber exdaq_fromDaqComplex(daqComplexNumber* daq);
+daqComplexNumber* exdaq_toDaqComplex(struct exdaq_ComplexNumber* native);
 
 // Range conversion
 /*
  * Conversion from and to openDAQ Struct (daqRange) core type
  * from C language (struct Range).
  */
-struct daqExample_Range daqExample_fromDaqRange(daqRange* daq);
-daqRange* daqExample_toDaqRange(struct daqExample_Range native);
+struct exdaq_Range exdaq_fromDaqRange(daqRange* daq);
+daqRange* exdaq_toDaqRange(struct exdaq_Range native);
 
 // Ratio conversion
 /*
  * Conversion from and to openDAQ Ratio Struct (daqRatio)
  * from C language (struct Ratio).
  */
-struct daqExample_Ratio daqExample_fromDaqRatio(daqRatio* daq);
-daqRatio* daqExample_toDaqRatio(struct daqExample_Ratio native);
+struct exdaq_Ratio exdaq_fromDaqRatio(daqRatio* daq);
+daqRatio* exdaq_toDaqRatio(struct exdaq_Ratio native);
 
-daqInt daqExample_fromDaqInteger(daqInteger* daq)
+daqInt exdaq_fromDaqInteger(daqInteger* daq)
 {
     daqInt native = 0;
     daqInteger_getValue(daq, &native);
     return native;
 }
 
-daqInteger* daqExample_toDaqInteger(daqInt native)
+daqInteger* exdaq_toDaqInteger(daqInt native)
 {
     daqInteger* daq = NULL;
     daqInteger_createInteger(&daq, native);
     return daq;
 }
 
-char* daqExample_fromDaqString(daqString* daq)
+char* exdaq_fromDaqString(daqString* daq)
 {
     char* native = NULL;
     daqString_getCharPtr(daq, &native);
     return native;
 }
 
-daqString* daqExample_toDaqString(const char* native)
+daqString* exdaq_toDaqString(const char* native)
 {
     daqString* daq = NULL;
     daqString_createString(&daq, native);
     return daq;
 }
 
-uint8_t daqExample_fromDaqBoolean(daqBoolean* daq)
+uint8_t exdaq_fromDaqBoolean(daqBoolean* daq)
 {
     uint8_t native = 0;
     daqBoolean_getValue(daq, &native);
     return native;
 }
 
-daqBoolean* daqExample_toDaqBoolean(uint8_t native)
+daqBoolean* exdaq_toDaqBoolean(uint8_t native)
 {
     daqBoolean* daq = NULL;
     daqBoolean_createBoolean(&daq, native);
     return daq;
 }
 
-daqFloat daqExample_fromDaqFloat(daqFloatObject* daq)
+daqFloat exdaq_fromDaqFloat(daqFloatObject* daq)
 {
     daqFloat native = 0;
     daqFloatObject_getValue(daq, &native);
     return native;
 }
 
-daqFloatObject* daqExample_toDaqFloat(daqFloat native)
+daqFloatObject* exdaq_toDaqFloat(daqFloat native)
 {
     daqFloatObject* daq = 0;
     daqFloatObject_createFloatObject(&daq, native);
     return daq;
 }
 
-struct daqExample_ComplexNumber daqExample_fromDaqComplex(daqComplexNumber* daq)
+struct exdaq_ComplexNumber exdaq_fromDaqComplex(daqComplexNumber* daq)
 {
     double real;
     double complex;
     daqComplexNumber_getReal(daq, &real);
     daqComplexNumber_getImaginary(daq, &complex);
-    struct daqExample_ComplexNumber native = { real, complex };
+    struct exdaq_ComplexNumber native = { real, complex };
     return native;
 }
 
-daqComplexNumber* daqExample_toDaqComplex(struct daqExample_ComplexNumber* native)
+daqComplexNumber* exdaq_toDaqComplex(struct exdaq_ComplexNumber* native)
 {
     daqComplexNumber* daq = NULL;
     daqComplexNumber_createComplexNumber(&daq, native->real, native->imaginary);
     return daq;
 }
 
-struct daqExample_Range daqExample_fromDaqRange(daqRange* daq)
+struct exdaq_Range exdaq_fromDaqRange(daqRange* daq)
 {
     daqNumber* number = NULL;
     double min = 0;
@@ -161,19 +161,19 @@ struct daqExample_Range daqExample_fromDaqRange(daqRange* daq)
 
     daqRange_getHighValue(daq, &number);
     daqNumber_getFloatValue(number, &max);
-    struct daqExample_Range native = { min, max };
+    struct exdaq_Range native = { min, max };
     daqReleaseRef(number);
     return native;
 }
 
-daqRange* daqExample_toDaqRange(struct daqExample_Range native)
+daqRange* exdaq_toDaqRange(struct exdaq_Range native)
 {
     daqRange* daq = NULL;
     daqNumber* lowValue = NULL;
     daqNumber* highValue = NULL;
 
-    daqFloatObject* lowFloat = daqExample_toDaqFloat(native.min);
-    daqFloatObject* highFloat = daqExample_toDaqFloat(native.max);
+    daqFloatObject* lowFloat = exdaq_toDaqFloat(native.min);
+    daqFloatObject* highFloat = exdaq_toDaqFloat(native.max);
 
     daqQueryInterface(lowFloat, DAQ_NUMBER_INTF_ID, &lowValue);
     daqQueryInterface(highFloat, DAQ_NUMBER_INTF_ID, &highValue);
@@ -189,17 +189,17 @@ daqRange* daqExample_toDaqRange(struct daqExample_Range native)
     return daq;
 }
 
-struct daqExample_Ratio daqExample_fromDaqRatio(daqRatio* daq)
+struct exdaq_Ratio exdaq_fromDaqRatio(daqRatio* daq)
 {
     int64_t denominator = 0;
     int64_t numerator = 0;
     daqRatio_getDenominator(daq, &denominator);
     daqRatio_getNumerator(daq, &numerator);
-    struct daqExample_Ratio native = { denominator, numerator };
+    struct exdaq_Ratio native = { denominator, numerator };
     return native;
 }
 
-daqRatio* daqExample_toDaqRatio(struct daqExample_Ratio native)
+daqRatio* exdaq_toDaqRatio(struct exdaq_Ratio native)
 {
     daqRatio* daq = NULL;
     daqRatio_createRatio(&daq, native.numerator, native.denominator);

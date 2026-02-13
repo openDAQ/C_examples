@@ -20,26 +20,26 @@ struct daqExample_Coordinates daqExample_fromDaqCoordinates(daqStruct* daq)
     daqBaseObject* value = NULL;
     daqBaseObject* integerValue = NULL;
 
-    daqString* fieldName = daqExample_toDaqString("x");
+    daqString* fieldName = exdaq_toDaqString("x");
     daqStruct_get(daq, fieldName, &value);
     daqQueryInterface(value, DAQ_INTEGER_INTF_ID, &integerValue);
-    native.x = daqExample_fromDaqInteger((daqInteger*) integerValue);
+    native.x = exdaq_fromDaqInteger((daqInteger*) integerValue);
     daqReleaseRef(integerValue);
     daqReleaseRef(value);
     daqReleaseRef(fieldName);
 
-    fieldName = daqExample_toDaqString("y");
+    fieldName = exdaq_toDaqString("y");
     daqStruct_get(daq, fieldName, &value);
     daqQueryInterface(value, DAQ_INTEGER_INTF_ID, &integerValue);
-    native.y = daqExample_fromDaqInteger((daqInteger*) integerValue);
+    native.y = exdaq_fromDaqInteger((daqInteger*) integerValue);
     daqReleaseRef(integerValue);
     daqReleaseRef(value);
     daqReleaseRef(fieldName);
 
-    fieldName = daqExample_toDaqString("z");
+    fieldName = exdaq_toDaqString("z");
     daqStruct_get(daq, fieldName, &value);
     daqQueryInterface(value, DAQ_INTEGER_INTF_ID, &integerValue);
-    native.z = daqExample_fromDaqInteger((daqInteger*) integerValue);
+    native.z = exdaq_fromDaqInteger((daqInteger*) integerValue);
     daqReleaseRef(integerValue);
     daqReleaseRef(value);
     daqReleaseRef(fieldName);
@@ -50,25 +50,25 @@ struct daqExample_Coordinates daqExample_fromDaqCoordinates(daqStruct* daq)
 daqStruct* daqExample_toDaqCoordinates(struct daqExample_Coordinates native, daqTypeManager* typeManager)
 {
     daqStructBuilder* builder = NULL;
-    daqStructBuilder_createStructBuilder(&builder, daqExample_toDaqString("DAQ_Coordinates"), typeManager);
+    daqStructBuilder_createStructBuilder(&builder, exdaq_toDaqString("DAQ_Coordinates"), typeManager);
 
     daqString* fieldName = NULL;
     daqInteger* fieldValue = NULL;
 
-    fieldName = daqExample_toDaqString("x");
-    fieldValue = daqExample_toDaqInteger(native.x);
+    fieldName = exdaq_toDaqString("x");
+    fieldValue = exdaq_toDaqInteger(native.x);
     daqStructBuilder_set(builder, fieldName, (daqBaseObject*) fieldValue);
     daqReleaseRef(fieldName);
     daqReleaseRef(fieldValue);
 
-    fieldName = daqExample_toDaqString("y");
-    fieldValue = daqExample_toDaqInteger(native.y);
+    fieldName = exdaq_toDaqString("y");
+    fieldValue = exdaq_toDaqInteger(native.y);
     daqStructBuilder_set(builder, fieldName, (daqBaseObject*) fieldValue);
     daqReleaseRef(fieldName);
     daqReleaseRef(fieldValue);
 
-    fieldName = daqExample_toDaqString("z");
-    fieldValue = daqExample_toDaqInteger(native.z);
+    fieldName = exdaq_toDaqString("z");
+    fieldValue = exdaq_toDaqInteger(native.z);
     daqStructBuilder_set(builder, fieldName, (daqBaseObject*) fieldValue);
     daqReleaseRef(fieldName);
     daqReleaseRef(fieldValue);
@@ -91,25 +91,22 @@ daqStruct* daqExample_toDaqCoordinates(struct daqExample_Coordinates native, daq
  */
 enum daqExample_ComponentStatusTypeEnum daqExample_fromDaqCompStatusTypeEnum(daqEnumeration* daq)
 {
-    enum daqExample_ComponentStatusTypeEnum native = daqExample_ComponentStatusType_Error;
-    int64_t temp = -1;
-    daqEnumeration_getIntValue(daq, &temp);
+    int64_t intValue = -1;
+    daqEnumeration_getIntValue(daq, &intValue);
 
-    native = temp;
-
-    return native;
+    return intValue;
 }
 
 daqEnumeration* daqExample_toCompStatusTypeEnum(enum daqExample_ComponentStatusTypeEnum native, daqTypeManager* typeManager)
 {
     daqEnumeration* daq = NULL;
-    daqInteger* tempInt = daqExample_toDaqInteger(native);
-    daqString* temp = daqExample_toDaqString("ComponentStatusType");
+    daqInteger* valueInt = exdaq_toDaqInteger(native);
+    daqString* valueName = exdaq_toDaqString("ComponentStatusType");
 
-    daqEnumeration_createEnumerationWithIntValue(&daq, temp, tempInt, typeManager);
+    daqEnumeration_createEnumerationWithIntValue(&daq, valueName, valueInt, typeManager);
 
-    daqReleaseRef(temp);
-    daqReleaseRef(tempInt);
+    daqReleaseRef(valueName);
+    daqReleaseRef(valueInt);
     return daq;
 }
 
