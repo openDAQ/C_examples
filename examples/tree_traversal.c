@@ -149,8 +149,8 @@ void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
         printDaqFormattedString("Device: %s\n", localId);
     }
 
-    // IOFolder is a SPECIAL TYPE of FOLDER that only accepts
-    // IChannel and IIoFolderConfig components.
+    // IOFolder is a special type of folder that only accepts
+    // Channels and IOFolderConfig components.
     daqFolder* ioFolder = NULL;
     daqDevice_getInputsOutputsFolder(device, &ioFolder);
     if (ioFolder != NULL)
@@ -197,7 +197,7 @@ void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
 
 void printDaqChannel(daqBaseObject* baseObject, uint8_t indent)
 {
-    // Channels represent physical sensors in openDAQ.
+    // Channels represent Physical IO in openDAQ.
     // Their internal structure is the same as that of the function block.
     printDaqFunctionBlock(baseObject, indent);
 }
