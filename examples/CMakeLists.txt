@@ -11,8 +11,10 @@ set(EXAMPLE_SOURCES
     read_with_formatted_timestamps.c
     print_data_descriptor_and_calculater_sample_rate.c
     create_and_read_sample_rate_buffers.c
+    simple_properties_display_handling.c
+    basic_conversions_example.c
+    advanced_conversions_example.c
     multi_reader_read_same_rates.c)
-
 
 foreach(src ${EXAMPLE_SOURCES})
     get_filename_component(exec_name ${src} NAME_WLE)

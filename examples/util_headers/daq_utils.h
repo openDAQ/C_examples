@@ -58,6 +58,11 @@ static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tic
  */
 static inline int checkIsLinearRule(daqDataRule* dataRule);
 
+/*
+ * Function checks if the daqString object contains an empty string ("")
+ */
+static inline uint8_t isDaqStringEmpty(daqString* string);
+
 void daqSleepMs(int milliseconds)
 {
 #ifdef _WIN32
@@ -176,7 +181,14 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelOff);
 
-    daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
+    daqErrCode err = 0;
+    err = daqInstanceBuilder_build(instanceBuilder, instance);
+
+    if (err != 0)
+    {
+        printf("Error occured when creating simulator device.");
+        return DAQ_FAILED(err);
+    }
 
     daqReleaseRef(modulePath);
     daqReleaseRef(instanceBuilder);
@@ -389,4 +401,11 @@ static inline int checkIsLinearRule(daqDataRule* dataRule)
     daqDataRule_getType(dataRule, &dataRuleType);
 
     return dataRuleType == daqDataRuleTypeLinear;
+}
+
+static inline uint8_t isDaqStringEmpty(daqString* string)
+{
+    daqConstCharPtr stringConstChar;
+    daqString_getCharPtr(string, &stringConstChar);
+    return (strcmp(stringConstChar, "") == 0);
 }
