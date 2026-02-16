@@ -5,7 +5,7 @@
 #include <daq_c_conversions.h>
 
  // Custom struct type
-struct exdaq_internal_Coordinates
+struct exdaq_Coordinates
 {
     int64_t x;
     int64_t y;
@@ -13,7 +13,7 @@ struct exdaq_internal_Coordinates
 };
 
 // Standard enum
-enum exdaq_internal_ComponentStatusTypeEnum
+enum exdaq_ComponentStatusTypeEnum
 {
     daqExample_ComponentStatusType_Ok = 0,
     daqExample_ComponentStatusType_Warning,

@@ -13,9 +13,9 @@
  * from C to openDAQ a pointer to the TypeManager is needed because
  * of the way openDAQ structs are implemented.
  */
-struct exdaq_internal_Coordinates fromDaqCoordinates(daqStruct* daq)
+struct exdaq_Coordinates fromDaqCoordinates(daqStruct* daq)
 {
-    struct exdaq_internal_Coordinates native = { 0,0,0 };
+    struct exdaq_Coordinates native = { 0,0,0 };
 
     daqBaseObject* value = NULL;
     daqBaseObject* integerValue = NULL;
@@ -47,7 +47,7 @@ struct exdaq_internal_Coordinates fromDaqCoordinates(daqStruct* daq)
     return native;
 }
 
-daqStruct* toDaqCoordinates(struct exdaq_internal_Coordinates native, daqTypeManager* typeManager)
+daqStruct* toDaqCoordinates(struct exdaq_Coordinates native, daqTypeManager* typeManager)
 {
     daqStructBuilder* builder = NULL;
     daqStructBuilder_createStructBuilder(&builder, exdaq_toDaqString("DAQ_Coordinates"), typeManager);
@@ -89,7 +89,7 @@ daqStruct* toDaqCoordinates(struct exdaq_internal_Coordinates native, daqTypeMan
  * from C to openDAQ a pointer to the TypeManager is needed because
  * of the way openDAQ enumeration is implemented.
  */
-enum exdaq_internal_ComponentStatusTypeEnum fromDaqCompStatusTypeEnum(daqEnumeration* daq)
+enum exdaq_ComponentStatusTypeEnum fromDaqCompStatusTypeEnum(daqEnumeration* daq)
 {
     int64_t intValue = -1;
     daqEnumeration_getIntValue(daq, &intValue);
@@ -97,7 +97,7 @@ enum exdaq_internal_ComponentStatusTypeEnum fromDaqCompStatusTypeEnum(daqEnumera
     return intValue;
 }
 
-daqEnumeration* toCompStatusTypeEnum(enum exdaq_internal_ComponentStatusTypeEnum native, daqTypeManager* typeManager)
+daqEnumeration* toCompStatusTypeEnum(enum exdaq_ComponentStatusTypeEnum native, daqTypeManager* typeManager)
 {
     daqEnumeration* daq = NULL;
     daqInteger* valueInt = exdaq_toDaqInteger(native);
@@ -125,18 +125,18 @@ int main()
     daqTypeManager* typeManager = NULL;
     daqContext_getTypeManager(context, &typeManager);
 
-    enum exdaq_internal_ComponentStatusTypeEnum enumStatusType = daqExample_ComponentStatusType_Error;
+    enum exdaq_ComponentStatusTypeEnum enumStatusType = daqExample_ComponentStatusType_Error;
     daqEnumeration* daqEnum = toCompStatusTypeEnum(enumStatusType, typeManager);
-    enum exdaq_internal_ComponentStatusTypeEnum enumStatusType2 = fromDaqCompStatusTypeEnum(daqEnum);
+    enum exdaq_ComponentStatusTypeEnum enumStatusType2 = fromDaqCompStatusTypeEnum(daqEnum);
 
     if (enumStatusType == enumStatusType2)
         printf("Enums are the same after transforming them to and from openDAQ.\n");
     else
         printf("Enums are different!\n");
 
-    struct exdaq_internal_Coordinates nativeCoordinates = {4, 4, 4};
+    struct exdaq_Coordinates nativeCoordinates = {4, 4, 4};
     daqStruct* tempStruct = toDaqCoordinates(nativeCoordinates, typeManager);
-    struct exdaq_internal_Coordinates nativeCoordinates2 = fromDaqCoordinates(tempStruct);
+    struct exdaq_Coordinates nativeCoordinates2 = fromDaqCoordinates(tempStruct);
 
     if (nativeCoordinates.x == nativeCoordinates2.x &&
         nativeCoordinates.y == nativeCoordinates2.y && 
