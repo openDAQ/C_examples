@@ -125,7 +125,7 @@ int main()
     daqTypeManager* typeManager = NULL;
     daqContext_getTypeManager(context, &typeManager);
 
-    enum exdaq_ComponentStatusTypeEnum enumStatusType = daqExample_ComponentStatusType_Error;
+    enum exdaq_ComponentStatusTypeEnum enumStatusType = exdaq_ComponentStatusType_Error;
     daqEnumeration* daqEnum = toCompStatusTypeEnum(enumStatusType, typeManager);
     enum exdaq_ComponentStatusTypeEnum enumStatusType2 = fromDaqCompStatusTypeEnum(daqEnum);
 

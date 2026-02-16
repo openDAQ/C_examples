@@ -223,7 +223,7 @@ void printPropertyDefaultValue(daqProperty* property)
     daqBaseObject* value = NULL;
     daqProperty_getDefaultValue(property, &value);
 
-    determinePrintingProcedure(value, property);
+    determineValuePrintProcedure(value, property);
 
     if (value != NULL)
         daqReleaseRef(value);
@@ -235,7 +235,7 @@ void printPropertyValue(daqProperty* property)
 
     daqProperty_getValue(property, &value);
 
-    determinePrintingProcedure(value, property);
+    determineValuePrintProcedure(value, property);
 
     if (value != NULL)
         daqReleaseRef(value);
