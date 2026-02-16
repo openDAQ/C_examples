@@ -58,6 +58,11 @@ static inline daqErrCode calculateSampleRate(daqSizeT* sampleRate, daqRatio* tic
  */
 static inline int checkIsLinearRule(daqDataRule* dataRule);
 
+/*
+ * Function checks if the daqString object contains an empty string ("")
+ */
+static inline uint8_t isDaqStringEmpty(daqString* string);
+
 void daqSleepMs(int milliseconds)
 {
 #ifdef _WIN32
@@ -124,13 +129,32 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqReleaseRef(serialNumberDefaultValue);
     daqReleaseRef(serialNumberPropertyName);
 
+    daqProperty* numberOfChannelsProperty = NULL;
+
+    daqBoolean* numberOfChannelsVisible = NULL;
+    daqBoolean_createBoolean(&numberOfChannelsVisible, True);
+
+    daqString* numberOfChannelsPropertyName = NULL;
+    daqString_createString(&numberOfChannelsPropertyName, "NumberOfChannels");
+
+    daqInteger* numberOfChannelsDefaultValue = NULL;
+    daqInteger_createInteger(&numberOfChannelsDefaultValue, 8);
+
+    daqProperty_createIntProperty(&numberOfChannelsProperty, numberOfChannelsPropertyName, numberOfChannelsDefaultValue, numberOfChannelsVisible);
+
+    daqReleaseRef(numberOfChannelsVisible);
+    daqReleaseRef(numberOfChannelsDefaultValue);
+    daqReleaseRef(numberOfChannelsPropertyName);
+
     daqPropertyObject_addProperty(config, nameProperty);
     daqPropertyObject_addProperty(config, localIdProperty);
     daqPropertyObject_addProperty(config, serialNumberProperty);
+    daqPropertyObject_addProperty(config, numberOfChannelsProperty);
 
     daqReleaseRef(nameProperty);
     daqReleaseRef(localIdProperty);
     daqReleaseRef(serialNumberProperty);
+    daqReleaseRef(numberOfChannelsProperty);
 
     daqInstanceBuilder* instanceBuilder = NULL;
 
@@ -157,7 +181,14 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqInstanceBuilder_setGlobalLogLevel(instanceBuilder, daqLogLevelOff);
 
-    daqInstance_createInstanceFromBuilder(instance, instanceBuilder);
+    daqErrCode err = 0;
+    err = daqInstanceBuilder_build(instanceBuilder, instance);
+
+    if (err != 0)
+    {
+        printf("Error occured when creating simulator device.");
+        return DAQ_FAILED(err);
+    }
 
     daqReleaseRef(modulePath);
     daqReleaseRef(instanceBuilder);
@@ -370,4 +401,11 @@ static inline int checkIsLinearRule(daqDataRule* dataRule)
     daqDataRule_getType(dataRule, &dataRuleType);
 
     return dataRuleType == daqDataRuleTypeLinear;
+}
+
+static inline uint8_t isDaqStringEmpty(daqString* string)
+{
+    daqConstCharPtr stringConstChar;
+    daqString_getCharPtr(string, &stringConstChar);
+    return (strcmp(stringConstChar, "") == 0);
 }
