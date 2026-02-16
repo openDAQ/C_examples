@@ -15,9 +15,9 @@ struct exdaq_Coordinates
 // Standard enum
 enum exdaq_ComponentStatusTypeEnum
 {
-    daqExample_ComponentStatusType_Ok = 0,
-    daqExample_ComponentStatusType_Warning,
-    daqExample_ComponentStatusType_Error
+    exdaq_ComponentStatusType_Ok = 0,
+    exdaq_ComponentStatusType_Warning,
+    exdaq_ComponentStatusType_Error
 };
 
 // Adds Coodinates struct and ComponentStatusTypeEnum to types in Type Manager
