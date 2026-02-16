@@ -127,7 +127,7 @@ daqFloat exdaq_fromDaqFloat(daqFloatObject* daq)
 
 daqFloatObject* exdaq_toDaqFloat(daqFloat native)
 {
-    daqFloatObject* daq = 0;
+    daqFloatObject* daq = NULL;
     daqFloatObject_createFloatObject(&daq, native);
     return daq;
 }

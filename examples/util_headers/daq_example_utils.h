@@ -1,10 +1,11 @@
 /*
- * Disclamer: The following functions are 
+ * Disclamer: The following functions are used only for demonstration purposes 
+ * and do not represent the corrent way of using openDAQ API.
  */
 #include <daq_c_conversions.h>
 
  // Custom struct type
-struct daqExample_Coordinates
+struct exdaq_internal_Coordinates
 {
     int64_t x;
     int64_t y;
@@ -12,7 +13,7 @@ struct daqExample_Coordinates
 };
 
 // Standard enum
-enum daqExample_ComponentStatusTypeEnum
+enum exdaq_internal_ComponentStatusTypeEnum
 {
     daqExample_ComponentStatusType_Ok = 0,
     daqExample_ComponentStatusType_Warning,
@@ -20,7 +21,7 @@ enum daqExample_ComponentStatusTypeEnum
 };
 
 // Adds Coodinates struct and ComponentStatusTypeEnum to types in Type Manager
-void daqExample_addCoordinateStructToTypeManager(daqContext* context)
+void exdaq_internal_addCoordinateStructToTypeManager(daqContext* context)
 {
     daqTypeManager* typeManager = NULL;
     daqContext_getTypeManager(context, &typeManager);
@@ -62,7 +63,7 @@ void daqExample_addCoordinateStructToTypeManager(daqContext* context)
     daqReleaseRef(typeManager);
 }
 
-void daqExample_addCustomStructAndEnumProp(daqDevice* device)
+void exdaq_internal_addCustomStructAndEnumProp(daqDevice* device)
 {
     daqTypeManager* typeManager = NULL;
     daqContext* context = NULL;
@@ -110,9 +111,9 @@ void daqExample_addCustomStructAndEnumProp(daqDevice* device)
     daqReleaseRef(builder);
 }
 
-void daqExmaple_addCustomTypes(daqInstance* instance)
+void exdaq_internal_addCustomTypes(daqInstance* instance)
 {
     daqContext* context = NULL;
     daqComponent_getContext((daqComponent*)instance, &context);
-    daqExample_addCoordinateStructToTypeManager(context);
+    exdaq_internal_addCoordinateStructToTypeManager(context);
 }

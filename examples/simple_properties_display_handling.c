@@ -41,7 +41,7 @@ void printPropertyTree(daqPropertyObject* propertyObject)
         else
         {
             printf("- Value: ");
-            printPropertyValueOrDefault(property, False);
+            printPropertyValue(property);
             printf("\n");
         }
 

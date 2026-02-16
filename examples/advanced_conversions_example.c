@@ -13,9 +13,9 @@
  * from C to openDAQ a pointer to the TypeManager is needed because
  * of the way openDAQ structs are implemented.
  */
-struct daqExample_Coordinates daqExample_fromDaqCoordinates(daqStruct* daq)
+struct exdaq_internal_Coordinates fromDaqCoordinates(daqStruct* daq)
 {
-    struct daqExample_Coordinates native = { 0,0,0 };
+    struct exdaq_internal_Coordinates native = { 0,0,0 };
 
     daqBaseObject* value = NULL;
     daqBaseObject* integerValue = NULL;
@@ -47,7 +47,7 @@ struct daqExample_Coordinates daqExample_fromDaqCoordinates(daqStruct* daq)
     return native;
 }
 
-daqStruct* daqExample_toDaqCoordinates(struct daqExample_Coordinates native, daqTypeManager* typeManager)
+daqStruct* toDaqCoordinates(struct exdaq_internal_Coordinates native, daqTypeManager* typeManager)
 {
     daqStructBuilder* builder = NULL;
     daqStructBuilder_createStructBuilder(&builder, exdaq_toDaqString("DAQ_Coordinates"), typeManager);
@@ -89,7 +89,7 @@ daqStruct* daqExample_toDaqCoordinates(struct daqExample_Coordinates native, daq
  * from C to openDAQ a pointer to the TypeManager is needed because
  * of the way openDAQ enumeration is implemented.
  */
-enum daqExample_ComponentStatusTypeEnum daqExample_fromDaqCompStatusTypeEnum(daqEnumeration* daq)
+enum exdaq_internal_ComponentStatusTypeEnum fromDaqCompStatusTypeEnum(daqEnumeration* daq)
 {
     int64_t intValue = -1;
     daqEnumeration_getIntValue(daq, &intValue);
@@ -97,7 +97,7 @@ enum daqExample_ComponentStatusTypeEnum daqExample_fromDaqCompStatusTypeEnum(daq
     return intValue;
 }
 
-daqEnumeration* daqExample_toCompStatusTypeEnum(enum daqExample_ComponentStatusTypeEnum native, daqTypeManager* typeManager)
+daqEnumeration* toCompStatusTypeEnum(enum exdaq_internal_ComponentStatusTypeEnum native, daqTypeManager* typeManager)
 {
     daqEnumeration* daq = NULL;
     daqInteger* valueInt = exdaq_toDaqInteger(native);
@@ -114,7 +114,7 @@ int main()
 {
     daqInstance* simulatorInstance = NULL;
     setupSimulator(&simulatorInstance);
-    daqExmaple_addCustomTypes(simulatorInstance);
+    exdaq_internal_addCustomTypes(simulatorInstance);
 
     daqInstance* instance = NULL;
     daqDevice* simulator = NULL;
@@ -125,25 +125,25 @@ int main()
     daqTypeManager* typeManager = NULL;
     daqContext_getTypeManager(context, &typeManager);
 
-    enum daqExample_ComponentStatusTypeEnum enumStatusType = daqExample_ComponentStatusType_Error;
-    daqEnumeration* daqEnum = daqExample_toCompStatusTypeEnum(enumStatusType, typeManager);
-    enum daqExample_ComponentStatusTypeEnum enumStatusType2 = daqExample_fromDaqCompStatusTypeEnum(daqEnum);
+    enum exdaq_internal_ComponentStatusTypeEnum enumStatusType = daqExample_ComponentStatusType_Error;
+    daqEnumeration* daqEnum = toCompStatusTypeEnum(enumStatusType, typeManager);
+    enum exdaq_internal_ComponentStatusTypeEnum enumStatusType2 = fromDaqCompStatusTypeEnum(daqEnum);
 
     if (enumStatusType == enumStatusType2)
-        printf("Structs are the same after transforming them to and from openDAQ.\n");
+        printf("Enums are the same after transforming them to and from openDAQ.\n");
     else
-        printf("Structs are different!\n");
+        printf("Enums are different!\n");
 
-    struct daqExample_Coordinates nativeCoordinates = {4, 4, 4};
-    daqStruct* tempStruct = daqExample_toDaqCoordinates(nativeCoordinates, typeManager);
-    struct daqExample_Coordinates nativeCoordinates2 = daqExample_fromDaqCoordinates(tempStruct);
+    struct exdaq_internal_Coordinates nativeCoordinates = {4, 4, 4};
+    daqStruct* tempStruct = toDaqCoordinates(nativeCoordinates, typeManager);
+    struct exdaq_internal_Coordinates nativeCoordinates2 = fromDaqCoordinates(tempStruct);
 
     if (nativeCoordinates.x == nativeCoordinates2.x &&
         nativeCoordinates.y == nativeCoordinates2.y && 
         nativeCoordinates.z == nativeCoordinates2.z)
-        printf("Enums are the same after transforming them to and from openDAQ.\n");
+        printf("Structs are the same after transforming them to and from openDAQ.\n");
     else
-        printf("Enums are different!\n");
+        printf("Structs are different!\n");
 
     daqReleaseRef(typeManager);
     daqReleaseRef(tempStruct);
