@@ -6,24 +6,24 @@
 
 #include <daq_utils.h>
 
-enum ComponentType
+enum exdaq_ComponentType
 {
-    DaqUnknown = 0,
-    DaqDevice,
-    DaqFunctionBlock,
-    DaqIOFolder,
-    DaqChannel,
-    DaqServer,
-    DaqSignal,
-    DaqFolder,
-    DaqComponent,
-    DaqSyncComponent,
-    DaqInputPort
+    exdaq_ComponentType_Unknown = 0,
+    exdaq_ComponentType_Device,
+    exdaq_ComponentTypeFunctionBlock,
+    exdaq_ComponentType_IOFolder,
+    exdaq_ComponentType_Channel,
+    exdaq_ComponentType_Server,
+    exdaq_ComponentType_Signal,
+    exdaq_ComponentType_Folder,
+    exdaq_ComponentType_Component,
+    exdaq_ComponentType_SyncComponent,
+    exdaq_ComponentType_InputPort
 };
 
-void printDaqObject(daqBaseObject* baseObject, enum ComponentType compType, uint8_t indent);
+void printDaqObject(daqBaseObject* baseObject, enum exdaq_ComponentType compType, uint8_t indent);
 
-enum ComponentType getComponentType(daqBaseObject* baseObject);
+enum exdaq_ComponentType getComponentType(daqBaseObject* baseObject);
 
 void printDaqDevice(daqBaseObject* baseObject, uint8_t indent);
 
@@ -37,43 +37,43 @@ void printDaqServer(daqBaseObject* baseObject, uint8_t indent);
 
 void printDaqSyncComponent(daqBaseObject* baseObject, uint8_t indent);
 
-void printInputPort(daqBaseObject* baseObject, uint8_t indent);
+void printDaqInputPort(daqBaseObject* baseObject, uint8_t indent);
 
 void printDaqSignal(daqBaseObject* baseObject, uint8_t indent);
 
-void printDaqObject(daqBaseObject* baseObject, enum ComponentType compType, uint8_t indent)
+void printDaqObject(daqBaseObject* baseObject, enum exdaq_ComponentType compType, uint8_t indent)
 {
     switch (compType)
     {
-    case DaqDevice:
+    case exdaq_ComponentType_Device:
         printDaqDevice(baseObject, indent);
         break;
 
-    case DaqServer:
+    case exdaq_ComponentType_Server:
         printDaqServer(baseObject, indent);
         break;
 
-    case DaqSyncComponent:
+    case exdaq_ComponentType_SyncComponent:
         printDaqSyncComponent(baseObject, indent);
         break;
 
-    case DaqChannel:
+    case exdaq_ComponentType_Channel:
         printDaqChannel(baseObject, indent);
         break;
 
-    case DaqFunctionBlock:
+    case exdaq_ComponentTypeFunctionBlock:
         printDaqFunctionBlock(baseObject, indent);
         break;
 
-    case DaqFolder:
+    case exdaq_ComponentType_Folder:
         printDaqFolder(baseObject, indent);
         break;
 
-    case DaqInputPort:
-        printInputPort(baseObject, indent);
+    case exdaq_ComponentType_InputPort:
+        printDaqInputPort(baseObject, indent);
         break;
 
-    case DaqSignal:
+    case exdaq_ComponentType_Signal:
         printDaqSignal(baseObject, indent);
         break;
 
@@ -82,36 +82,36 @@ void printDaqObject(daqBaseObject* baseObject, enum ComponentType compType, uint
     }
 }
 
-enum ComponentType getComponentType(daqBaseObject* baseObject)
+enum exdaq_ComponentType getComponentType(daqBaseObject* baseObject)
 {
     if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_DEVICE_INTF_ID))
-        return DaqDevice;
+        return exdaq_ComponentType_Device;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SERVER_INTF_ID))
-        return DaqServer;
+        return exdaq_ComponentType_Server;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SYNC_COMPONENT_INTF_ID))
-        return DaqSyncComponent;
+        return exdaq_ComponentType_SyncComponent;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_CHANNEL_INTF_ID))
-        return DaqChannel;
+        return exdaq_ComponentType_Channel;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_FUNCTION_BLOCK_INTF_ID))
-        return DaqFunctionBlock;
+        return exdaq_ComponentTypeFunctionBlock;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_FOLDER_INTF_ID))
-        return DaqFolder;
+        return exdaq_ComponentType_Folder;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_INPUT_PORT_INTF_ID))
-        return DaqInputPort;
+        return exdaq_ComponentType_InputPort;
 
     else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SIGNAL_INTF_ID))
-        return DaqSignal;
+        return exdaq_ComponentType_Signal;
 
-    return DaqUnknown;
+    return exdaq_ComponentType_Unknown;
 }
 
-void printObjectList(daqList* list, enum ComponentType compType, uint8_t indent)
+void printObjectList(daqList* list, enum exdaq_ComponentType compType, uint8_t indent)
 {
     daqBaseObject* listMember = NULL;
     daqSizeT count = 0;
@@ -120,7 +120,7 @@ void printObjectList(daqList* list, enum ComponentType compType, uint8_t indent)
         return;
     daqList_getItemAt(list, 0, &listMember);
 
-    if (compType == DaqUnknown)
+    if (compType == exdaq_ComponentType_Unknown)
         compType = getComponentType(listMember);
 
     count = 0;
@@ -171,7 +171,7 @@ void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
     daqDevice_getDevices(device, &devices, NULL);
     if (devices != NULL)
     {
-        printObjectList(devices, DaqDevice, indent+1);
+        printObjectList(devices, exdaq_ComponentType_Device, indent+1);
         daqReleaseRef(devices);
     }
 
@@ -179,7 +179,7 @@ void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
     daqDevice_getFunctionBlocks(device, &functionBlocks, NULL);
     if (functionBlocks != NULL)
     {
-        printObjectList(functionBlocks, DaqFunctionBlock, indent+1);
+        printObjectList(functionBlocks, exdaq_ComponentTypeFunctionBlock, indent+1);
         daqReleaseRef(functionBlocks);
     }
 
@@ -187,7 +187,7 @@ void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
     daqDevice_getServers(device, &servers);
     if (servers != NULL)
     {
-        printObjectList(servers, DaqServer, indent+1);
+        printObjectList(servers, exdaq_ComponentType_Server, indent+1);
         daqReleaseRef(servers);
     }
 
@@ -219,7 +219,7 @@ void printDaqFunctionBlock(daqBaseObject* baseObject, uint8_t indent)
     daqFunctionBlock_getFunctionBlocks(functionBlock, &functionBlocks, NULL);
     if (functionBlocks != NULL)
     {
-        printObjectList(functionBlocks, DaqFunctionBlock, indent+1);
+        printObjectList(functionBlocks, exdaq_ComponentTypeFunctionBlock, indent+1);
         daqReleaseRef(functionBlocks);
     }
 
@@ -227,7 +227,7 @@ void printDaqFunctionBlock(daqBaseObject* baseObject, uint8_t indent)
     daqFunctionBlock_getInputPorts(functionBlock, &inputPorts, NULL);
     if (inputPorts != NULL)
     {
-        printObjectList(inputPorts, DaqInputPort, indent+1);
+        printObjectList(inputPorts, exdaq_ComponentType_InputPort, indent+1);
         daqReleaseRef(inputPorts);
     }
 
@@ -235,7 +235,7 @@ void printDaqFunctionBlock(daqBaseObject* baseObject, uint8_t indent)
     daqFunctionBlock_getSignals(functionBlock, &listOfSignals, NULL);
     if (listOfSignals != NULL)
     {
-        printObjectList(listOfSignals, DaqSignal, indent+1);
+        printObjectList(listOfSignals, exdaq_ComponentType_Signal, indent+1);
         daqReleaseRef(listOfSignals);
     }
 
@@ -260,7 +260,7 @@ void printDaqFolder(daqBaseObject* baseObject, uint8_t indent)
     daqFolder_getItems(folder, &listOfItems, NULL);
     if (listOfItems != NULL)
     {
-        printObjectList(listOfItems, DaqUnknown, indent+1);
+        printObjectList(listOfItems, exdaq_ComponentType_Unknown, indent+1);
         daqReleaseRef(listOfItems);
     }
 
@@ -286,7 +286,7 @@ void printDaqServer(daqBaseObject* baseObject, uint8_t indent)
     daqServer_getSignals(server, &listOfSignals, NULL);
     if (listOfSignals != NULL)
     {
-        printObjectList(listOfSignals, DaqSignal, indent+1);
+        printObjectList(listOfSignals, exdaq_ComponentType_Signal, indent+1);
         daqReleaseRef(listOfSignals);
     }
 
@@ -311,7 +311,7 @@ void printDaqSyncComponent(daqBaseObject* baseObject, uint8_t indent)
     daqReleaseRef(syncComp);
 }
 
-void printInputPort(daqBaseObject* baseObject, uint8_t indent)
+void printDaqInputPort(daqBaseObject* baseObject, uint8_t indent)
 {
     daqInputPort* inputPort = NULL;
     daqQueryInterface(baseObject, DAQ_INPUT_PORT_INTF_ID, &inputPort);
