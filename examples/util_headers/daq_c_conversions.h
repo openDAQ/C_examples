@@ -134,8 +134,8 @@ daqFloatObject* exdaq_toDaqFloat(daqFloat c_value)
 
 struct exdaq_ComplexNumber exdaq_fromDaqComplex(daqComplexNumber* daq_value)
 {
-    double real;
-    double complex;
+    double real = 0;
+    double complex = 0;
     daqComplexNumber_getReal(daq_value, &real);
     daqComplexNumber_getImaginary(daq_value, &complex);
     struct exdaq_ComplexNumber c_value = { real, complex };
@@ -154,15 +154,15 @@ struct exdaq_Range exdaq_fromDaqRange(daqRange* daq_value)
     daqNumber* number = NULL;
     double min = 0;
     double max = 0; 
-
     daqRange_getLowValue(daq_value, &number);
     daqNumber_getFloatValue(number, &min);
     daqReleaseRef(number);
 
     daqRange_getHighValue(daq_value, &number);
     daqNumber_getFloatValue(number, &max);
-    struct exdaq_Range c_value = { min, max };
     daqReleaseRef(number);
+
+    struct exdaq_Range c_value = { min, max };
     return c_value;
 }
 
@@ -171,19 +171,16 @@ daqRange* exdaq_toDaqRange(struct exdaq_Range c_value)
     daqRange* daq_value = NULL;
     daqNumber* lowValue = NULL;
     daqNumber* highValue = NULL;
-
     daqFloatObject* lowFloat = exdaq_toDaqFloat(c_value.min);
-    daqFloatObject* highFloat = exdaq_toDaqFloat(c_value.max);
-
     daqQueryInterface(lowFloat, DAQ_NUMBER_INTF_ID, &lowValue);
-    daqQueryInterface(highFloat, DAQ_NUMBER_INTF_ID, &highValue);
-
     daqReleaseRef(lowFloat);
+
+    daqFloatObject* highFloat = exdaq_toDaqFloat(c_value.max);
+    daqQueryInterface(highFloat, DAQ_NUMBER_INTF_ID, &highValue);
     daqReleaseRef(highFloat);
 
     // Create and populate the daqRange object
     daqRange_createRange(&daq_value, lowValue, highValue);
-
     daqReleaseRef(lowValue);
     daqReleaseRef(highValue);
     return daq_value;
