@@ -23,15 +23,13 @@ enum exdaq_ComponentType
 
 void printDaqObject(daqBaseObject* baseObject, enum exdaq_ComponentType compType, uint8_t indent);
 
-enum exdaq_ComponentType getComponentType(daqBaseObject* baseObject);
-
 void printDaqDevice(daqBaseObject* baseObject, uint8_t indent);
 
 void printDaqChannel(daqBaseObject* baseObject, uint8_t indent);
 
 void printDaqFunctionBlock(daqBaseObject* baseObject, uint8_t indent);
 
-void printDaqFolder(daqBaseObject* baseObject, uint8_t indent);
+void printDaqIOFolder(daqBaseObject* baseObject, uint8_t indent);
 
 void printDaqServer(daqBaseObject* baseObject, uint8_t indent);
 
@@ -66,7 +64,7 @@ void printDaqObject(daqBaseObject* baseObject, enum exdaq_ComponentType compType
         break;
 
     case exdaq_ComponentType_Folder:
-        printDaqFolder(baseObject, indent);
+        printDaqIOFolder(baseObject, indent);
         break;
 
     case exdaq_ComponentType_InputPort:
@@ -82,35 +80,6 @@ void printDaqObject(daqBaseObject* baseObject, enum exdaq_ComponentType compType
     }
 }
 
-enum exdaq_ComponentType getComponentType(daqBaseObject* baseObject)
-{
-    if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_DEVICE_INTF_ID))
-        return exdaq_ComponentType_Device;
-
-    else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SERVER_INTF_ID))
-        return exdaq_ComponentType_Server;
-
-    else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SYNC_COMPONENT_INTF_ID))
-        return exdaq_ComponentType_SyncComponent;
-
-    else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_CHANNEL_INTF_ID))
-        return exdaq_ComponentType_Channel;
-
-    else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_FUNCTION_BLOCK_INTF_ID))
-        return exdaq_ComponentTypeFunctionBlock;
-
-    else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_FOLDER_INTF_ID))
-        return exdaq_ComponentType_Folder;
-
-    else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_INPUT_PORT_INTF_ID))
-        return exdaq_ComponentType_InputPort;
-
-    else if (DAQ_SUPPORTS_INTERFACE(baseObject, DAQ_SIGNAL_INTF_ID))
-        return exdaq_ComponentType_Signal;
-
-    return exdaq_ComponentType_Unknown;
-}
-
 void printObjectList(daqList* list, enum exdaq_ComponentType compType, uint8_t indent)
 {
     daqBaseObject* listMember = NULL;
@@ -119,9 +88,6 @@ void printObjectList(daqList* list, enum exdaq_ComponentType compType, uint8_t i
     if (count <= 0)
         return;
     daqList_getItemAt(list, 0, &listMember);
-
-    if (compType == exdaq_ComponentType_Unknown)
-        compType = getComponentType(listMember);
 
     count = 0;
     daqList_getCount(list, &count);
@@ -150,12 +116,12 @@ void printDaqDevice(daqBaseObject* baseObject, uint8_t indent)
     }
 
     // IOFolder is a special type of folder that only accepts
-    // Channels and IOFolderConfig components.
+    // Channels and IOFolders components.
     daqFolder* ioFolder = NULL;
     daqDevice_getInputsOutputsFolder(device, &ioFolder);
     if (ioFolder != NULL)
     {
-        printDaqFolder(ioFolder, indent+1);
+        printDaqIOFolder(ioFolder, indent+1);
         daqReleaseRef(ioFolder);
     }
 
@@ -243,7 +209,7 @@ void printDaqFunctionBlock(daqBaseObject* baseObject, uint8_t indent)
     daqReleaseRef(functionBlock);
 }
 
-void printDaqFolder(daqBaseObject* baseObject, uint8_t indent)
+void printDaqIOFolder(daqBaseObject* baseObject, uint8_t indent)
 {
     daqFolder* folder = NULL;
     daqQueryInterface(baseObject, DAQ_FOLDER_INTF_ID, &folder);
@@ -253,18 +219,49 @@ void printDaqFolder(daqBaseObject* baseObject, uint8_t indent)
     if (localId != NULL)
     {
         printf("%*c", indent, ' ');
-        printDaqFormattedString("Folder: %s\n", localId);
+        printDaqFormattedString("IOFolder: %s\n", localId);
+        daqReleaseRef(localId);
     }
 
     daqList* listOfItems = NULL;
     daqFolder_getItems(folder, &listOfItems, NULL);
-    if (listOfItems != NULL)
+
+    daqSizeT count = 0;
+    daqList_getCount(listOfItems, &count);
+
+    if (listOfItems == NULL)
     {
-        printObjectList(listOfItems, exdaq_ComponentType_Unknown, indent+1);
-        daqReleaseRef(listOfItems);
+        daqReleaseRef(folder);
+        return;
     }
 
-    daqReleaseRef(localId);
+    daqList* listOfFolders = NULL;
+    daqList* listOfChannels = NULL;
+    daqBaseObject* item = NULL;
+
+    daqList_createList(&listOfFolders);
+    daqList_createList(&listOfChannels);
+
+    for (daqSizeT i = 0; i < count; i++)
+    {
+        daqList_getItemAt(listOfItems, i, &item);
+        
+        if (DAQ_SUPPORTS_INTERFACE(item, DAQ_FOLDER_INTF_ID))
+        {
+            daqList_pushBack(listOfFolders, item);
+        }
+        else if (DAQ_SUPPORTS_INTERFACE(item, DAQ_SIGNAL_INTF_ID))
+        {
+            daqList_pushBack(listOfChannels, item);
+        }
+    }
+
+    printObjectList(listOfFolders, exdaq_ComponentType_Folder, indent+1);
+    printObjectList(listOfChannels, exdaq_ComponentType_Signal, indent+1);
+    daqReleaseRef(listOfFolders);
+    daqReleaseRef(listOfChannels);
+    daqReleaseRef(listOfItems);
+
     daqReleaseRef(folder);
 }
 
