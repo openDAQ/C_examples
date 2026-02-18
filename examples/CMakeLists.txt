@@ -14,7 +14,8 @@ set(EXAMPLE_SOURCES
     simple_properties_display_handling.c
     basic_conversions_example.c
     advanced_conversions_example.c
-    multi_reader_read_same_rates.c)
+    multi_reader_read_same_rates.c
+    tree_traversal.c)
 
 foreach(src ${EXAMPLE_SOURCES})
     get_filename_component(exec_name ${src} NAME_WLE)
