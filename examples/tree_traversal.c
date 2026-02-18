@@ -11,11 +11,10 @@ enum exdaq_ComponentType
     exdaq_ComponentType_Unknown = 0,
     exdaq_ComponentType_Device,
     exdaq_ComponentTypeFunctionBlock,
-    exdaq_ComponentType_IOFolder,
     exdaq_ComponentType_Channel,
     exdaq_ComponentType_Server,
     exdaq_ComponentType_Signal,
-    exdaq_ComponentType_Folder,
+    exdaq_ComponentType_IOFolder,
     exdaq_ComponentType_Component,
     exdaq_ComponentType_SyncComponent,
     exdaq_ComponentType_InputPort
@@ -63,7 +62,7 @@ void printDaqObject(daqBaseObject* baseObject, enum exdaq_ComponentType compType
         printDaqFunctionBlock(baseObject, indent);
         break;
 
-    case exdaq_ComponentType_Folder:
+    case exdaq_ComponentType_IOFolder:
         printDaqIOFolder(baseObject, indent);
         break;
 
@@ -256,7 +255,7 @@ void printDaqIOFolder(daqBaseObject* baseObject, uint8_t indent)
         }
     }
 
-    printObjectList(listOfFolders, exdaq_ComponentType_Folder, indent+1);
+    printObjectList(listOfFolders, exdaq_ComponentType_IOFolder, indent+1);
     printObjectList(listOfChannels, exdaq_ComponentType_Signal, indent+1);
     daqReleaseRef(listOfFolders);
     daqReleaseRef(listOfChannels);
