@@ -159,7 +159,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqString_createString(&numberOfChannelsPropertyName, "NumberOfChannels");
 
     daqInteger* numberOfChannelsDefaultValue = NULL;
-    daqInteger_createInteger(&numberOfChannelsDefaultValue, 5);
+    daqInteger_createInteger(&numberOfChannelsDefaultValue, 8);
 
     daqPropertyObject_setPropertyValue(configDaqRef, numberOfChannelsPropertyName, numberOfChannelsDefaultValue);
 
