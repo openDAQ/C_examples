@@ -74,90 +74,7 @@ void daqSleepMs(int milliseconds)
 
 static inline daqErrCode setupSimulator(daqInstance** instance)
 {
-    daqPropertyObject* config = NULL;
-
-    daqPropertyObject_createPropertyObject(&config);
-
-    daqProperty* nameProperty = NULL;
-
-    daqBoolean* nameVisible = NULL;
-    daqBoolean_createBoolean(&nameVisible, True);
-
-    daqString* namePropertyName = NULL;
-    daqString_createString(&namePropertyName, "Name");
-
-    daqString* nameDefaultValue = NULL;
-    daqString_createString(&nameDefaultValue, "Reference device simulator");
-
-    daqProperty_createStringProperty(&nameProperty, namePropertyName, nameDefaultValue, nameVisible);
-
-    daqReleaseRef(nameVisible);
-    daqReleaseRef(nameDefaultValue);
-    daqReleaseRef(namePropertyName);
-
-    daqProperty* localIdProperty = NULL;
-
-    daqBoolean* localIdVisible = NULL;
-    daqBoolean_createBoolean(&localIdVisible, True);
-
-    daqString* localIdPropertyName = NULL;
-    daqString_createString(&localIdPropertyName, "LocalId");
-
-    daqString* localIdDefaultValue = NULL;
-    daqString_createString(&localIdDefaultValue, "RefDevSimulator");
-
-    daqProperty_createStringProperty(&localIdProperty, localIdPropertyName, localIdDefaultValue, localIdVisible);
-
-    daqReleaseRef(localIdVisible);
-    daqReleaseRef(localIdDefaultValue);
-    daqReleaseRef(localIdPropertyName);
-
-    daqProperty* serialNumberProperty = NULL;
-
-    daqBoolean* serialNumberVisible = NULL;
-    daqBoolean_createBoolean(&serialNumberVisible, True);
-
-    daqString* serialNumberPropertyName = NULL;
-    daqString_createString(&serialNumberPropertyName, "SerialNumber");
-
-    daqString* serialNumberDefaultValue = NULL;
-    daqString_createString(&serialNumberDefaultValue, "sim01");
-
-    daqProperty_createStringProperty(&serialNumberProperty, serialNumberPropertyName, serialNumberDefaultValue, serialNumberVisible);
-
-    daqReleaseRef(serialNumberVisible);
-    daqReleaseRef(serialNumberDefaultValue);
-    daqReleaseRef(serialNumberPropertyName);
-
-    daqProperty* numberOfChannelsProperty = NULL;
-
-    daqBoolean* numberOfChannelsVisible = NULL;
-    daqBoolean_createBoolean(&numberOfChannelsVisible, True);
-
-    daqString* numberOfChannelsPropertyName = NULL;
-    daqString_createString(&numberOfChannelsPropertyName, "NumberOfChannels");
-
-    daqInteger* numberOfChannelsDefaultValue = NULL;
-    daqInteger_createInteger(&numberOfChannelsDefaultValue, 8);
-
-    daqProperty_createIntProperty(&numberOfChannelsProperty, numberOfChannelsPropertyName, numberOfChannelsDefaultValue, numberOfChannelsVisible);
-
-    daqReleaseRef(numberOfChannelsVisible);
-    daqReleaseRef(numberOfChannelsDefaultValue);
-    daqReleaseRef(numberOfChannelsPropertyName);
-
-    daqPropertyObject_addProperty(config, nameProperty);
-    daqPropertyObject_addProperty(config, localIdProperty);
-    daqPropertyObject_addProperty(config, serialNumberProperty);
-    daqPropertyObject_addProperty(config, numberOfChannelsProperty);
-
-    daqReleaseRef(nameProperty);
-    daqReleaseRef(localIdProperty);
-    daqReleaseRef(serialNumberProperty);
-    daqReleaseRef(numberOfChannelsProperty);
-
     daqInstanceBuilder* instanceBuilder = NULL;
-
     daqInstanceBuilder_createInstanceBuilder(&instanceBuilder);
 
     daqString* discoveryServer = NULL;
@@ -165,14 +82,7 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqInstanceBuilder_addDiscoveryServer(instanceBuilder, discoveryServer);
 
-    daqString* rootDeviceName = NULL;
-    daqString_createString(&rootDeviceName, "daqref://device0");
-
-    daqInstanceBuilder_setRootDevice(instanceBuilder, rootDeviceName, config);
-
-    daqReleaseRef(config);
     daqReleaseRef(discoveryServer);
-    daqReleaseRef(rootDeviceName);
 
     daqString* modulePath = NULL;
     daqString_createString(&modulePath, MODULE_PATH);
@@ -192,7 +102,79 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
 
     daqReleaseRef(modulePath);
     daqReleaseRef(instanceBuilder);
+    
+    daqPropertyObject* config = NULL;
+    daqDevice_createDefaultAddDeviceConfig((daqDevice*)*instance, &config);
 
+    daqBaseObject* configObj = NULL;
+    daqString* configStr = NULL;
+    daqString_createString(&configStr, "Device");
+    daqPropertyObject_getPropertyValue(config, configStr, &configObj);
+    daqPropertyObject* configDevice = daqQueryInterfacePtr(configObj, DAQ_PROPERTY_OBJECT_INTF_ID);
+
+    daqReleaseRef(configObj);
+    daqReleaseRef(configStr);
+
+    daqString_createString(&configStr, "daqref");
+    daqPropertyObject_getPropertyValue(configDevice, configStr, &configObj);
+
+    daqPropertyObject* configDaqRef = daqQueryInterfacePtr(configObj, DAQ_PROPERTY_OBJECT_INTF_ID);
+    daqReleaseRef(configStr);
+    daqReleaseRef(configObj);
+
+    daqString* namePropertyName = NULL;
+    daqString_createString(&namePropertyName, "Name");
+
+    daqString* nameDefaultValue = NULL;
+    daqString_createString(&nameDefaultValue, "Reference device simulator");
+
+    daqPropertyObject_setPropertyValue(configDaqRef, namePropertyName, nameDefaultValue);
+
+    daqReleaseRef(namePropertyName);
+    daqReleaseRef(nameDefaultValue);
+
+    daqString* localIdPropertyName = NULL;
+    daqString_createString(&localIdPropertyName, "LocalId");
+
+    daqString* localIdDefaultValue = NULL;
+    daqString_createString(&localIdDefaultValue, "RefDevSimulator");
+
+    daqPropertyObject_setPropertyValue(configDaqRef, localIdPropertyName, localIdDefaultValue);
+
+    daqReleaseRef(localIdPropertyName);
+    daqReleaseRef(localIdDefaultValue);
+
+    daqString* serialNumberPropertyName = NULL;
+    daqString_createString(&serialNumberPropertyName, "SerialNumber");
+
+    daqString* serialNumberDefaultValue = NULL;
+    daqString_createString(&serialNumberDefaultValue, "sim01");
+
+    daqPropertyObject_setPropertyValue(configDaqRef, serialNumberPropertyName, serialNumberDefaultValue);
+
+    daqReleaseRef(serialNumberPropertyName);
+    daqReleaseRef(serialNumberDefaultValue);
+
+    daqString* numberOfChannelsPropertyName = NULL;
+    daqString_createString(&numberOfChannelsPropertyName, "NumberOfChannels");
+
+    daqInteger* numberOfChannelsDefaultValue = NULL;
+    daqInteger_createInteger(&numberOfChannelsDefaultValue, 8);
+
+    daqPropertyObject_setPropertyValue(configDaqRef, numberOfChannelsPropertyName, numberOfChannelsDefaultValue);
+
+    daqReleaseRef(numberOfChannelsPropertyName);
+    daqReleaseRef(numberOfChannelsDefaultValue);
+
+    daqString* rootDeviceName = NULL;
+    daqString_createString(&rootDeviceName, "daqref://device0");
+
+    daqInstance_setRootDevice(*instance, rootDeviceName, config);
+
+    daqReleaseRef(rootDeviceName);
+    daqReleaseRef(configDaqRef);
+    daqReleaseRef(configDevice);
+    daqReleaseRef(config);
 
     daqPropertyObject* serverConfig = NULL;
     daqPropertyObject_createPropertyObject(&serverConfig);
