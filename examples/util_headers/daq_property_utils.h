@@ -150,6 +150,8 @@ char* exdaq_CoreTypeToString(daqCoreType type)
         return "Enumeration";
     case daqCtUndefined:
         return "Undefined";
+    default:
+        return "Undefined";
     }
 }
 

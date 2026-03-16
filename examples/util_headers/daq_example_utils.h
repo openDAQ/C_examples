@@ -1,6 +1,6 @@
 /*
- * Disclamer: The following functions are used only for demonstration purposes 
- * and do not represent the corrent way of using openDAQ API.
+ * Disclaimer: The following functions are used only for demonstration purposes
+ * and do not represent the current way of using openDAQ API.
  */
 #include <daq_c_conversions.h>
 
