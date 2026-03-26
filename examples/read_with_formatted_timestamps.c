@@ -94,7 +94,7 @@ int main(void)
 
             daqInt domainValueRounded = (daqInt)domainValue;
             char* dateTimeInString = "";
-            (void)ctime_s(dateTimeInString, 64, &domainValueRounded);
+            dateTimeInString = ctime(&domainValueRounded);
 
             printf("Value: %f, Domain: %f%s, Date and time: %s\n", samples[count - 1], domainValue, unitSymbolCostChar, dateTimeInString);
         }

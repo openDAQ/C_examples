@@ -110,7 +110,8 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqString* configStr = NULL;
     daqString_createString(&configStr, "Device");
     daqPropertyObject_getPropertyValue(config, configStr, &configObj);
-    daqPropertyObject* configDevice = daqQueryInterfacePtr(configObj, DAQ_PROPERTY_OBJECT_INTF_ID);
+    daqPropertyObject* configDevice = NULL;
+    daqQueryInterface(configObj, DAQ_PROPERTY_OBJECT_INTF_ID, &configDevice);
 
     daqReleaseRef(configObj);
     daqReleaseRef(configStr);
@@ -118,7 +119,8 @@ static inline daqErrCode setupSimulator(daqInstance** instance)
     daqString_createString(&configStr, "daqref");
     daqPropertyObject_getPropertyValue(configDevice, configStr, &configObj);
 
-    daqPropertyObject* configDaqRef = daqQueryInterfacePtr(configObj, DAQ_PROPERTY_OBJECT_INTF_ID);
+    daqPropertyObject* configDaqRef = NULL;
+    daqQueryInterface(configObj, DAQ_PROPERTY_OBJECT_INTF_ID, &configDaqRef);
     daqReleaseRef(configStr);
     daqReleaseRef(configObj);
 

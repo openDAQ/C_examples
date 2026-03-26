@@ -2,7 +2,7 @@
 #include <daq_utils.h>
 #include <daq_time_utils.h>
 #include <stdlib.h>
-#include <Windows.h>
+//#include <Windows.h>
 #include <time.h>
 
 /**
@@ -236,7 +236,7 @@ void readDataSameRateSignals(daqList* signals)
 
         daqReleaseRef(statusAsReaderStatus);
         daqReleaseRef(status);
-        Sleep(200);
+        daqSleepMs(200);
     }
 
     freeIfAllocated(dataBuffers, signalCount, buffersAllocated);

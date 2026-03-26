@@ -7,13 +7,28 @@
 
 #include <daq_property_utils.h>
 
+// Change the values of all basic types of properties (int, float, bool, string, ...)
+// 
+
+
 void setPropValue(daqProperty* property, void* value)
 {
-
+    
 }
 
 
 int main()
 {
+    daqInstance* simulatorInstance = NULL;
+    setupSimulator(&simulatorInstance);
 
+    daqInstance* instance = NULL;
+    daqDevice* simulator = NULL;
+    addSimulator(&simulator, &instance);
+
+
+
+    daqReleaseRef(simulator);
+    daqReleaseRef(instance);
+    daqReleaseRef(simulatorInstance);
 }

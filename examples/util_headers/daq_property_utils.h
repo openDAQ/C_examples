@@ -19,6 +19,19 @@ enum exdaq_PropertyType
     exdaq_propertyType_unknown
 };
 
+// Add the functions for verification of input depending on the type of the property (integer, string, float, ...)
+void exdaq_validateSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType suggestedValuesItemType, daqProperty* property);
+void validateDaqInt(daqBaseObject* selectedValueObj, daqProperty* property);
+void validateDaqFloat(daqBaseObject* selectedValueObj, daqProperty* property);
+void validateDaqBool(daqBaseObject* selectedValueObj, daqProperty* property);
+void validateDaqString(daqBaseObject* selectedValueObj, daqProperty* property);
+void validateDaqRatio(daqBaseObject* selectedValueObj, daqProperty* property);
+void validateDaqEnumeration(daqBaseObject* selectedValueObj, daqProperty* property);
+void validateDaqStruct(daqBaseObject* selectedValueObj, daqProperty* property);
+void validateDaqFunc(daqBaseObject* selectedValueObj, daqProperty* property);
+void validateDaqObject(daqBaseObject* selectedValueObj, daqProperty* property);
+void validateDaqBaseObject(daqBaseObject* selectedValueObj, daqProperty* property);
+
 void exdaq_printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType suggestedValuesItemType);
 char* exdaq_CoreTypeToString(daqCoreType type);
 enum exdaq_PropertyType exdaq_getPropType(daqProperty* property);
@@ -46,6 +59,158 @@ void printDaqPropertySparseSelectionValues(daqProperty* property);
 void printDaqPropertySuggestedValues(daqProperty* property);
 void printDaqPropertyUnit(daqProperty* property);
 void printDaqPropertyCallableInfo(daqProperty* property);
+
+void exdaq_validateSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType suggestedValuesItemType, daqProperty* property)
+{
+    switch (suggestedValuesItemType)
+    {
+    case daqCtInt:
+        {
+        validateDaqInt(selectedValueObj, property);
+        return;
+        }
+    case daqCtFloat:
+        {
+        validateDaqFloat(selectedValueObj, property);
+        return;
+        }
+    case daqCtBool:
+        {
+        validateDaqBool(selectedValueObj, property);
+        return;
+        }
+    case daqCtString:
+        {
+        validateDaqString(selectedValueObj, property);
+        return;
+        }
+    case daqCtRatio:
+        {
+        validateDaqRatio(selectedValueObj, property);
+        return;
+        }
+    case daqCtEnumeration:
+        {
+        validateDaqEnumeration(selectedValueObj, property);
+        return;
+        }
+    case daqCtStruct:
+        {
+        validateDaqStruct(selectedValueObj, property);
+        return;
+        }
+    case daqCtFunc:
+        {
+        validateDaqFunc(selectedValueObj, property);
+        return;
+        }
+    case daqCtProc:
+        {
+        validateDaqFunc(selectedValueObj, property);
+        return;
+        }
+    case daqCtObject:
+        {
+        validateDaqObject(selectedValueObj, property);
+        return;
+        }
+    case daqCtList:
+        {
+            // This one might not be needed
+        return;
+        }
+    case daqCtDict:
+        {
+            // This one might also not be needed
+        return;
+        }
+    default:
+        {
+        validateDaqBaseObject(selectedValueObj, property);
+        return;
+        }
+    }
+}
+
+void validateDaqInt(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+    // Check that the value is within min/max (if they are assigned)
+    daqNumber* min = NULL;
+    daqProperty_getMinValue(property, &min);
+
+    daqNumber* max = NULL;
+    daqProperty_getMaxValue(property, &max);
+
+    daqInt* minInt = NULL;
+    daqNumber_getIntValue(min, minInt);
+    
+    daqInt* maxInt = NULL;
+    daqNumber_getIntValue(max, maxInt);
+
+
+}
+
+void validateDaqFloat(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+    // Check min/max (if assigned)
+    daqNumber* min = NULL;
+    daqProperty_getMinValue(property, &min);
+
+    daqNumber* max = NULL;
+    daqProperty_getMaxValue(property, &max);
+
+
+}
+
+void validateDaqBool(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+    //  \_('_')_/  \/('_')\/  \_('_')_/
+}
+
+void validateDaqString(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+    // Check that the string fits (need to think of a fail case for string, honestly right now it eludes me)
+
+}
+
+void validateDaqRatio(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+    daqRatio* rat = NULL;
+    daqQueryInterface(selectedValueObj, DAQ_RATIO_INTF_ID, &rat);
+
+    daqNumber* numerator = NULL;
+    daqRatio_getNumerator(rat, &numerator);
+
+    daqNumber* denomirator = NULL;
+    daqRatio_getDenominator(rat, &denomirator);
+
+    
+}
+
+void validateDaqEnumeration(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+    // Check for the enumeration (if it is within the correct index??...)
+}
+
+void validateDaqStruct(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+
+}
+
+void validateDaqFunc(daqBaseObject* selectedValueObj, daqProperty* property)
+{ 
+
+}
+
+void validateDaqObject(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+
+}
+
+void validateDaqBaseObject(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+
+}
 
 void exdaq_printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType suggestedValuesItemType)
 {
