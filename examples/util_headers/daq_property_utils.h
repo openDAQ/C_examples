@@ -373,9 +373,21 @@ void determineValuePrintProcedure(daqBaseObject* value, daqProperty* property)
         printDaqList(value, itemType);
         break;
     }
+    case daqPropertyTypeIndexSelection:
+    {
+        // This is similar to suggested values, however it is enforced, 
+        // therefore the behaviour for displaying the values is the same as in a list
+
+        daqCoreType itemType = daqCtUndefined;
+        daqProperty_getItemType(property, &itemType);
+        printDaqList(value, itemType);
+        break;
+    }
     case daqPropertyTypeObject:
+    {
         printf("Object\n");
         return;
+    }
     default:
     {
         printf("Property Value\n");
