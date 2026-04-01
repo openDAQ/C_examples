@@ -24,12 +24,15 @@ void printPropertyTree(daqPropertyObject* propertyObject)
         daqCoreType valueType = daqCtUndefined;
         daqProperty_getValueType(property, &valueType);
 
+        daqPropertyType propType;
+        daqProperty_getPropertyType(property, &propType);
+
         daqBaseObject* propertyValue;
         daqProperty_getValue(property, &propertyValue);
         
         printPropertyMetadata(property);
 
-        if (valueType == daqCtObject)
+        if (propType == daqPropertyTypeObject)
         {
             printf("---\n");
             daqPropertyObject* childPropertyObject = NULL;

@@ -12,7 +12,7 @@ set(DAQMODULES_REF_FB_MODULE_ENABLE_RENDERER ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
     openDAQ
     GIT_REPOSITORY https://github.com/openDAQ/openDAQ.git
-    GIT_TAG v3.30.0
+    GIT_TAG main
     GIT_PROGRESS   ON
 )
 
