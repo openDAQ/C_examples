@@ -21,9 +21,6 @@ void printPropertyTree(daqPropertyObject* propertyObject)
         daqQueryInterface(listItem, DAQ_PROPERTY_INTF_ID, &property);
         daqReleaseRef(listItem);
 
-        daqCoreType valueType = daqCtUndefined;
-        daqProperty_getValueType(property, &valueType);
-
         daqPropertyType propType;
         daqProperty_getPropertyType(property, &propType);
 
