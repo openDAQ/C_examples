@@ -137,7 +137,7 @@ void validateDaqBool(daqBaseObject* selectedValueObj, daqProperty* property)
 void validateDaqString(daqBaseObject* selectedValueObj, daqProperty* property)
 {
     // Check that the string fits (need to think of a fail case for string, honestly right now it eludes me)
-
+    // 
 }
 
 void validateDaqRatio(daqBaseObject* selectedValueObj, daqProperty* property)
@@ -151,7 +151,7 @@ void validateDaqRatio(daqBaseObject* selectedValueObj, daqProperty* property)
     daqNumber* denomirator = NULL;
     daqRatio_getDenominator(rat, &denomirator);
 
-    
+    // Ratio itself is not going to have min max on denominator and numerator...
 }
 
 void validateDaqEnumeration(daqBaseObject* selectedValueObj, daqProperty* property)
@@ -161,22 +161,27 @@ void validateDaqEnumeration(daqBaseObject* selectedValueObj, daqProperty* proper
 
 void validateDaqStruct(daqBaseObject* selectedValueObj, daqProperty* property)
 {
-
+    // This one is difficult to check the validity of. We do not have a unified approach to verifying our Structs.
 }
 
 void validateDaqFunc(daqBaseObject* selectedValueObj, daqProperty* property)
 { 
-
+    // With functions the only true check that we have access to is that we excecute the function in a controlled way (we know a input-output pair, however this is not universally applicable)
 }
 
 void validateDaqObject(daqBaseObject* selectedValueObj, daqProperty* property)
 {
-
+    // Again Objects don't have general checks that can be 
 }
 
 void validateDaqBaseObject(daqBaseObject* selectedValueObj, daqProperty* property)
 {
+    // Here no significant checks need to be performed... (We are assuming that a base object will be put into here)
+}
 
+void validateDaqList(daqBaseObject* selectedValueObj, daqProperty* property)
+{
+    // List
 }
 
 void exdaq_printSimpleCoreTypeValue(daqBaseObject* selectedValueObj, daqCoreType suggestedValuesItemType)
